@@ -78,4 +78,16 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function parseFailure(string $tool, string $message): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'parse_failure',
+                'message' => $message,
+                'tool' => $tool,
+            ],
+        ]);
+    }
 }

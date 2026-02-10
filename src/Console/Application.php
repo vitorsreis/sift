@@ -15,6 +15,7 @@ use Sift\Runtime\ToolLocator;
 use Sift\Runtime\ViewService;
 use Sift\Sift;
 use Sift\Tools\PhpstanToolAdapter;
+use Sift\Tools\PhpunitToolAdapter;
 
 final class Application
 {
@@ -27,6 +28,7 @@ final class Application
             new OptionParser,
             new ToolRegistry([
                 new PhpstanToolAdapter(new ToolLocator),
+                new PhpunitToolAdapter(new ToolLocator),
             ]),
             new JsonRenderer,
             new MarkdownRenderer,
@@ -137,15 +139,20 @@ final class Application
 
         $context = $tool->detectContext($toolArguments);
         $preparedCommand = $tool->prepare(getcwd() ?: '.', $toolArguments, $context);
-        $executionResult = $this->processExecutor->run($preparedCommand);
-        $result = $tool->parse($executionResult, $preparedCommand, $context);
-        $runId = $this->runStore->put(getcwd() ?: '.', $result);
 
-        return [
-            ...$this->resultPayloadFactory->forSize($result, $parsed['size'], $runId),
-            '_pretty' => $parsed['pretty'],
-            '_format' => $parsed['format'],
-        ];
+        try {
+            $executionResult = $this->processExecutor->run($preparedCommand);
+            $result = $tool->parse($executionResult, $preparedCommand, $context);
+            $runId = $this->runStore->put(getcwd() ?: '.', $result);
+
+            return [
+                ...$this->resultPayloadFactory->forSize($result, $parsed['size'], $runId),
+                '_pretty' => $parsed['pretty'],
+                '_format' => $parsed['format'],
+            ];
+        } finally {
+            $this->cleanupTempFiles($preparedCommand);
+        }
     }
 
     /**
@@ -163,5 +170,22 @@ final class Application
         }
 
         return $this->jsonRenderer->render($payload, $pretty);
+    }
+
+    private function cleanupTempFiles(PreparedCommand $preparedCommand): void
+    {
+        $tempFiles = $preparedCommand->metadata['temp_files'] ?? null;
+
+        if (! is_array($tempFiles)) {
+            return;
+        }
+
+        foreach ($tempFiles as $tempFile) {
+            if (! is_string($tempFile) || $tempFile === '' || ! is_file($tempFile)) {
+                continue;
+            }
+
+            @unlink($tempFile);
+        }
     }
 }
