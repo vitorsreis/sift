@@ -13,6 +13,16 @@ interface ToolAdapterInterface
     public function name(): string;
 
     /**
+     * @return list<string>
+     */
+    public function discoveryCandidates(): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function initConfig(): array;
+
+    /**
      * @param  list<string>  $arguments
      * @return array<string, mixed>
      */

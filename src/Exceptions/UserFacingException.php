@@ -90,4 +90,16 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function configAlreadyExists(string $path): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'config_already_exists',
+                'message' => sprintf('The config file `%s` already exists.', $path),
+                'path' => $path,
+            ],
+        ]);
+    }
 }

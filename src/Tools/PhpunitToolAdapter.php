@@ -24,6 +24,28 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
     }
 
     /**
+     * @return list<string>
+     */
+    public function discoveryCandidates(): array
+    {
+        return [
+            'vendor/bin/phpunit.bat',
+            'vendor/bin/phpunit',
+            'phpunit',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function initConfig(): array
+    {
+        return [
+            'enabled' => true,
+        ];
+    }
+
+    /**
      * @param  list<string>  $arguments
      * @return array<string, mixed>
      */
@@ -44,11 +66,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
      */
     public function prepare(string $cwd, array $arguments, array $context): PreparedCommand
     {
-        $resolved = $this->toolLocator->locate($cwd, [
-            'vendor/bin/phpunit.bat',
-            'vendor/bin/phpunit',
-            'phpunit',
-        ]);
+        $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
             throw UserFacingException::toolNotInstalled(

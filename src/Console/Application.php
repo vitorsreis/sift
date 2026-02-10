@@ -9,6 +9,7 @@ use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\FileRunStore;
+use Sift\Runtime\InitService;
 use Sift\Runtime\ProcessExecutor;
 use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolLocator;
@@ -35,6 +36,7 @@ final class Application
             new ProcessExecutor,
             new ResultPayloadFactory,
             new FileRunStore,
+            new InitService(new ToolLocator),
             new ViewService(new FileRunStore),
         );
 
@@ -58,6 +60,7 @@ final class Application
         private readonly ProcessExecutor $processExecutor,
         private readonly ResultPayloadFactory $resultPayloadFactory,
         private readonly FileRunStore $runStore,
+        private readonly InitService $initService,
         private readonly ViewService $viewService,
     ) {}
 
@@ -88,12 +91,29 @@ final class Application
                 'usage' => [
                     'sift help',
                     'sift version',
+                    'sift init',
                     'sift list',
                     'sift <tool> [tool-args]',
                 ],
-                'commands' => ['help', 'version', 'list', '<tool>'],
+                'commands' => ['help', 'version', 'init', 'list', 'view', '<tool>'],
                 '_pretty' => $parsed['pretty'],
                 '_format' => $parsed['format'],
+            ];
+        }
+
+        if ($command === 'init') {
+            $init = $this->optionParser->parseInit($toolArguments);
+            $format = $init['format'] ?? $parsed['format'];
+            $size = $init['size'] ?? $parsed['size'];
+            $pretty = $init['pretty'] ?? $parsed['pretty'];
+
+            return [
+                ...$this->resultPayloadFactory->commandPayload(
+                    $this->initService->initialize(getcwd() ?: '.', $init['force'], $this->toolRegistry),
+                    $size,
+                ),
+                '_pretty' => $pretty,
+                '_format' => $format,
             ];
         }
 

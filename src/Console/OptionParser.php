@@ -173,6 +173,59 @@ final class OptionParser
         ];
     }
 
+    /**
+     * @param  list<string>  $arguments
+     * @return array{force: bool, format: ?string, size: ?string, pretty: ?bool}
+     */
+    public function parseInit(array $arguments): array
+    {
+        $force = false;
+        $format = null;
+        $size = null;
+        $pretty = null;
+
+        foreach ($arguments as $argument) {
+            if (str_starts_with($argument, '--format=')) {
+                $format = $this->parseFormat(substr($argument, 9));
+
+                continue;
+            }
+
+            if (str_starts_with($argument, '--size=')) {
+                $size = $this->parseSize(substr($argument, 7));
+
+                continue;
+            }
+
+            if ($argument === '--pretty') {
+                $pretty = true;
+
+                continue;
+            }
+
+            if ($argument === '--no-pretty') {
+                $pretty = false;
+
+                continue;
+            }
+
+            if ($argument === '--force') {
+                $force = true;
+
+                continue;
+            }
+
+            throw UserFacingException::invalidUsage(sprintf('Unknown init option: %s', $argument));
+        }
+
+        return [
+            'force' => $force,
+            'format' => $format,
+            'size' => $size,
+            'pretty' => $pretty,
+        ];
+    }
+
     private function parseFormat(string $format): string
     {
         return match ($format) {
