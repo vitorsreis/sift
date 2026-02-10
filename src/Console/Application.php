@@ -9,6 +9,7 @@ use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
+use Sift\Runtime\ConfigLoader;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\InitService;
 use Sift\Runtime\ProcessExecutor;
@@ -36,10 +37,11 @@ final class Application
             new MarkdownRenderer,
             new ProcessExecutor,
             new ResultPayloadFactory,
+            new ConfigLoader,
             new FileRunStore,
             new InitService(new ToolLocator),
             new ProjectInspector(new ToolLocator),
-            new ValidateService,
+            new ValidateService(new ConfigLoader),
             new ViewService(new FileRunStore),
         );
 
@@ -66,6 +68,7 @@ final class Application
         private readonly MarkdownRenderer $markdownRenderer,
         private readonly ProcessExecutor $processExecutor,
         private readonly ResultPayloadFactory $resultPayloadFactory,
+        private readonly ConfigLoader $configLoader,
         private readonly FileRunStore $runStore,
         private readonly InitService $initService,
         private readonly ProjectInspector $projectInspector,
@@ -128,7 +131,11 @@ final class Application
         }
 
         if ($command === 'list') {
-            $items = $this->projectInspector->inspect(getcwd() ?: '.', $this->toolRegistry);
+            $items = $this->projectInspector->inspect(
+                getcwd() ?: '.',
+                $this->toolRegistry,
+                $this->configLoader->load(getcwd() ?: '.'),
+            );
 
             return [
                 ...$this->resultPayloadFactory->commandPayload([
