@@ -1,0 +1,44 @@
+{
+  "name": "vitorsreis/sift",
+  "description": "Agent-optimized output for PHP tooling",
+  "keywords": [
+    "php",
+    "agent",
+    "ai",
+    "cli",
+    "tooling",
+    "phpunit",
+    "phpstan"
+  ],
+  "license": "MIT",
+  "type": "library",
+  "homepage": "https://github.com/vitorsreis/sift",
+  "support": {
+    "source": "https://github.com/vitorsreis/sift",
+    "issues": "https://github.com/vitorsreis/sift/issues"
+  },
+  "require": {
+    "php": "^8.3",
+    "ext-json": "*",
+    "symfony/process": "^7.3 || ^8.0"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.24"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sift\\": "src/"
+    }
+  },
+  "bin": [
+    "bin/sift"
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "fmt": "vendor/bin/pint"
+  }
+}
