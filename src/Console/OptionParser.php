@@ -22,27 +22,7 @@ final class OptionParser
 
         foreach ($arguments as $argument) {
             if ($command === null) {
-                if (str_starts_with($argument, '--format=')) {
-                    $format = $this->parseFormat(substr($argument, 9));
-
-                    continue;
-                }
-
-                if (str_starts_with($argument, '--size=')) {
-                    $size = $this->parseSize(substr($argument, 7));
-
-                    continue;
-                }
-
-                if ($argument === '--pretty') {
-                    $pretty = true;
-
-                    continue;
-                }
-
-                if ($argument === '--no-pretty') {
-                    $pretty = false;
-
+                if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
                     continue;
                 }
 
@@ -56,27 +36,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if (str_starts_with($argument, '--format=')) {
-                    $format = $this->parseFormat(substr($argument, 9));
-
-                    continue;
-                }
-
-                if (str_starts_with($argument, '--size=')) {
-                    $size = $this->parseSize(substr($argument, 7));
-
-                    continue;
-                }
-
-                if ($argument === '--pretty') {
-                    $pretty = true;
-
-                    continue;
-                }
-
-                if ($argument === '--no-pretty') {
-                    $pretty = false;
-
+                if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
                     continue;
                 }
 
@@ -109,27 +69,7 @@ final class OptionParser
         $pretty = null;
 
         foreach ($arguments as $argument) {
-            if (str_starts_with($argument, '--format=')) {
-                $format = $this->parseFormat(substr($argument, 9));
-
-                continue;
-            }
-
-            if (str_starts_with($argument, '--size=')) {
-                $size = $this->parseSize(substr($argument, 7));
-
-                continue;
-            }
-
-            if ($argument === '--pretty') {
-                $pretty = true;
-
-                continue;
-            }
-
-            if ($argument === '--no-pretty') {
-                $pretty = false;
-
+            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
                 continue;
             }
 
@@ -185,27 +125,7 @@ final class OptionParser
         $pretty = null;
 
         foreach ($arguments as $argument) {
-            if (str_starts_with($argument, '--format=')) {
-                $format = $this->parseFormat(substr($argument, 9));
-
-                continue;
-            }
-
-            if (str_starts_with($argument, '--size=')) {
-                $size = $this->parseSize(substr($argument, 7));
-
-                continue;
-            }
-
-            if ($argument === '--pretty') {
-                $pretty = true;
-
-                continue;
-            }
-
-            if ($argument === '--no-pretty') {
-                $pretty = false;
-
+            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
                 continue;
             }
 
@@ -237,27 +157,7 @@ final class OptionParser
         $pretty = null;
 
         foreach ($arguments as $argument) {
-            if (str_starts_with($argument, '--format=')) {
-                $format = $this->parseFormat(substr($argument, 9));
-
-                continue;
-            }
-
-            if (str_starts_with($argument, '--size=')) {
-                $size = $this->parseSize(substr($argument, 7));
-
-                continue;
-            }
-
-            if ($argument === '--pretty') {
-                $pretty = true;
-
-                continue;
-            }
-
-            if ($argument === '--no-pretty') {
-                $pretty = false;
-
+            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
                 continue;
             }
 
@@ -269,6 +169,35 @@ final class OptionParser
             'size' => $size,
             'pretty' => $pretty,
         ];
+    }
+
+    private function parseOutputOption(string $argument, ?string &$format, ?string &$size, ?bool &$pretty): bool
+    {
+        if (str_starts_with($argument, '--format=')) {
+            $format = $this->parseFormat(substr($argument, 9));
+
+            return true;
+        }
+
+        if (str_starts_with($argument, '--size=')) {
+            $size = $this->parseSize(substr($argument, 7));
+
+            return true;
+        }
+
+        if ($argument === '--pretty') {
+            $pretty = true;
+
+            return true;
+        }
+
+        if ($argument === '--no-pretty') {
+            $pretty = false;
+
+            return true;
+        }
+
+        return false;
     }
 
     private function parseFormat(string $format): string
