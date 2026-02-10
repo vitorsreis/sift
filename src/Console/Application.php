@@ -22,6 +22,7 @@ use Sift\Sift;
 use Sift\Tools\ComposerAuditToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PhpunitToolAdapter;
+use Sift\Tools\PintToolAdapter;
 
 final class Application
 {
@@ -271,6 +272,7 @@ final class Application
     {
         return new ToolRegistry([
             new ComposerAuditToolAdapter($toolLocator),
+            new PintToolAdapter($toolLocator),
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
         ]);
