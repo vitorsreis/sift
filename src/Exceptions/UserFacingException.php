@@ -66,4 +66,16 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function runNotFound(string $runId): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'run_not_found',
+                'message' => sprintf('The run `%s` was not found in history.', $runId),
+                'run_id' => $runId,
+            ],
+        ]);
+    }
 }

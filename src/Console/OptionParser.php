@@ -95,6 +95,84 @@ final class OptionParser
         ];
     }
 
+    /**
+     * @param  list<string>  $arguments
+     * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, format: ?string, size: ?string, pretty: ?bool}
+     */
+    public function parseView(array $arguments): array
+    {
+        $positionals = [];
+        $limit = 10;
+        $offset = 0;
+        $format = null;
+        $size = null;
+        $pretty = null;
+
+        foreach ($arguments as $argument) {
+            if (str_starts_with($argument, '--format=')) {
+                $format = $this->parseFormat(substr($argument, 9));
+
+                continue;
+            }
+
+            if (str_starts_with($argument, '--size=')) {
+                $size = $this->parseSize(substr($argument, 7));
+
+                continue;
+            }
+
+            if ($argument === '--pretty') {
+                $pretty = true;
+
+                continue;
+            }
+
+            if ($argument === '--no-pretty') {
+                $pretty = false;
+
+                continue;
+            }
+
+            if (str_starts_with($argument, '--limit=')) {
+                $limit = max(1, (int) substr($argument, 8));
+
+                continue;
+            }
+
+            if (str_starts_with($argument, '--offset=')) {
+                $offset = max(0, (int) substr($argument, 9));
+
+                continue;
+            }
+
+            $positionals[] = $argument;
+        }
+
+        if ($positionals === [] || in_array($positionals[0], ['list', 'runs'], true)) {
+            return [
+                'run_id' => null,
+                'scope' => 'runs',
+                'limit' => $limit,
+                'offset' => $offset,
+                'list' => true,
+                'format' => $format,
+                'size' => $size,
+                'pretty' => $pretty,
+            ];
+        }
+
+        return [
+            'run_id' => $positionals[0],
+            'scope' => $positionals[1] ?? 'fuller',
+            'limit' => $limit,
+            'offset' => $offset,
+            'list' => false,
+            'format' => $format,
+            'size' => $size,
+            'pretty' => $pretty,
+        ];
+    }
+
     private function parseFormat(string $format): string
     {
         return match ($format) {

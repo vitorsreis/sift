@@ -8,9 +8,11 @@ use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
+use Sift\Runtime\FileRunStore;
 use Sift\Runtime\ProcessExecutor;
 use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolLocator;
+use Sift\Runtime\ViewService;
 use Sift\Sift;
 use Sift\Tools\PhpstanToolAdapter;
 
@@ -30,6 +32,8 @@ final class Application
             new MarkdownRenderer,
             new ProcessExecutor,
             new ResultPayloadFactory,
+            new FileRunStore,
+            new ViewService(new FileRunStore),
         );
 
         try {
@@ -51,6 +55,8 @@ final class Application
         private readonly MarkdownRenderer $markdownRenderer,
         private readonly ProcessExecutor $processExecutor,
         private readonly ResultPayloadFactory $resultPayloadFactory,
+        private readonly FileRunStore $runStore,
+        private readonly ViewService $viewService,
     ) {}
 
     /**
@@ -101,6 +107,28 @@ final class Application
             ];
         }
 
+        if ($command === 'view') {
+            $view = $this->optionParser->parseView($toolArguments);
+            $format = $view['format'] ?? $parsed['format'];
+            $pretty = $view['pretty'] ?? $parsed['pretty'];
+
+            $payload = $view['list']
+                ? $this->viewService->list(getcwd() ?: '.', $view['limit'], $view['offset'])
+                : $this->viewService->view(
+                    getcwd() ?: '.',
+                    (string) $view['run_id'],
+                    $view['scope'],
+                    $view['limit'],
+                    $view['offset'],
+                );
+
+            return [
+                ...$payload,
+                '_pretty' => $pretty,
+                '_format' => $format,
+            ];
+        }
+
         $tool = $this->toolRegistry->find($command);
 
         if ($tool === null) {
@@ -111,9 +139,10 @@ final class Application
         $preparedCommand = $tool->prepare(getcwd() ?: '.', $toolArguments, $context);
         $executionResult = $this->processExecutor->run($preparedCommand);
         $result = $tool->parse($executionResult, $preparedCommand, $context);
+        $runId = $this->runStore->put(getcwd() ?: '.', $result);
 
         return [
-            ...$this->resultPayloadFactory->forSize($result, $parsed['size']),
+            ...$this->resultPayloadFactory->forSize($result, $parsed['size'], $runId),
             '_pretty' => $parsed['pretty'],
             '_format' => $parsed['format'],
         ];

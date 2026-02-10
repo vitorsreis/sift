@@ -11,13 +11,19 @@ final class ResultPayloadFactory
     /**
      * @return array<string, mixed>
      */
-    public function forSize(NormalizedResult $result, string $size): array
+    public function forSize(NormalizedResult $result, string $size, ?string $runId = null): array
     {
-        return match ($size) {
+        $payload = match ($size) {
             'compact' => $this->compact($result),
             'fuller' => $this->fuller($result),
             default => $this->normal($result),
         };
+
+        if ($runId !== null) {
+            $payload['run_id'] = $runId;
+        }
+
+        return $payload;
     }
 
     /**
