@@ -102,4 +102,28 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function configNotFound(string $path): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'config_not_found',
+                'message' => sprintf('The config file `%s` was not found.', $path),
+                'path' => $path,
+            ],
+        ]);
+    }
+
+    public static function invalidConfig(string $path, string $reason): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'invalid_config',
+                'message' => sprintf('The config file `%s` is invalid: %s', $path, $reason),
+                'path' => $path,
+            ],
+        ]);
+    }
 }

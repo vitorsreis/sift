@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
@@ -11,8 +12,10 @@ use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\InitService;
 use Sift\Runtime\ProcessExecutor;
+use Sift\Runtime\ProjectInspector;
 use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolLocator;
+use Sift\Runtime\ValidateService;
 use Sift\Runtime\ViewService;
 use Sift\Sift;
 use Sift\Tools\PhpstanToolAdapter;
@@ -27,16 +30,15 @@ final class Application
     {
         $application = new self(
             new OptionParser,
-            new ToolRegistry([
-                new PhpstanToolAdapter(new ToolLocator),
-                new PhpunitToolAdapter(new ToolLocator),
-            ]),
+            self::registry(new ToolLocator),
             new JsonRenderer,
             new MarkdownRenderer,
             new ProcessExecutor,
             new ResultPayloadFactory,
             new FileRunStore,
             new InitService(new ToolLocator),
+            new ProjectInspector(new ToolLocator),
+            new ValidateService,
             new ViewService(new FileRunStore),
         );
 
@@ -61,6 +63,8 @@ final class Application
         private readonly ResultPayloadFactory $resultPayloadFactory,
         private readonly FileRunStore $runStore,
         private readonly InitService $initService,
+        private readonly ProjectInspector $projectInspector,
+        private readonly ValidateService $validateService,
         private readonly ViewService $viewService,
     ) {}
 
@@ -93,9 +97,10 @@ final class Application
                     'sift version',
                     'sift init',
                     'sift list',
+                    'sift validate',
                     'sift <tool> [tool-args]',
                 ],
-                'commands' => ['help', 'version', 'init', 'list', 'view', '<tool>'],
+                'commands' => ['help', 'version', 'init', 'list', 'validate', 'view', '<tool>'],
                 '_pretty' => $parsed['pretty'],
                 '_format' => $parsed['format'],
             ];
@@ -118,14 +123,32 @@ final class Application
         }
 
         if ($command === 'list') {
+            $items = $this->projectInspector->inspect(getcwd() ?: '.', $this->toolRegistry);
+
             return [
                 ...$this->resultPayloadFactory->commandPayload([
                     'status' => 'ok',
                     'tool' => 'sift',
-                    'tools' => $this->toolRegistry->names(),
+                    'tools' => $items,
                 ], $parsed['size']),
                 '_pretty' => $parsed['pretty'],
                 '_format' => $parsed['format'],
+            ];
+        }
+
+        if ($command === 'validate') {
+            $validate = $this->optionParser->parseValidate($toolArguments);
+            $format = $validate['format'] ?? $parsed['format'];
+            $size = $validate['size'] ?? $parsed['size'];
+            $pretty = $validate['pretty'] ?? $parsed['pretty'];
+
+            return [
+                ...$this->resultPayloadFactory->commandPayload(
+                    $this->validateService->validate(getcwd() ?: '.'),
+                    $size,
+                ),
+                '_pretty' => $pretty,
+                '_format' => $format,
             ];
         }
 
@@ -207,5 +230,13 @@ final class Application
 
             @unlink($tempFile);
         }
+    }
+
+    private static function registry(ToolLocator $toolLocator): ToolRegistry
+    {
+        return new ToolRegistry([
+            new PhpstanToolAdapter($toolLocator),
+            new PhpunitToolAdapter($toolLocator),
+        ]);
     }
 }
