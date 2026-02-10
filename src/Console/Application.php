@@ -48,7 +48,11 @@ final class Application
 
             return 0;
         } catch (UserFacingException $exception) {
-            fwrite(STDERR, $application->render($exception->payload()).PHP_EOL);
+            $payload = $exception->payload();
+            $preferences = $application->resolveRenderPreferences(array_slice($argv, 1));
+            $payload['_pretty'] = $preferences['pretty'];
+            $payload['_format'] = $preferences['format'];
+            fwrite(STDERR, $application->render($payload).PHP_EOL);
 
             return $exception->processExitCode();
         }
@@ -238,5 +242,50 @@ final class Application
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
         ]);
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     * @return array{format: string, pretty: bool}
+     */
+    private function resolveRenderPreferences(array $arguments): array
+    {
+        try {
+            $parsed = $this->optionParser->parse($arguments);
+        } catch (UserFacingException) {
+            return [
+                'format' => 'json',
+                'pretty' => false,
+            ];
+        }
+
+        $format = $parsed['format'];
+        $pretty = $parsed['pretty'];
+
+        try {
+            return match ($parsed['command']) {
+                'init' => [
+                    'format' => $this->optionParser->parseInit($parsed['arguments'])['format'] ?? $format,
+                    'pretty' => $this->optionParser->parseInit($parsed['arguments'])['pretty'] ?? $pretty,
+                ],
+                'validate' => [
+                    'format' => $this->optionParser->parseValidate($parsed['arguments'])['format'] ?? $format,
+                    'pretty' => $this->optionParser->parseValidate($parsed['arguments'])['pretty'] ?? $pretty,
+                ],
+                'view' => [
+                    'format' => $this->optionParser->parseView($parsed['arguments'])['format'] ?? $format,
+                    'pretty' => $this->optionParser->parseView($parsed['arguments'])['pretty'] ?? $pretty,
+                ],
+                default => [
+                    'format' => $format,
+                    'pretty' => $pretty,
+                ],
+            };
+        } catch (UserFacingException) {
+            return [
+                'format' => $format,
+                'pretty' => $pretty,
+            ];
+        }
     }
 }
