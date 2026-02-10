@@ -10,13 +10,13 @@ final class OptionParser
 {
     /**
      * @param  list<string>  $arguments
-     * @return array{command: string, pretty: bool, format: string, size: string, arguments: list<string>}
+     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, arguments: list<string>}
      */
     public function parse(array $arguments): array
     {
-        $pretty = false;
-        $format = 'json';
-        $size = 'normal';
+        $pretty = null;
+        $format = null;
+        $size = null;
         $command = null;
         $toolArguments = [];
 

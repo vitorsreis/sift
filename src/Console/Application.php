@@ -85,14 +85,16 @@ final class Application
         $parsed = $this->optionParser->parse($arguments);
         $command = $parsed['command'];
         $toolArguments = $parsed['arguments'];
+        $cwd = getcwd() ?: '.';
+        $safeConfig = $this->loadConfigOrDefaults($cwd);
 
         if (in_array($command, ['--version', '-V', 'version'], true)) {
             return [
                 'status' => 'ok',
                 'tool' => 'sift',
                 'version' => Sift::VERSION,
-                '_pretty' => $parsed['pretty'],
-                '_format' => $parsed['format'],
+                '_pretty' => $parsed['pretty'] ?? $safeConfig['output']['pretty'],
+                '_format' => $parsed['format'] ?? $safeConfig['output']['format'],
             ];
         }
 
@@ -109,20 +111,27 @@ final class Application
                     'sift <tool> [tool-args]',
                 ],
                 'commands' => ['help', 'version', 'init', 'list', 'validate', 'view', '<tool>'],
-                '_pretty' => $parsed['pretty'],
-                '_format' => $parsed['format'],
+                '_pretty' => $parsed['pretty'] ?? $safeConfig['output']['pretty'],
+                '_format' => $parsed['format'] ?? $safeConfig['output']['format'],
             ];
         }
 
+        $config = in_array($command, ['init', 'view'], true)
+            ? $safeConfig
+            : $this->configLoader->load($cwd);
+        $format = $parsed['format'] ?? $config['output']['format'];
+        $size = $parsed['size'] ?? $config['output']['size'];
+        $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
+
         if ($command === 'init') {
             $init = $this->optionParser->parseInit($toolArguments);
-            $format = $init['format'] ?? $parsed['format'];
-            $size = $init['size'] ?? $parsed['size'];
-            $pretty = $init['pretty'] ?? $parsed['pretty'];
+            $format = $init['format'] ?? $format;
+            $size = $init['size'] ?? $size;
+            $pretty = $init['pretty'] ?? $pretty;
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->initService->initialize(getcwd() ?: '.', $init['force'], $this->toolRegistry),
+                    $this->initService->initialize($cwd, $init['force'], $this->toolRegistry),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -132,9 +141,9 @@ final class Application
 
         if ($command === 'list') {
             $items = $this->projectInspector->inspect(
-                getcwd() ?: '.',
+                $cwd,
                 $this->toolRegistry,
-                $this->configLoader->load(getcwd() ?: '.'),
+                $config,
             );
 
             return [
@@ -142,21 +151,21 @@ final class Application
                     'status' => 'ok',
                     'tool' => 'sift',
                     'tools' => $items,
-                ], $parsed['size']),
-                '_pretty' => $parsed['pretty'],
-                '_format' => $parsed['format'],
+                ], $size),
+                '_pretty' => $pretty,
+                '_format' => $format,
             ];
         }
 
         if ($command === 'validate') {
             $validate = $this->optionParser->parseValidate($toolArguments);
-            $format = $validate['format'] ?? $parsed['format'];
-            $size = $validate['size'] ?? $parsed['size'];
-            $pretty = $validate['pretty'] ?? $parsed['pretty'];
+            $format = $validate['format'] ?? $format;
+            $size = $validate['size'] ?? $size;
+            $pretty = $validate['pretty'] ?? $pretty;
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->validateService->validate(getcwd() ?: '.'),
+                    $this->validateService->validate($cwd),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -166,13 +175,13 @@ final class Application
 
         if ($command === 'view') {
             $view = $this->optionParser->parseView($toolArguments);
-            $format = $view['format'] ?? $parsed['format'];
-            $pretty = $view['pretty'] ?? $parsed['pretty'];
+            $format = $view['format'] ?? $format;
+            $pretty = $view['pretty'] ?? $pretty;
 
             $payload = $view['list']
-                ? $this->viewService->list(getcwd() ?: '.', $view['limit'], $view['offset'])
+                ? $this->viewService->list($cwd, $view['limit'], $view['offset'])
                 : $this->viewService->view(
-                    getcwd() ?: '.',
+                    $cwd,
                     (string) $view['run_id'],
                     $view['scope'],
                     $view['limit'],
@@ -192,18 +201,32 @@ final class Application
             throw UserFacingException::unsupportedTool($command);
         }
 
+        $toolConfig = $this->configLoader->tool($config, $command);
+
+        if ($toolConfig['enabled'] !== true) {
+            throw UserFacingException::toolDisabled($command);
+        }
+
+        if ($toolArguments === [] && $toolConfig['defaultArgs'] !== []) {
+            $toolArguments = $toolConfig['defaultArgs'];
+        }
+
         $context = $tool->detectContext($toolArguments);
-        $preparedCommand = $tool->prepare(getcwd() ?: '.', $toolArguments, $context);
+        $preparedCommand = $tool->prepare($cwd, $toolArguments, $context);
 
         try {
             $executionResult = $this->processExecutor->run($preparedCommand);
             $result = $tool->parse($executionResult, $preparedCommand, $context);
-            $runId = $this->runStore->put(getcwd() ?: '.', $result);
+            $runId = null;
+
+            if ($config['history']['enabled'] === true) {
+                $runId = $this->runStore->put($cwd, $result);
+            }
 
             return [
-                ...$this->resultPayloadFactory->forSize($result, $parsed['size'], $runId),
-                '_pretty' => $parsed['pretty'],
-                '_format' => $parsed['format'],
+                ...$this->resultPayloadFactory->forSize($result, $size, $runId),
+                '_pretty' => $pretty,
+                '_format' => $format,
             ];
         } finally {
             $this->cleanupTempFiles($preparedCommand);
@@ -268,8 +291,11 @@ final class Application
             ];
         }
 
-        $format = $parsed['format'];
-        $pretty = $parsed['pretty'];
+        $cwd = getcwd() ?: '.';
+        $config = $this->loadConfigOrDefaults($cwd);
+
+        $format = $parsed['format'] ?? $config['output']['format'];
+        $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
 
         try {
             return match ($parsed['command']) {
@@ -294,6 +320,26 @@ final class Application
             return [
                 'format' => $format,
                 'pretty' => $pretty,
+            ];
+        }
+    }
+
+    /**
+     * @return array{
+     *   history: array{enabled: bool},
+     *   output: array{format: string, size: string, pretty: bool},
+     *   tools: array<string, array<string, mixed>>
+     * }
+     */
+    private function loadConfigOrDefaults(string $cwd): array
+    {
+        try {
+            return $this->configLoader->load($cwd);
+        } catch (UserFacingException) {
+            return [
+                'history' => ['enabled' => true],
+                'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false],
+                'tools' => [],
             ];
         }
     }

@@ -126,4 +126,16 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function toolDisabled(string $tool): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'tool_disabled',
+                'message' => sprintf('The tool `%s` is disabled by project configuration.', $tool),
+                'tool' => $tool,
+            ],
+        ]);
+    }
 }
