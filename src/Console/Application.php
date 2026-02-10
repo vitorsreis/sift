@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Exceptions\UserFacingException;
+use Sift\Renderers\JsonRenderer;
 use Sift\Sift;
 
 final class Application
@@ -13,41 +15,82 @@ final class Application
      */
     public static function run(array $argv): int
     {
-        $command = $argv[1] ?? '--help';
+        $application = new self(
+            new OptionParser,
+            new JsonRenderer,
+        );
 
-        if (in_array($command, ['--version', '-V', 'version'], true)) {
-            fwrite(STDOUT, Sift::VERSION.PHP_EOL);
+        try {
+            $payload = $application->handle(array_slice($argv, 1));
+            fwrite(STDOUT, $application->render($payload).PHP_EOL);
 
             return 0;
+        } catch (UserFacingException $exception) {
+            fwrite(STDERR, $application->render($exception->payload()).PHP_EOL);
+
+            return $exception->processExitCode();
+        }
+    }
+
+    public function __construct(
+        private readonly OptionParser $optionParser,
+        private readonly JsonRenderer $jsonRenderer,
+    ) {}
+
+    /**
+     * @param  list<string>  $arguments
+     * @return array<string, mixed>
+     */
+    public function handle(array $arguments): array
+    {
+        $parsed = $this->optionParser->parse($arguments);
+        $command = $parsed['command'];
+        $toolArguments = $parsed['arguments'];
+
+        if (in_array($command, ['--version', '-V', 'version'], true)) {
+            return [
+                'status' => 'ok',
+                'tool' => 'sift',
+                'version' => Sift::VERSION,
+                '_pretty' => $parsed['pretty'],
+            ];
         }
 
         if (in_array($command, ['--help', '-h', 'help'], true)) {
-            fwrite(STDOUT, self::helpText());
-
-            return 0;
+            return [
+                'status' => 'ok',
+                'tool' => 'sift',
+                'usage' => [
+                    'sift help',
+                    'sift version',
+                    'sift list',
+                    'sift <tool> [tool-args]',
+                ],
+                'commands' => ['help', 'version', 'list', '<tool>'],
+                '_pretty' => $parsed['pretty'],
+            ];
         }
 
-        fwrite(STDERR, sprintf(
-            "Command `%s` is not implemented yet.\n\n%s",
-            $command,
-            self::helpText(),
-        ));
+        if ($command === 'list') {
+            return [
+                'status' => 'ok',
+                'tool' => 'sift',
+                'tools' => [],
+                '_pretty' => $parsed['pretty'],
+            ];
+        }
 
-        return 1;
+        throw UserFacingException::unsupportedTool($command);
     }
 
-    private static function helpText(): string
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function render(array $payload): string
     {
-        return <<<'TEXT'
-Sift 0.1.0-dev
+        $pretty = (bool) ($payload['_pretty'] ?? false);
+        unset($payload['_pretty']);
 
-Usage:
-  sift <command>
-
-Commands:
-  help       Show help
-  version    Show version
-
-TEXT;
+        return $this->jsonRenderer->render($payload, $pretty);
     }
 }
