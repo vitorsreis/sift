@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sift\Runtime;
 
+use Symfony\Component\Process\Process;
+
 final class ToolLocator
 {
     /**
@@ -36,7 +38,7 @@ final class ToolLocator
             return is_file($resolved) ? $resolved : null;
         }
 
-        return $candidate;
+        return $this->commandExists($candidate) ? $candidate : null;
     }
 
     /**
@@ -55,5 +57,17 @@ final class ToolLocator
         }
 
         return [$candidate];
+    }
+
+    private function commandExists(string $command): bool
+    {
+        $finder = PHP_OS_FAMILY === 'Windows'
+            ? ['where', $command]
+            : ['which', $command];
+
+        $process = new Process($finder);
+        $process->run();
+
+        return $process->isSuccessful();
     }
 }

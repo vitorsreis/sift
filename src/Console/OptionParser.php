@@ -18,27 +18,46 @@ final class OptionParser
         $command = null;
         $toolArguments = [];
 
-        foreach ($arguments as $index => $argument) {
-            if ($argument === '--pretty') {
-                $pretty = true;
+        foreach ($arguments as $argument) {
+            if ($command === null) {
+                if ($argument === '--pretty') {
+                    $pretty = true;
+
+                    continue;
+                }
+
+                if ($argument === '--no-pretty') {
+                    $pretty = false;
+
+                    continue;
+                }
+
+                if (str_starts_with($argument, '--') && ! in_array($argument, ['--help', '--version'], true)) {
+                    throw UserFacingException::invalidUsage(sprintf('Unknown option: %s', $argument));
+                }
+
+                $command = $argument;
 
                 continue;
             }
 
-            if ($argument === '--no-pretty') {
-                $pretty = false;
+            if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
+                if ($argument === '--pretty') {
+                    $pretty = true;
 
-                continue;
-            }
+                    continue;
+                }
 
-            if (str_starts_with($argument, '--') && ! in_array($argument, ['--help', '--version'], true)) {
+                if ($argument === '--no-pretty') {
+                    $pretty = false;
+
+                    continue;
+                }
+
                 throw UserFacingException::invalidUsage(sprintf('Unknown option: %s', $argument));
             }
 
-            $command = $argument;
-            $toolArguments = array_slice($arguments, $index + 1);
-
-            break;
+            $toolArguments[] = $argument;
         }
 
         return [
