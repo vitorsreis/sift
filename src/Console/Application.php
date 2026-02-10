@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Sift\Console;
 
 use Sift\Exceptions\UserFacingException;
+use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
+use Sift\Runtime\ProcessExecutor;
+use Sift\Runtime\ToolLocator;
 use Sift\Sift;
+use Sift\Tools\PhpstanToolAdapter;
 
 final class Application
 {
@@ -17,7 +21,11 @@ final class Application
     {
         $application = new self(
             new OptionParser,
+            new ToolRegistry([
+                new PhpstanToolAdapter(new ToolLocator),
+            ]),
             new JsonRenderer,
+            new ProcessExecutor,
         );
 
         try {
@@ -34,7 +42,9 @@ final class Application
 
     public function __construct(
         private readonly OptionParser $optionParser,
+        private readonly ToolRegistry $toolRegistry,
         private readonly JsonRenderer $jsonRenderer,
+        private readonly ProcessExecutor $processExecutor,
     ) {}
 
     /**
@@ -75,12 +85,26 @@ final class Application
             return [
                 'status' => 'ok',
                 'tool' => 'sift',
-                'tools' => [],
+                'tools' => $this->toolRegistry->names(),
                 '_pretty' => $parsed['pretty'],
             ];
         }
 
-        throw UserFacingException::unsupportedTool($command);
+        $tool = $this->toolRegistry->find($command);
+
+        if ($tool === null) {
+            throw UserFacingException::unsupportedTool($command);
+        }
+
+        $context = $tool->detectContext($toolArguments);
+        $preparedCommand = $tool->prepare(getcwd() ?: '.', $toolArguments, $context);
+        $executionResult = $this->processExecutor->run($preparedCommand);
+        $result = $tool->parse($executionResult, $preparedCommand, $context);
+
+        return [
+            ...$result->toArray(),
+            '_pretty' => $parsed['pretty'],
+        ];
     }
 
     /**
