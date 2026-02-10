@@ -7,7 +7,9 @@ namespace Sift\Console;
 use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
+use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\ProcessExecutor;
+use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolLocator;
 use Sift\Sift;
 use Sift\Tools\PhpstanToolAdapter;
@@ -25,7 +27,9 @@ final class Application
                 new PhpstanToolAdapter(new ToolLocator),
             ]),
             new JsonRenderer,
+            new MarkdownRenderer,
             new ProcessExecutor,
+            new ResultPayloadFactory,
         );
 
         try {
@@ -44,7 +48,9 @@ final class Application
         private readonly OptionParser $optionParser,
         private readonly ToolRegistry $toolRegistry,
         private readonly JsonRenderer $jsonRenderer,
+        private readonly MarkdownRenderer $markdownRenderer,
         private readonly ProcessExecutor $processExecutor,
+        private readonly ResultPayloadFactory $resultPayloadFactory,
     ) {}
 
     /**
@@ -63,6 +69,7 @@ final class Application
                 'tool' => 'sift',
                 'version' => Sift::VERSION,
                 '_pretty' => $parsed['pretty'],
+                '_format' => $parsed['format'],
             ];
         }
 
@@ -78,15 +85,19 @@ final class Application
                 ],
                 'commands' => ['help', 'version', 'list', '<tool>'],
                 '_pretty' => $parsed['pretty'],
+                '_format' => $parsed['format'],
             ];
         }
 
         if ($command === 'list') {
             return [
-                'status' => 'ok',
-                'tool' => 'sift',
-                'tools' => $this->toolRegistry->names(),
+                ...$this->resultPayloadFactory->commandPayload([
+                    'status' => 'ok',
+                    'tool' => 'sift',
+                    'tools' => $this->toolRegistry->names(),
+                ], $parsed['size']),
                 '_pretty' => $parsed['pretty'],
+                '_format' => $parsed['format'],
             ];
         }
 
@@ -102,8 +113,9 @@ final class Application
         $result = $tool->parse($executionResult, $preparedCommand, $context);
 
         return [
-            ...$result->toArray(),
+            ...$this->resultPayloadFactory->forSize($result, $parsed['size']),
             '_pretty' => $parsed['pretty'],
+            '_format' => $parsed['format'],
         ];
     }
 
@@ -113,7 +125,13 @@ final class Application
     public function render(array $payload): string
     {
         $pretty = (bool) ($payload['_pretty'] ?? false);
+        $format = (string) ($payload['_format'] ?? 'json');
         unset($payload['_pretty']);
+        unset($payload['_format']);
+
+        if ($format === 'markdown') {
+            return $this->markdownRenderer->render($payload, $pretty);
+        }
 
         return $this->jsonRenderer->render($payload, $pretty);
     }
