@@ -18,6 +18,7 @@ use Sift\Runtime\ToolLocator;
 use Sift\Runtime\ValidateService;
 use Sift\Runtime\ViewService;
 use Sift\Sift;
+use Sift\Tools\ComposerAuditToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PhpunitToolAdapter;
 
@@ -239,6 +240,7 @@ final class Application
     private static function registry(ToolLocator $toolLocator): ToolRegistry
     {
         return new ToolRegistry([
+            new ComposerAuditToolAdapter($toolLocator),
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
         ]);
