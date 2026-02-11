@@ -48,4 +48,20 @@ final readonly class NormalizedResult
             'meta' => $this->meta,
         ];
     }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     */
+    public function withMeta(array $meta): self
+    {
+        return new self(
+            tool: $this->tool,
+            status: $this->status,
+            summary: $this->summary,
+            items: $this->items,
+            artifacts: $this->artifacts,
+            extra: $this->extra,
+            meta: $meta,
+        );
+    }
 }

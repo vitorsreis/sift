@@ -71,8 +71,9 @@ final class FileRunStore
         }
 
         $runId = bin2hex(random_bytes(4));
+        $createdAt = strtotime((string) ($result->meta['created_at'] ?? ''));
         $payload = [
-            'created_at' => time(),
+            'created_at' => $createdAt === false ? time() : $createdAt,
             'result' => $result->toArray(),
         ];
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
@@ -221,7 +222,9 @@ final class Application
 
         try {
             $executionResult = $this->processExecutor->run($preparedCommand);
-            $result = $tool->parse($executionResult, $preparedCommand, $context);
+            $result = $this->stampResult(
+                $tool->parse($executionResult, $preparedCommand, $context),
+            );
             $runId = null;
 
             if ($historyEnabled === true) {
@@ -236,6 +239,18 @@ final class Application
         } finally {
             $this->cleanupTempFiles($preparedCommand);
         }
+    }
+
+    private function stampResult(NormalizedResult $result): NormalizedResult
+    {
+        if (is_string($result->meta['created_at'] ?? null) && $result->meta['created_at'] !== '') {
+            return $result;
+        }
+
+        return $result->withMeta([
+            ...$result->meta,
+            'created_at' => gmdate('c'),
+        ]);
     }
 
     /**
