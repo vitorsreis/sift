@@ -15,15 +15,15 @@ final class ValidateService
     /**
      * @return array<string, mixed>
      */
-    public function validate(string $cwd): array
+    public function validate(string $cwd, ?string $configPath = null): array
     {
-        $path = $this->configLoader->path($cwd);
+        $path = $this->configLoader->path($cwd, $configPath);
 
         if (! is_file($path)) {
             throw UserFacingException::configNotFound($path);
         }
 
-        $config = $this->configLoader->load($cwd);
+        $config = $this->configLoader->load($cwd, $configPath);
 
         return [
             'status' => 'valid',

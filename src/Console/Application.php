@@ -40,7 +40,7 @@ final class Application
             new ResultPayloadFactory,
             new ConfigLoader,
             new FileRunStore,
-            new InitService(new ToolLocator),
+            new InitService(new ToolLocator, new ConfigLoader),
             new ProjectInspector(new ToolLocator),
             new ValidateService(new ConfigLoader),
             new ViewService(new FileRunStore),
@@ -86,8 +86,9 @@ final class Application
         $parsed = $this->optionParser->parse($arguments);
         $command = $parsed['command'];
         $toolArguments = $parsed['arguments'];
+        $configPath = $parsed['config'];
         $cwd = getcwd() ?: '.';
-        $safeConfig = $this->loadConfigOrDefaults($cwd);
+        $safeConfig = $this->loadConfigOrDefaults($cwd, $configPath);
 
         if (in_array($command, ['--version', '-V', 'version'], true)) {
             return [
@@ -119,7 +120,7 @@ final class Application
 
         $config = in_array($command, ['init', 'view'], true)
             ? $safeConfig
-            : $this->configLoader->load($cwd);
+            : $this->configLoader->load($cwd, $configPath);
         $format = $parsed['format'] ?? $config['output']['format'];
         $size = $parsed['size'] ?? $config['output']['size'];
         $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
@@ -132,7 +133,7 @@ final class Application
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->initService->initialize($cwd, $init['force'], $this->toolRegistry),
+                    $this->initService->initialize($cwd, $init['force'], $this->toolRegistry, $configPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -166,7 +167,7 @@ final class Application
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->validateService->validate($cwd),
+                    $this->validateService->validate($cwd, $configPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -296,7 +297,7 @@ final class Application
         }
 
         $cwd = getcwd() ?: '.';
-        $config = $this->loadConfigOrDefaults($cwd);
+        $config = $this->loadConfigOrDefaults($cwd, $parsed['config']);
 
         $format = $parsed['format'] ?? $config['output']['format'];
         $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
@@ -335,10 +336,10 @@ final class Application
      *   tools: array<string, array<string, mixed>>
      * }
      */
-    private function loadConfigOrDefaults(string $cwd): array
+    private function loadConfigOrDefaults(string $cwd, ?string $configPath = null): array
     {
         try {
-            return $this->configLoader->load($cwd);
+            return $this->configLoader->load($cwd, $configPath);
         } catch (UserFacingException) {
             return [
                 'history' => ['enabled' => true],

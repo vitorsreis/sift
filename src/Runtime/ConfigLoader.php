@@ -16,9 +16,9 @@ final class ConfigLoader
      *   tools: array<string, array<string, mixed>>
      * }
      */
-    public function load(string $cwd): array
+    public function load(string $cwd, ?string $configPath = null): array
     {
-        $path = $this->path($cwd);
+        $path = $this->path($cwd, $configPath);
 
         if (! is_file($path)) {
             return $this->defaults();
@@ -113,9 +113,17 @@ final class ConfigLoader
         ];
     }
 
-    public function path(string $cwd): string
+    public function path(string $cwd, ?string $configPath = null): string
     {
-        return $cwd.DIRECTORY_SEPARATOR.'sift.json';
+        if ($configPath === null) {
+            return $cwd.DIRECTORY_SEPARATOR.'sift.json';
+        }
+
+        if ($this->isAbsolutePath($configPath)) {
+            return $configPath;
+        }
+
+        return $cwd.DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $configPath);
     }
 
     /**
@@ -165,5 +173,12 @@ final class ConfigLoader
             ],
             'tools' => [],
         ];
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, DIRECTORY_SEPARATOR)
+            || str_starts_with($path, '\\\\')
+            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
     }
 }

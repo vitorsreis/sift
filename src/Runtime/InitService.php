@@ -11,14 +11,15 @@ final class InitService
 {
     public function __construct(
         private readonly ToolLocator $toolLocator,
+        private readonly ConfigLoader $configLoader,
     ) {}
 
     /**
      * @return array<string, mixed>
      */
-    public function initialize(string $cwd, bool $force, ToolRegistry $registry): array
+    public function initialize(string $cwd, bool $force, ToolRegistry $registry, ?string $configPath = null): array
     {
-        $path = $cwd.DIRECTORY_SEPARATOR.'sift.json';
+        $path = $this->configLoader->path($cwd, $configPath);
         $existed = is_file($path);
 
         if ($existed && ! $force) {

@@ -10,19 +10,20 @@ final class OptionParser
 {
     /**
      * @param  list<string>  $arguments
-     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, arguments: list<string>}
+     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, config: ?string, arguments: list<string>}
      */
     public function parse(array $arguments): array
     {
         $pretty = null;
         $format = null;
         $size = null;
+        $config = null;
         $command = null;
         $toolArguments = [];
 
         foreach ($arguments as $argument) {
             if ($command === null) {
-                if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $config)) {
                     continue;
                 }
 
@@ -36,7 +37,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $config)) {
                     continue;
                 }
 
@@ -51,8 +52,29 @@ final class OptionParser
             'pretty' => $pretty,
             'format' => $format,
             'size' => $size,
+            'config' => $config,
             'arguments' => $toolArguments,
         ];
+    }
+
+    private function parseRuntimeOption(
+        string $argument,
+        ?string &$format,
+        ?string &$size,
+        ?bool &$pretty,
+        ?string &$config,
+    ): bool {
+        if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+            return true;
+        }
+
+        if (str_starts_with($argument, '--config=')) {
+            $config = $this->parseConfigPath(substr($argument, 9));
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -241,5 +263,16 @@ final class OptionParser
             'compact', 'normal', 'fuller' => $size,
             default => throw UserFacingException::invalidUsage(sprintf('Unknown size: %s', $size)),
         };
+    }
+
+    private function parseConfigPath(string $path): string
+    {
+        $path = trim($path);
+
+        if ($path === '') {
+            throw UserFacingException::invalidUsage('The config path must not be empty.');
+        }
+
+        return $path;
     }
 }
