@@ -98,6 +98,49 @@ final class FileRunStore
         return $this->read($path);
     }
 
+    /**
+     * @return array{deleted: int, path: string}
+     */
+    public function clear(string $cwd): array
+    {
+        $directory = $this->directory($cwd);
+
+        if (! is_dir($directory)) {
+            return [
+                'deleted' => 0,
+                'path' => $directory,
+            ];
+        }
+
+        $paths = glob($directory.'/*.json');
+        $deleted = 0;
+
+        if (is_array($paths)) {
+            foreach ($paths as $path) {
+                if (is_file($path) && @unlink($path)) {
+                    $deleted++;
+                }
+            }
+        }
+
+        $remaining = glob($directory.'/*');
+
+        if ($remaining === false || $remaining === []) {
+            @rmdir($directory);
+            $parent = dirname($directory);
+            $parentRemaining = glob($parent.'/*');
+
+            if ($parentRemaining === false || $parentRemaining === []) {
+                @rmdir($parent);
+            }
+        }
+
+        return [
+            'deleted' => $deleted,
+            'path' => $directory,
+        ];
+    }
+
     private function directory(string $cwd): string
     {
         return $cwd.'/.sift/history';

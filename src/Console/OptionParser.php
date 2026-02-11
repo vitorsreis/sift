@@ -57,7 +57,7 @@ final class OptionParser
 
     /**
      * @param  list<string>  $arguments
-     * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, format: ?string, size: ?string, pretty: ?bool}
+     * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, clear: bool, format: ?string, size: ?string, pretty: ?bool}
      */
     public function parseView(array $arguments): array
     {
@@ -67,9 +67,16 @@ final class OptionParser
         $format = null;
         $size = null;
         $pretty = null;
+        $clear = false;
 
         foreach ($arguments as $argument) {
             if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                continue;
+            }
+
+            if ($argument === '--clear') {
+                $clear = true;
+
                 continue;
             }
 
@@ -88,6 +95,24 @@ final class OptionParser
             $positionals[] = $argument;
         }
 
+        if ($clear) {
+            if ($positionals !== []) {
+                throw UserFacingException::invalidUsage('The `view --clear` command does not accept a run id or scope.');
+            }
+
+            return [
+                'run_id' => null,
+                'scope' => 'clear',
+                'limit' => $limit,
+                'offset' => $offset,
+                'list' => false,
+                'clear' => true,
+                'format' => $format,
+                'size' => $size,
+                'pretty' => $pretty,
+            ];
+        }
+
         if ($positionals === [] || in_array($positionals[0], ['list', 'runs'], true)) {
             return [
                 'run_id' => null,
@@ -95,6 +120,7 @@ final class OptionParser
                 'limit' => $limit,
                 'offset' => $offset,
                 'list' => true,
+                'clear' => false,
                 'format' => $format,
                 'size' => $size,
                 'pretty' => $pretty,
@@ -107,6 +133,7 @@ final class OptionParser
             'limit' => $limit,
             'offset' => $offset,
             'list' => false,
+            'clear' => false,
             'format' => $format,
             'size' => $size,
             'pretty' => $pretty,

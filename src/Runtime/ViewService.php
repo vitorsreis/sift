@@ -33,6 +33,20 @@ final class ViewService
     /**
      * @return array<string, mixed>
      */
+    public function clear(string $cwd): array
+    {
+        $cleared = $this->runStore->clear($cwd);
+
+        return [
+            'status' => 'cleared',
+            'deleted' => $cleared['deleted'],
+            'path' => $cleared['path'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function view(string $cwd, string $runId, string $scope, int $limit, int $offset): array
     {
         $stored = $this->runStore->get($cwd, $runId);

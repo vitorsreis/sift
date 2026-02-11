@@ -179,15 +179,17 @@ final class Application
             $format = $view['format'] ?? $format;
             $pretty = $view['pretty'] ?? $pretty;
 
-            $payload = $view['list']
-                ? $this->viewService->list($cwd, $view['limit'], $view['offset'])
-                : $this->viewService->view(
-                    $cwd,
-                    (string) $view['run_id'],
-                    $view['scope'],
-                    $view['limit'],
-                    $view['offset'],
-                );
+            $payload = $view['clear']
+                ? $this->viewService->clear($cwd)
+                : ($view['list']
+                    ? $this->viewService->list($cwd, $view['limit'], $view['offset'])
+                    : $this->viewService->view(
+                        $cwd,
+                        (string) $view['run_id'],
+                        $view['scope'],
+                        $view['limit'],
+                        $view['offset'],
+                    ));
 
             return [
                 ...$payload,
