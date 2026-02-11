@@ -10,20 +10,21 @@ final class OptionParser
 {
     /**
      * @param  list<string>  $arguments
-     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, config: ?string, arguments: list<string>}
+     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, history: ?bool, config: ?string, arguments: list<string>}
      */
     public function parse(array $arguments): array
     {
         $pretty = null;
         $format = null;
         $size = null;
+        $history = null;
         $config = null;
         $command = null;
         $toolArguments = [];
 
         foreach ($arguments as $argument) {
             if ($command === null) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $history, $config)) {
                     continue;
                 }
 
@@ -37,7 +38,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $history, $config)) {
                     continue;
                 }
 
@@ -52,6 +53,7 @@ final class OptionParser
             'pretty' => $pretty,
             'format' => $format,
             'size' => $size,
+            'history' => $history,
             'config' => $config,
             'arguments' => $toolArguments,
         ];
@@ -62,9 +64,16 @@ final class OptionParser
         ?string &$format,
         ?string &$size,
         ?bool &$pretty,
+        ?bool &$history,
         ?string &$config,
     ): bool {
         if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+            return true;
+        }
+
+        if ($argument === '--no-history') {
+            $history = false;
+
             return true;
         }
 

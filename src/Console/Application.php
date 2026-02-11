@@ -124,6 +124,7 @@ final class Application
         $format = $parsed['format'] ?? $config['output']['format'];
         $size = $parsed['size'] ?? $config['output']['size'];
         $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
+        $historyEnabled = $parsed['history'] ?? $config['history']['enabled'];
 
         if ($command === 'init') {
             $init = $this->optionParser->parseInit($toolArguments);
@@ -223,7 +224,7 @@ final class Application
             $result = $tool->parse($executionResult, $preparedCommand, $context);
             $runId = null;
 
-            if ($config['history']['enabled'] === true) {
+            if ($historyEnabled === true) {
                 $runId = $this->runStore->put($cwd, $result);
             }
 
