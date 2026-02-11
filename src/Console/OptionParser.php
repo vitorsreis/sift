@@ -77,18 +77,12 @@ final class OptionParser
             return true;
         }
 
-        if (str_starts_with($argument, '--config=')) {
-            $config = $this->parseConfigPath(substr($argument, 9));
-
-            return true;
-        }
-
-        return false;
+        return $this->parseConfigOption($argument, $config);
     }
 
     /**
      * @param  list<string>  $arguments
-     * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, clear: bool, format: ?string, size: ?string, pretty: ?bool}
+     * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, clear: bool, format: ?string, size: ?string, pretty: ?bool, config: ?string}
      */
     public function parseView(array $arguments): array
     {
@@ -99,9 +93,14 @@ final class OptionParser
         $size = null;
         $pretty = null;
         $clear = false;
+        $config = null;
 
         foreach ($arguments as $argument) {
             if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                continue;
+            }
+
+            if ($this->parseConfigOption($argument, $config)) {
                 continue;
             }
 
@@ -141,6 +140,7 @@ final class OptionParser
                 'format' => $format,
                 'size' => $size,
                 'pretty' => $pretty,
+                'config' => $config,
             ];
         }
 
@@ -155,6 +155,7 @@ final class OptionParser
                 'format' => $format,
                 'size' => $size,
                 'pretty' => $pretty,
+                'config' => $config,
             ];
         }
 
@@ -168,12 +169,13 @@ final class OptionParser
             'format' => $format,
             'size' => $size,
             'pretty' => $pretty,
+            'config' => $config,
         ];
     }
 
     /**
      * @param  list<string>  $arguments
-     * @return array{force: bool, format: ?string, size: ?string, pretty: ?bool}
+     * @return array{force: bool, format: ?string, size: ?string, pretty: ?bool, config: ?string}
      */
     public function parseInit(array $arguments): array
     {
@@ -181,9 +183,14 @@ final class OptionParser
         $format = null;
         $size = null;
         $pretty = null;
+        $config = null;
 
         foreach ($arguments as $argument) {
             if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                continue;
+            }
+
+            if ($this->parseConfigOption($argument, $config)) {
                 continue;
             }
 
@@ -201,21 +208,27 @@ final class OptionParser
             'format' => $format,
             'size' => $size,
             'pretty' => $pretty,
+            'config' => $config,
         ];
     }
 
     /**
      * @param  list<string>  $arguments
-     * @return array{format: ?string, size: ?string, pretty: ?bool}
+     * @return array{format: ?string, size: ?string, pretty: ?bool, config: ?string}
      */
     public function parseValidate(array $arguments): array
     {
         $format = null;
         $size = null;
         $pretty = null;
+        $config = null;
 
         foreach ($arguments as $argument) {
             if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                continue;
+            }
+
+            if ($this->parseConfigOption($argument, $config)) {
                 continue;
             }
 
@@ -226,6 +239,7 @@ final class OptionParser
             'format' => $format,
             'size' => $size,
             'pretty' => $pretty,
+            'config' => $config,
         ];
     }
 
@@ -272,6 +286,17 @@ final class OptionParser
             'compact', 'normal', 'fuller' => $size,
             default => throw UserFacingException::invalidUsage(sprintf('Unknown size: %s', $size)),
         };
+    }
+
+    private function parseConfigOption(string $argument, ?string &$config): bool
+    {
+        if (! str_starts_with($argument, '--config=')) {
+            return false;
+        }
+
+        $config = $this->parseConfigPath(substr($argument, 9));
+
+        return true;
     }
 
     private function parseConfigPath(string $path): string

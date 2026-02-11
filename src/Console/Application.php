@@ -129,13 +129,15 @@ final class Application
 
         if ($command === 'init') {
             $init = $this->optionParser->parseInit($toolArguments);
-            $format = $init['format'] ?? $format;
-            $size = $init['size'] ?? $size;
-            $pretty = $init['pretty'] ?? $pretty;
+            $commandConfigPath = $init['config'] ?? $configPath;
+            $commandConfig = $this->loadConfigOrDefaults($cwd, $commandConfigPath);
+            $format = $init['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'];
+            $size = $init['size'] ?? $parsed['size'] ?? $commandConfig['output']['size'];
+            $pretty = $init['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->initService->initialize($cwd, $init['force'], $this->toolRegistry, $configPath),
+                    $this->initService->initialize($cwd, $init['force'], $this->toolRegistry, $commandConfigPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -163,13 +165,15 @@ final class Application
 
         if ($command === 'validate') {
             $validate = $this->optionParser->parseValidate($toolArguments);
-            $format = $validate['format'] ?? $format;
-            $size = $validate['size'] ?? $size;
-            $pretty = $validate['pretty'] ?? $pretty;
+            $commandConfigPath = $validate['config'] ?? $configPath;
+            $commandConfig = $this->configLoader->load($cwd, $commandConfigPath);
+            $format = $validate['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'];
+            $size = $validate['size'] ?? $parsed['size'] ?? $commandConfig['output']['size'];
+            $pretty = $validate['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->validateService->validate($cwd, $configPath),
+                    $this->validateService->validate($cwd, $commandConfigPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -179,8 +183,10 @@ final class Application
 
         if ($command === 'view') {
             $view = $this->optionParser->parseView($toolArguments);
-            $format = $view['format'] ?? $format;
-            $pretty = $view['pretty'] ?? $pretty;
+            $commandConfigPath = $view['config'] ?? $configPath;
+            $commandConfig = $this->loadConfigOrDefaults($cwd, $commandConfigPath);
+            $format = $view['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'];
+            $pretty = $view['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
 
             $payload = $view['clear']
                 ? $this->viewService->clear($cwd)
@@ -319,24 +325,40 @@ final class Application
         $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
 
         try {
-            return match ($parsed['command']) {
-                'init' => [
-                    'format' => $this->optionParser->parseInit($parsed['arguments'])['format'] ?? $format,
-                    'pretty' => $this->optionParser->parseInit($parsed['arguments'])['pretty'] ?? $pretty,
-                ],
-                'validate' => [
-                    'format' => $this->optionParser->parseValidate($parsed['arguments'])['format'] ?? $format,
-                    'pretty' => $this->optionParser->parseValidate($parsed['arguments'])['pretty'] ?? $pretty,
-                ],
-                'view' => [
-                    'format' => $this->optionParser->parseView($parsed['arguments'])['format'] ?? $format,
-                    'pretty' => $this->optionParser->parseView($parsed['arguments'])['pretty'] ?? $pretty,
-                ],
-                default => [
-                    'format' => $format,
-                    'pretty' => $pretty,
-                ],
-            };
+            if ($parsed['command'] === 'init') {
+                $init = $this->optionParser->parseInit($parsed['arguments']);
+                $commandConfig = $this->loadConfigOrDefaults($cwd, $init['config'] ?? $parsed['config']);
+
+                return [
+                    'format' => $init['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'],
+                    'pretty' => $init['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'],
+                ];
+            }
+
+            if ($parsed['command'] === 'validate') {
+                $validate = $this->optionParser->parseValidate($parsed['arguments']);
+                $commandConfig = $this->loadConfigOrDefaults($cwd, $validate['config'] ?? $parsed['config']);
+
+                return [
+                    'format' => $validate['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'],
+                    'pretty' => $validate['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'],
+                ];
+            }
+
+            if ($parsed['command'] === 'view') {
+                $view = $this->optionParser->parseView($parsed['arguments']);
+                $commandConfig = $this->loadConfigOrDefaults($cwd, $view['config'] ?? $parsed['config']);
+
+                return [
+                    'format' => $view['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'],
+                    'pretty' => $view['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'],
+                ];
+            }
+
+            return [
+                'format' => $format,
+                'pretty' => $pretty,
+            ];
         } catch (UserFacingException) {
             return [
                 'format' => $format,
