@@ -2,3 +2,4 @@
 /.idea/
 /.sift/
 /composer.lock
+/.phpunit.cache/

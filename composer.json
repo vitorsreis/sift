@@ -21,14 +21,20 @@
     "php": "^8.3",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "symfony/process": "^7.3 || ^8.0"
+    "symfony/process": "^7.4 || ^8.0"
   },
   "require-dev": {
-    "laravel/pint": "^1.24"
+    "laravel/pint": "^1.29",
+    "pestphp/pest": "^4.4"
   },
   "autoload": {
     "psr-4": {
       "Sift\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
     }
   },
   "bin": [
@@ -37,9 +43,15 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
   },
   "scripts": {
-    "fmt": "vendor/bin/pint"
+    "fmt": "vendor/bin/pint",
+    "test": "vendor/bin/pest",
+    "test:unit": "vendor/bin/pest --testsuite=Unit",
+    "test:integration": "vendor/bin/pest --testsuite=Integration"
   }
 }
