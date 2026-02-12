@@ -103,7 +103,7 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
         PreparedCommand $preparedCommand,
         array $context,
     ): NormalizedResult {
-        $decoded = json_decode($executionResult->stdout, true);
+        $decoded = $this->decodeOutput($executionResult);
 
         if (! is_array($decoded)) {
             return new NormalizedResult(
@@ -215,5 +215,47 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
             : [];
 
         return [...$configured, ...$this->discoveryCandidates()];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function decodeOutput(ExecutionResult $executionResult): ?array
+    {
+        $streams = [$executionResult->stdout, $executionResult->stderr];
+
+        foreach ($streams as $stream) {
+            $decoded = json_decode($stream, true);
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            $candidate = $this->extractJsonObject($stream);
+
+            if ($candidate === null) {
+                continue;
+            }
+
+            $decoded = json_decode($candidate, true);
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
+    }
+
+    private function extractJsonObject(string $stream): ?string
+    {
+        $start = strpos($stream, '{');
+        $end = strrpos($stream, '}');
+
+        if ($start === false || $end === false || $end <= $start) {
+            return null;
+        }
+
+        return substr($stream, $start, $end - $start + 1);
     }
 }
