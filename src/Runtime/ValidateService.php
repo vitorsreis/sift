@@ -29,6 +29,7 @@ final class ValidateService
             'status' => 'valid',
             'path' => $path,
             'tools' => array_keys($config['tools']),
+            'tool_settings' => $config['tools'],
             'output' => [
                 'format' => $config['output']['format'],
                 'size' => $config['output']['size'],

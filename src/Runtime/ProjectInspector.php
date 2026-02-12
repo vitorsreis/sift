@@ -20,16 +20,23 @@ final class ProjectInspector
         $items = [];
 
         foreach ($registry->all() as $tool) {
-            $resolved = $this->toolLocator->locate($cwd, $tool->discoveryCandidates());
             $toolConfig = is_array($config['tools'][$tool->name()] ?? null)
                 ? $config['tools'][$tool->name()]
                 : [];
+            $configuredBinary = is_string($toolConfig['toolBinary'] ?? null) && trim((string) $toolConfig['toolBinary']) !== ''
+                ? trim((string) $toolConfig['toolBinary'])
+                : null;
+            $candidates = $configuredBinary !== null
+                ? [$configuredBinary, ...$tool->discoveryCandidates()]
+                : $tool->discoveryCandidates();
+            $resolved = $this->toolLocator->locate($cwd, $candidates);
 
             $items[] = [
                 'tool' => $tool->name(),
                 'enabled' => (bool) ($toolConfig['enabled'] ?? true),
                 'installed' => $resolved !== null,
                 'path' => $resolved['path'] ?? null,
+                'configured_binary' => $configuredBinary,
             ];
         }
 
