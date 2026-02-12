@@ -35,6 +35,78 @@ it('initializes and validates a custom config path after the command name', func
     }
 });
 
+it('reports normalized tool settings during validation', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        writeSiftConfig($cwd, [
+            'history' => ['enabled' => true],
+            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => true],
+            'tools' => [
+                'pint' => [
+                    'enabled' => true,
+                    'toolBinary' => 'vendor/bin/pint-custom',
+                    'defaultArgs' => ['--test'],
+                    'blockedArgs' => ['--dirty'],
+                ],
+            ],
+        ], 'custom.sift.json');
+
+        $process = runSift(['validate', '--config=custom.sift.json', '--format=json', '--pretty'], $cwd);
+
+        expect($process->getExitCode())->toBe(0);
+
+        $payload = decodeJsonOutput($process);
+
+        expect($payload['tool_settings']['pint'])->toBe([
+            'enabled' => true,
+            'toolBinary' => 'vendor/bin/pint-custom',
+            'defaultArgs' => ['--test'],
+            'blockedArgs' => ['--dirty'],
+        ]);
+    } finally {
+        removeDirectory($cwd);
+    }
+});
+
+it('lists tools using configured binaries from the project config', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        createProxyToolBinary($cwd, 'pint-custom', siftRoot().DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'pint');
+        writeSiftConfig($cwd, [
+            'history' => ['enabled' => true],
+            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => true],
+            'tools' => [
+                'pint' => [
+                    'enabled' => true,
+                    'toolBinary' => 'vendor/bin/pint-custom',
+                ],
+            ],
+        ]);
+
+        $process = runSift(['list', '--format=json', '--pretty'], $cwd);
+
+        expect($process->getExitCode())->toBe(0);
+
+        $payload = decodeJsonOutput($process);
+        $pint = null;
+
+        foreach ($payload['tools'] as $tool) {
+            if (($tool['tool'] ?? null) === 'pint') {
+                $pint = $tool;
+                break;
+            }
+        }
+
+        expect($pint['installed'])->toBeTrue()
+            ->and(str_replace('\\', '/', (string) $pint['path']))->toEndWith('vendor/bin/pint-custom')
+            ->and($pint['configured_binary'])->toBe('vendor/bin/pint-custom');
+    } finally {
+        removeDirectory($cwd);
+    }
+});
+
 it('writes detected tool binaries into new init configs', function (): void {
     $cwd = makeTempDirectory();
 
