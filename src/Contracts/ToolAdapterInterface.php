@@ -12,6 +12,8 @@ interface ToolAdapterInterface
 {
     public function name(): string;
 
+    public function installHint(): string;
+
     /**
      * @return list<string>
      */

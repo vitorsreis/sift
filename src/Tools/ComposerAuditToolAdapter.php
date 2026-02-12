@@ -22,6 +22,11 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
         return 'composer-audit';
     }
 
+    public function installHint(): string
+    {
+        return 'Install Composer first and make sure the `composer` command is available.';
+    }
+
     /**
      * @return list<string>
      */
@@ -60,10 +65,7 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
         $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
-            throw UserFacingException::toolNotInstalled(
-                $this->name(),
-                'Install Composer first and make sure the `composer` command is available.',
-            );
+            throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
         $command = [...$resolved['command_prefix'], 'audit'];

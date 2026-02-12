@@ -22,6 +22,11 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
         return 'pint';
     }
 
+    public function installHint(): string
+    {
+        return 'Install it with: composer require --dev laravel/pint';
+    }
+
     /**
      * @return list<string>
      */
@@ -66,10 +71,7 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
         $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
-            throw UserFacingException::toolNotInstalled(
-                $this->name(),
-                'Install it with: composer require --dev laravel/pint',
-            );
+            throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
         if (! $this->hasOption($arguments, '--format')) {

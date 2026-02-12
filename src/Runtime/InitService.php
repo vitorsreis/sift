@@ -11,7 +11,7 @@ final class InitService
 {
     public function __construct(
         private readonly ToolLocator $toolLocator,
-        private readonly ConfigLoader $configLoader,
+        private readonly ConfigDocumentManager $configDocumentManager,
     ) {}
 
     /**
@@ -19,7 +19,7 @@ final class InitService
      */
     public function initialize(string $cwd, bool $force, ToolRegistry $registry, ?string $configPath = null): array
     {
-        $path = $this->configLoader->path($cwd, $configPath);
+        $path = $this->configDocumentManager->path($cwd, $configPath);
         $existed = is_file($path);
 
         if ($existed && ! $force) {
@@ -57,10 +57,7 @@ final class InitService
             'tools' => (object) $tools,
         ];
 
-        file_put_contents(
-            $path,
-            json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
-        );
+        $this->configDocumentManager->write($cwd, $document, $configPath);
 
         return [
             'status' => 'initialized',

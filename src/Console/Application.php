@@ -10,6 +10,8 @@ use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
+use Sift\Runtime\AddService;
+use Sift\Runtime\ConfigDocumentManager;
 use Sift\Runtime\ConfigLoader;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\InitService;
@@ -33,19 +35,25 @@ final class Application
      */
     public static function run(array $argv): int
     {
+        $toolLocator = new ToolLocator;
+        $configLoader = new ConfigLoader;
+        $configDocumentManager = new ConfigDocumentManager($configLoader);
+        $runStore = new FileRunStore;
+
         $application = new self(
             new OptionParser,
-            self::registry(new ToolLocator),
+            self::registry($toolLocator),
             new JsonRenderer,
             new MarkdownRenderer,
             new ProcessExecutor,
             new ResultPayloadFactory,
-            new ConfigLoader,
-            new FileRunStore,
-            new InitService(new ToolLocator, new ConfigLoader),
-            new ProjectInspector(new ToolLocator),
-            new ValidateService(new ConfigLoader),
-            new ViewService(new FileRunStore),
+            $configLoader,
+            $runStore,
+            new InitService($toolLocator, $configDocumentManager),
+            new AddService($toolLocator, $configDocumentManager),
+            new ProjectInspector($toolLocator),
+            new ValidateService($configLoader),
+            new ViewService($runStore),
         );
 
         try {
@@ -74,6 +82,7 @@ final class Application
         private readonly ConfigLoader $configLoader,
         private readonly FileRunStore $runStore,
         private readonly InitService $initService,
+        private readonly AddService $addService,
         private readonly ProjectInspector $projectInspector,
         private readonly ValidateService $validateService,
         private readonly ViewService $viewService,
@@ -110,13 +119,14 @@ final class Application
                     'sift help',
                     'sift version',
                     'sift [options] init',
+                    'sift [options] add <tool>',
                     'sift [options] list',
                     'sift [options] validate',
                     'sift [options] view list',
                     'sift [options] view <run_id> [summary|items|meta|artifacts|extra]',
                     'sift [options] <tool> [tool-args]',
                 ],
-                'commands' => ['help', 'version', 'init', 'list', 'validate', 'view', '<tool>'],
+                'commands' => ['help', 'version', 'init', 'add', 'list', 'validate', 'view', '<tool>'],
                 'options' => [
                     '--format=<json|markdown>',
                     '--size=<compact|normal|fuller>',
@@ -148,6 +158,24 @@ final class Application
             return [
                 ...$this->resultPayloadFactory->commandPayload(
                     $this->initService->initialize($cwd, $init['force'], $this->toolRegistry, $commandConfigPath),
+                    $size,
+                ),
+                '_pretty' => $pretty,
+                '_format' => $format,
+            ];
+        }
+
+        if ($command === 'add') {
+            $add = $this->optionParser->parseAdd($toolArguments);
+            $commandConfigPath = $add['config'] ?? $configPath;
+            $commandConfig = $this->loadConfigOrDefaults($cwd, $commandConfigPath);
+            $format = $add['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'];
+            $size = $add['size'] ?? $parsed['size'] ?? $commandConfig['output']['size'];
+            $pretty = $add['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
+
+            return [
+                ...$this->resultPayloadFactory->commandPayload(
+                    $this->addService->add($cwd, $add['tool'], $this->toolRegistry, $commandConfigPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -343,6 +371,16 @@ final class Application
                 return [
                     'format' => $init['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'],
                     'pretty' => $init['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'],
+                ];
+            }
+
+            if ($parsed['command'] === 'add') {
+                $add = $this->optionParser->parseAdd($parsed['arguments']);
+                $commandConfig = $this->loadConfigOrDefaults($cwd, $add['config'] ?? $parsed['config']);
+
+                return [
+                    'format' => $add['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'],
+                    'pretty' => $add['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'],
                 ];
             }
 

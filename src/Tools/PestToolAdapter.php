@@ -23,6 +23,11 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
         return 'pest';
     }
 
+    public function installHint(): string
+    {
+        return 'Install it with: composer require --dev pestphp/pest';
+    }
+
     /**
      * @return list<string>
      */
@@ -70,10 +75,7 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
         $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
-            throw UserFacingException::toolNotInstalled(
-                $this->name(),
-                'Install it with: composer require --dev pestphp/pest',
-            );
+            throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
         [$arguments, $junitPath] = $this->ensureOptionValue(

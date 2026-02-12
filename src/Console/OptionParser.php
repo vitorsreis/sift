@@ -243,6 +243,47 @@ final class OptionParser
         ];
     }
 
+    /**
+     * @param  list<string>  $arguments
+     * @return array{tool: string, format: ?string, size: ?string, pretty: ?bool, config: ?string}
+     */
+    public function parseAdd(array $arguments): array
+    {
+        $positionals = [];
+        $format = null;
+        $size = null;
+        $pretty = null;
+        $config = null;
+
+        foreach ($arguments as $argument) {
+            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+                continue;
+            }
+
+            if ($this->parseConfigOption($argument, $config)) {
+                continue;
+            }
+
+            if (str_starts_with($argument, '--')) {
+                throw UserFacingException::invalidUsage(sprintf('Unknown add option: %s', $argument));
+            }
+
+            $positionals[] = $argument;
+        }
+
+        if (count($positionals) !== 1) {
+            throw UserFacingException::invalidUsage('The `add` command requires a supported tool name.');
+        }
+
+        return [
+            'tool' => $positionals[0],
+            'format' => $format,
+            'size' => $size,
+            'pretty' => $pretty,
+            'config' => $config,
+        ];
+    }
+
     private function parseOutputOption(string $argument, ?string &$format, ?string &$size, ?bool &$pretty): bool
     {
         if (str_starts_with($argument, '--format=')) {

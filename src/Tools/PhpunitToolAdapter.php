@@ -23,6 +23,11 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
         return 'phpunit';
     }
 
+    public function installHint(): string
+    {
+        return 'Install it with: composer require --dev phpunit/phpunit';
+    }
+
     /**
      * @return list<string>
      */
@@ -69,10 +74,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
         $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
-            throw UserFacingException::toolNotInstalled(
-                $this->name(),
-                'Install it with: composer require --dev phpunit/phpunit',
-            );
+            throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
         [$arguments, $junitPath] = $this->ensureOptionValue(

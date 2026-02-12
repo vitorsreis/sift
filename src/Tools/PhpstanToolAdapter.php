@@ -22,6 +22,11 @@ final readonly class PhpstanToolAdapter implements ToolAdapterInterface
         return 'phpstan';
     }
 
+    public function installHint(): string
+    {
+        return 'Install it with: composer require --dev phpstan/phpstan';
+    }
+
     /**
      * @return list<string>
      */
@@ -66,10 +71,7 @@ final readonly class PhpstanToolAdapter implements ToolAdapterInterface
         $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
 
         if ($resolved === null) {
-            throw UserFacingException::toolNotInstalled(
-                $this->name(),
-                'Install it with: composer require --dev phpstan/phpstan',
-            );
+            throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
         if ($arguments === []) {
