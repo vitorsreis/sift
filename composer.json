@@ -49,9 +49,10 @@
     }
   },
   "scripts": {
-    "fmt": "vendor/bin/pint",
-    "test": "@php bin/sift pest",
-    "test:unit": "@php bin/sift pest --testsuite=Unit",
-    "test:integration": "@php bin/sift pest --testsuite=Integration"
+    "sift": "@php bin/sift",
+    "lint": "@sift pint",
+    "test": "@sift pest",
+    "test:unit": "@sift pest --testsuite=Unit",
+    "test:integration": "@sift pest --testsuite=Integration"
   }
 }
