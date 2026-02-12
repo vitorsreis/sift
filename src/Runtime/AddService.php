@@ -39,6 +39,7 @@ final class AddService
 
         $tools[$tool->name()] = array_replace(
             $tool->initConfig(),
+            ['toolBinary' => $this->portableBinary($resolved['candidate'])],
             $existing,
             ['enabled' => true],
         );
@@ -55,5 +56,10 @@ final class AddService
                 'path' => $resolved['path'],
             ],
         ];
+    }
+
+    private function portableBinary(string $candidate): string
+    {
+        return str_replace('\\', '/', $candidate);
     }
 }

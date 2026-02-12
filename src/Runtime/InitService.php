@@ -41,7 +41,10 @@ final class InitService
                 'path' => $resolved['path'],
             ];
 
-            $tools[$tool->name()] = $tool->initConfig();
+            $tools[$tool->name()] = [
+                ...$tool->initConfig(),
+                'toolBinary' => str_replace('\\', '/', $resolved['candidate']),
+            ];
         }
 
         ksort($tools);

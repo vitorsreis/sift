@@ -10,7 +10,7 @@ final class ToolLocator
 {
     /**
      * @param  list<string>  $candidates
-     * @return array{command_prefix: list<string>, path: string}|null
+     * @return array{candidate: string, command_prefix: list<string>, path: string}|null
      */
     public function locate(string $cwd, array $candidates): ?array
     {
@@ -22,6 +22,7 @@ final class ToolLocator
             }
 
             return [
+                'candidate' => $candidate,
                 'command_prefix' => $this->commandPrefix($path, $candidate),
                 'path' => $path,
             ];

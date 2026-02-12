@@ -98,7 +98,7 @@ final class ConfigDocumentManager
         $defaults = $this->defaults();
         $history = is_array($document['history'] ?? null) ? $document['history'] : $defaults['history'];
         $output = is_array($document['output'] ?? null) ? $document['output'] : $defaults['output'];
-        $tools = is_array($document['tools'] ?? null) ? $document['tools'] : [];
+        $tools = $this->normalizeTools($document['tools'] ?? null);
 
         return [
             ...$document,
@@ -124,6 +124,25 @@ final class ConfigDocumentManager
         $normalized['tools'] = $tools === [] ? (object) [] : $tools;
 
         return $normalized;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeTools(mixed $tools): array
+    {
+        if (is_array($tools)) {
+            return $tools;
+        }
+
+        if (is_object($tools)) {
+            /** @var array<string, mixed> $normalized */
+            $normalized = get_object_vars($tools);
+
+            return $normalized;
+        }
+
+        return [];
     }
 
     private function withTwoSpaceIndentation(string $encoded): string
