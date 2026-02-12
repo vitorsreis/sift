@@ -25,9 +25,11 @@ it('initializes and validates a custom config path after the command name', func
             ->and(is_file($cwd.DIRECTORY_SEPARATOR.'custom.sift.json'))->toBeTrue();
 
         $payload = decodeJsonOutput($validate);
+        $config = json_decode((string) file_get_contents($cwd.DIRECTORY_SEPARATOR.'custom.sift.json'), true, flags: JSON_THROW_ON_ERROR);
 
         expect($payload['status'])->toBe('valid')
-            ->and($payload['path'])->toEndWith('custom.sift.json');
+            ->and($payload['path'])->toEndWith('custom.sift.json')
+            ->and($config['$schema'])->toBe('./resources/schema/config.schema.json');
     } finally {
         removeDirectory($cwd);
     }

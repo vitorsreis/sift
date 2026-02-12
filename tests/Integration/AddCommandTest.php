@@ -20,6 +20,7 @@ it('adds a detected tool to a fresh sift config', function (): void {
             ->and($payload['tool'])->toBe('phpstan')
             ->and($payload['config_created'])->toBeTrue()
             ->and($detectedPath)->toEndWith('vendor/bin/phpstan.bat')
+            ->and($config['$schema'])->toBe('./resources/schema/config.schema.json')
             ->and($config['tools']['phpstan'])->toBe([
                 'enabled' => true,
                 'defaultArgs' => ['analyse'],
