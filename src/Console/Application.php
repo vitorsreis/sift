@@ -261,7 +261,12 @@ final class Application
             $toolArguments = $toolConfig['defaultArgs'];
         }
 
-        $context = $tool->detectContext($toolArguments);
+        $this->guardBlockedArguments($command, $toolArguments, $toolConfig['blockedArgs']);
+
+        $context = [
+            ...$tool->detectContext($toolArguments),
+            'tool_binary' => $toolConfig['toolBinary'],
+        ];
         $preparedCommand = $tool->prepare($cwd, $toolArguments, $context);
 
         try {
@@ -328,6 +333,21 @@ final class Application
             }
 
             @unlink($tempFile);
+        }
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     * @param  list<string>  $blockedArguments
+     */
+    private function guardBlockedArguments(string $tool, array $arguments, array $blockedArguments): void
+    {
+        foreach ($blockedArguments as $blockedArgument) {
+            foreach ($arguments as $argument) {
+                if ($argument === $blockedArgument || str_starts_with($argument, $blockedArgument.'=')) {
+                    throw UserFacingException::blockedArgument($tool, $blockedArgument);
+                }
+            }
         }
     }
 

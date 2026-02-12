@@ -68,7 +68,7 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
      */
     public function prepare(string $cwd, array $arguments, array $context): PreparedCommand
     {
-        $resolved = $this->toolLocator->locate($cwd, $this->discoveryCandidates());
+        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context));
 
         if ($resolved === null) {
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
@@ -202,5 +202,18 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
         }
 
         return 'fix';
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return list<string>
+     */
+    private function resolveCandidates(array $context): array
+    {
+        $configured = is_string($context['tool_binary'] ?? null) && trim((string) $context['tool_binary']) !== ''
+            ? [trim((string) $context['tool_binary'])]
+            : [];
+
+        return [...$configured, ...$this->discoveryCandidates()];
     }
 }

@@ -138,4 +138,17 @@ final class UserFacingException extends RuntimeException
             ],
         ]);
     }
+
+    public static function blockedArgument(string $tool, string $argument): self
+    {
+        return new self([
+            'status' => 'error',
+            'error' => [
+                'code' => 'blocked_argument',
+                'message' => sprintf('The argument `%s` is blocked for the tool `%s`.', $argument, $tool),
+                'tool' => $tool,
+                'argument' => $argument,
+            ],
+        ]);
+    }
 }

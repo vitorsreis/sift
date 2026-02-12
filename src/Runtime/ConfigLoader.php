@@ -13,7 +13,7 @@ final class ConfigLoader
      * @return array{
      *   history: array{enabled: bool},
      *   output: array{format: string, size: string, pretty: bool},
-     *   tools: array<string, array<string, mixed>>
+     *   tools: array<string, array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}>
      * }
      */
     public function load(string $cwd, ?string $configPath = null): array
@@ -84,19 +84,31 @@ final class ConfigLoader
             }
 
             $toolEnabled = $toolConfig['enabled'] ?? true;
+            $toolBinary = $toolConfig['toolBinary'] ?? null;
             $defaultArgs = $toolConfig['defaultArgs'] ?? [];
+            $blockedArgs = $toolConfig['blockedArgs'] ?? [];
 
             if (! is_bool($toolEnabled)) {
                 throw UserFacingException::invalidConfig($path, sprintf('The tool `%s.enabled` value must be boolean.', $tool));
+            }
+
+            if ($toolBinary !== null && (! is_string($toolBinary) || trim($toolBinary) === '')) {
+                throw UserFacingException::invalidConfig($path, sprintf('The tool `%s.toolBinary` value must be a non-empty string.', $tool));
             }
 
             if (! is_array($defaultArgs)) {
                 throw UserFacingException::invalidConfig($path, sprintf('The tool `%s.defaultArgs` value must be an array.', $tool));
             }
 
+            if (! is_array($blockedArgs)) {
+                throw UserFacingException::invalidConfig($path, sprintf('The tool `%s.blockedArgs` value must be an array.', $tool));
+            }
+
             $normalizedTools[$tool] = [
                 'enabled' => $toolEnabled,
+                'toolBinary' => $toolBinary !== null ? trim($toolBinary) : null,
                 'defaultArgs' => array_values(array_map('strval', $defaultArgs)),
+                'blockedArgs' => array_values(array_map('strval', $blockedArgs)),
             ];
         }
 
@@ -130,9 +142,9 @@ final class ConfigLoader
      * @param  array{
      *   history: array{enabled: bool},
      *   output: array{format: string, size: string, pretty: bool},
-     *   tools: array<string, array<string, mixed>>
+     *   tools: array<string, array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}>
      * }  $config
-     * @return array{enabled: bool, defaultArgs: list<string>}
+     * @return array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}
      */
     public function tool(array $config, string $tool): array
     {
@@ -141,14 +153,22 @@ final class ConfigLoader
         if (! is_array($toolConfig)) {
             return [
                 'enabled' => true,
+                'toolBinary' => null,
                 'defaultArgs' => [],
+                'blockedArgs' => [],
             ];
         }
 
         return [
             'enabled' => (bool) ($toolConfig['enabled'] ?? true),
+            'toolBinary' => is_string($toolConfig['toolBinary'] ?? null) && trim($toolConfig['toolBinary']) !== ''
+                ? trim((string) $toolConfig['toolBinary'])
+                : null,
             'defaultArgs' => is_array($toolConfig['defaultArgs'] ?? null)
                 ? array_values(array_map('strval', $toolConfig['defaultArgs']))
+                : [],
+            'blockedArgs' => is_array($toolConfig['blockedArgs'] ?? null)
+                ? array_values(array_map('strval', $toolConfig['blockedArgs']))
                 : [],
         ];
     }
