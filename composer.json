@@ -50,8 +50,8 @@
   },
   "scripts": {
     "fmt": "vendor/bin/pint",
-    "test": "vendor/bin/pest",
-    "test:unit": "vendor/bin/pest --testsuite=Unit",
-    "test:integration": "vendor/bin/pest --testsuite=Integration"
+    "test": "@php bin/sift pest",
+    "test:unit": "@php bin/sift pest --testsuite=Unit",
+    "test:integration": "@php bin/sift pest --testsuite=Integration"
   }
 }
