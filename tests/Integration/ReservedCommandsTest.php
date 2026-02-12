@@ -9,7 +9,7 @@ it('renders help with the current cli options', function (): void {
 
     $payload = decodeJsonOutput($process);
 
-    expect($payload['commands'])->toContain('view')
+    expect($payload['commands'])->toContain('add', 'view')
         ->and($payload['options'])->toContain('--config=<path>', '--no-history');
 });
 

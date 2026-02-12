@@ -164,12 +164,14 @@ PHP);
 
 /**
  * @param  list<string>  $arguments
+ * @param  array<string, string>|null  $environment
  */
-function runSift(array $arguments, ?string $cwd = null): Process
+function runSift(array $arguments, ?string $cwd = null, ?array $environment = null): Process
 {
     $process = new Process(
         command: [PHP_BINARY, siftRoot().DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift', ...$arguments],
         cwd: $cwd ?? siftRoot(),
+        env: $environment,
     );
 
     $process->run();

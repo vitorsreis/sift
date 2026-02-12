@@ -43,6 +43,23 @@ it('parses command-level options for init', function (): void {
     ]);
 });
 
+it('parses command-level options for add', function (): void {
+    $parsed = (new OptionParser)->parseAdd([
+        'phpstan',
+        '--config=custom.sift.json',
+        '--format=markdown',
+        '--pretty',
+    ]);
+
+    expect($parsed)->toBe([
+        'tool' => 'phpstan',
+        'format' => 'markdown',
+        'size' => null,
+        'pretty' => true,
+        'config' => 'custom.sift.json',
+    ]);
+});
+
 it('parses command-level options for view clear', function (): void {
     $parsed = (new OptionParser)->parseView([
         '--clear',
@@ -81,5 +98,15 @@ it('rejects unknown validate options', function (): void {
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('invalid_usage')
             ->and($exception->payload()['error']['message'])->toBe('Unknown validate option: --bogus');
+    }
+});
+
+it('rejects add without a tool name', function (): void {
+    try {
+        (new OptionParser)->parseAdd(['--pretty']);
+        $this->fail('Expected invalid usage exception.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('invalid_usage')
+            ->and($exception->payload()['error']['message'])->toBe('The `add` command requires a supported tool name.');
     }
 });
