@@ -33,6 +33,28 @@ it('initializes and validates a custom config path after the command name', func
     }
 });
 
+it('writes detected tool binaries into new init configs', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        createProjectTool($cwd, 'pint.bat', "@echo off\r\n");
+
+        $init = runSift(['init', '--force', '--format=json', '--pretty'], $cwd);
+
+        expect($init->getExitCode())->toBe(0);
+
+        $config = json_decode((string) file_get_contents($cwd.DIRECTORY_SEPARATOR.'sift.json'), true, flags: JSON_THROW_ON_ERROR);
+
+        expect($config['tools']['pint'])->toBe([
+            'enabled' => true,
+            'defaultArgs' => ['--test'],
+            'toolBinary' => 'vendor/bin/pint.bat',
+        ]);
+    } finally {
+        removeDirectory($cwd);
+    }
+});
+
 it('clears run history through the view command', function (): void {
     $cwd = makeTempDirectory();
 

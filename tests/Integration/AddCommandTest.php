@@ -23,6 +23,7 @@ it('adds a detected tool to a fresh sift config', function (): void {
             ->and($config['tools']['phpstan'])->toBe([
                 'enabled' => true,
                 'defaultArgs' => ['analyse'],
+                'toolBinary' => 'vendor/bin/phpstan.bat',
             ]);
     } finally {
         removeDirectory($cwd);
@@ -63,6 +64,7 @@ it('merges a tool into an existing custom config file', function (): void {
             ->and($config['tools']['pint'])->toBe([
                 'enabled' => true,
                 'defaultArgs' => ['--test'],
+                'toolBinary' => 'vendor/bin/pint.bat',
             ]);
     } finally {
         removeDirectory($cwd);
