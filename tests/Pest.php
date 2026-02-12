@@ -116,6 +116,52 @@ exit(\$exitCode);
 PHP);
 }
 
+function createPestProject(string $cwd): void
+{
+    $testsDirectory = $cwd.DIRECTORY_SEPARATOR.'tests';
+
+    if (! is_dir($testsDirectory) && ! mkdir($testsDirectory, 0777, true) && ! is_dir($testsDirectory)) {
+        throw new RuntimeException(sprintf('Unable to create tests directory: %s', $testsDirectory));
+    }
+
+    file_put_contents($cwd.DIRECTORY_SEPARATOR.'phpunit.xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true">
+  <testsuites>
+    <testsuite name="default">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
+XML);
+
+    file_put_contents($testsDirectory.DIRECTORY_SEPARATOR.'Pest.php', <<<'PHP'
+<?php
+
+declare(strict_types=1);
+PHP);
+
+    file_put_contents($testsDirectory.DIRECTORY_SEPARATOR.'PassingTest.php', <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+it('passes', function (): void {
+    expect(true)->toBeTrue();
+});
+PHP);
+
+    file_put_contents($testsDirectory.DIRECTORY_SEPARATOR.'FailingTest.php', <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+it('fails', function (): void {
+    expect(false)->toBeTrue();
+});
+PHP);
+}
+
 /**
  * @param  list<string>  $arguments
  */
