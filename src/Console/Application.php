@@ -11,13 +11,17 @@ use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\AddService;
+use Sift\Runtime\BlockedArgumentsPolicy;
 use Sift\Runtime\ConfigDocumentManager;
 use Sift\Runtime\ConfigLoader;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\InitService;
+use Sift\Runtime\PolicyRunner;
 use Sift\Runtime\ProcessExecutor;
 use Sift\Runtime\ProjectInspector;
 use Sift\Runtime\ResultPayloadFactory;
+use Sift\Runtime\ToolEnabledPolicy;
+use Sift\Runtime\ToolInstalledPolicy;
 use Sift\Runtime\ToolLocator;
 use Sift\Runtime\ValidateService;
 use Sift\Runtime\ViewService;
@@ -51,6 +55,11 @@ final class Application
             $runStore,
             new InitService($toolLocator, $configDocumentManager),
             new AddService($toolLocator, $configDocumentManager),
+            new PolicyRunner([
+                new ToolEnabledPolicy,
+                new BlockedArgumentsPolicy,
+                new ToolInstalledPolicy($toolLocator),
+            ]),
             new ProjectInspector($toolLocator),
             new ValidateService($configLoader),
             new ViewService($runStore),
@@ -83,6 +92,7 @@ final class Application
         private readonly FileRunStore $runStore,
         private readonly InitService $initService,
         private readonly AddService $addService,
+        private readonly PolicyRunner $policyRunner,
         private readonly ProjectInspector $projectInspector,
         private readonly ValidateService $validateService,
         private readonly ViewService $viewService,
@@ -253,15 +263,11 @@ final class Application
 
         $toolConfig = $this->configLoader->tool($config, $command);
 
-        if ($toolConfig['enabled'] !== true) {
-            throw UserFacingException::toolDisabled($command);
-        }
-
         if ($toolArguments === [] && $toolConfig['defaultArgs'] !== []) {
             $toolArguments = $toolConfig['defaultArgs'];
         }
 
-        $this->guardBlockedArguments($command, $toolArguments, $toolConfig['blockedArgs']);
+        $this->policyRunner->enforce($cwd, $tool, $toolArguments, $toolConfig);
 
         $context = [
             ...$tool->detectContext($toolArguments),
@@ -333,21 +339,6 @@ final class Application
             }
 
             @unlink($tempFile);
-        }
-    }
-
-    /**
-     * @param  list<string>  $arguments
-     * @param  list<string>  $blockedArguments
-     */
-    private function guardBlockedArguments(string $tool, array $arguments, array $blockedArguments): void
-    {
-        foreach ($blockedArguments as $blockedArgument) {
-            foreach ($arguments as $argument) {
-                if ($argument === $blockedArgument || str_starts_with($argument, $blockedArgument.'=')) {
-                    throw UserFacingException::blockedArgument($tool, $blockedArgument);
-                }
-            }
         }
     }
 

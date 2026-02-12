@@ -245,6 +245,6 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
             ? [trim((string) $context['tool_binary'])]
             : [];
 
-        return [...$configured, ...$this->discoveryCandidates()];
+        return $configured !== [] ? $configured : $this->discoveryCandidates();
     }
 }

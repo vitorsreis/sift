@@ -27,7 +27,7 @@ final class ProjectInspector
                 ? trim((string) $toolConfig['toolBinary'])
                 : null;
             $candidates = $configuredBinary !== null
-                ? [$configuredBinary, ...$tool->discoveryCandidates()]
+                ? [$configuredBinary]
                 : $tool->discoveryCandidates();
             $resolved = $this->toolLocator->locate($cwd, $candidates);
 

@@ -246,6 +246,6 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
             ? [trim((string) $context['tool_binary'])]
             : [];
 
-        return [...$configured, ...$this->discoveryCandidates()];
+        return $configured !== [] ? $configured : $this->discoveryCandidates();
     }
 }
