@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./resources/schema/config.schema.json",
+  "title": "Sift Config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["json", "markdown"]
+        },
+        "size": {
+          "type": "string",
+          "enum": ["compact", "normal", "fuller"]
+        },
+        "pretty": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "toolBinary": {
+            "type": "string"
+          },
+          "defaultArgs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockedArgs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["history", "output", "tools"]
+}

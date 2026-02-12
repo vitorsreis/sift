@@ -78,6 +78,7 @@ final class ConfigDocumentManager
     private function defaults(): array
     {
         return [
+            '$schema' => './resources/schema/config.schema.json',
             'history' => [
                 'enabled' => true,
             ],
@@ -96,12 +97,16 @@ final class ConfigDocumentManager
     private function normalize(array $document): array
     {
         $defaults = $this->defaults();
+        $schema = is_string($document['$schema'] ?? null) && trim((string) $document['$schema']) !== ''
+            ? trim((string) $document['$schema'])
+            : $defaults['$schema'];
         $history = is_array($document['history'] ?? null) ? $document['history'] : $defaults['history'];
         $output = is_array($document['output'] ?? null) ? $document['output'] : $defaults['output'];
         $tools = $this->normalizeTools($document['tools'] ?? null);
 
         return [
             ...$document,
+            '$schema' => $schema,
             'history' => $history,
             'output' => $output,
             'tools' => $tools,
@@ -116,14 +121,23 @@ final class ConfigDocumentManager
     {
         $normalized = $this->normalize($document);
         $tools = is_array($normalized['tools']) ? $normalized['tools'] : [];
+        $schema = (string) $normalized['$schema'];
+        $history = is_array($normalized['history']) ? $normalized['history'] : [];
+        $output = is_array($normalized['output']) ? $normalized['output'] : [];
 
         if ($tools !== []) {
             ksort($tools);
         }
 
-        $normalized['tools'] = $tools === [] ? (object) [] : $tools;
+        unset($normalized['$schema'], $normalized['history'], $normalized['output'], $normalized['tools']);
 
-        return $normalized;
+        return [
+            '$schema' => $schema,
+            'history' => $history,
+            'output' => $output,
+            'tools' => $tools === [] ? (object) [] : $tools,
+            ...$normalized,
+        ];
     }
 
     /**
