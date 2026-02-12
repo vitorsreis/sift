@@ -29,7 +29,12 @@ it('loads and normalizes a custom relative config path', function (): void {
             'history' => ['enabled' => false],
             'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true],
             'tools' => [
-                'pint' => ['enabled' => false, 'defaultArgs' => ['--test', 123]],
+                'pint' => [
+                    'enabled' => false,
+                    'toolBinary' => 'tools/pint.bat',
+                    'defaultArgs' => ['--test', 123],
+                    'blockedArgs' => ['--dirty', 456],
+                ],
             ],
         ], 'custom.sift.json');
 
@@ -39,7 +44,12 @@ it('loads and normalizes a custom relative config path', function (): void {
             'history' => ['enabled' => false],
             'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true],
             'tools' => [
-                'pint' => ['enabled' => false, 'defaultArgs' => ['--test', '123']],
+                'pint' => [
+                    'enabled' => false,
+                    'toolBinary' => 'tools/pint.bat',
+                    'defaultArgs' => ['--test', '123'],
+                    'blockedArgs' => ['--dirty', '456'],
+                ],
             ],
         ]);
     } finally {
@@ -85,4 +95,26 @@ it('rejects invalid config documents', function (): void {
     } finally {
         removeDirectory($cwd);
     }
+});
+
+it('returns normalized tool settings when reading a single tool config', function (): void {
+    $config = [
+        'history' => ['enabled' => true],
+        'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false],
+        'tools' => [
+            'phpstan' => [
+                'enabled' => false,
+                'toolBinary' => 'bin/phpstan-custom',
+                'defaultArgs' => ['analyse'],
+                'blockedArgs' => ['--generate-baseline'],
+            ],
+        ],
+    ];
+
+    expect((new ConfigLoader)->tool($config, 'phpstan'))->toBe([
+        'enabled' => false,
+        'toolBinary' => 'bin/phpstan-custom',
+        'defaultArgs' => ['analyse'],
+        'blockedArgs' => ['--generate-baseline'],
+    ]);
 });
