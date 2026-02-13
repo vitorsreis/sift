@@ -13,7 +13,7 @@ it('returns defaults when the config file is missing', function (): void {
 
         expect($config)->toBe([
             'history' => ['enabled' => true],
-            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false],
+            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
             'tools' => [],
         ]);
     } finally {
@@ -27,7 +27,7 @@ it('loads and normalizes a custom relative config path', function (): void {
     try {
         writeSiftConfig($cwd, [
             'history' => ['enabled' => false],
-            'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true],
+            'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true, 'show_process' => true],
             'tools' => [
                 'pint' => [
                     'enabled' => false,
@@ -42,7 +42,7 @@ it('loads and normalizes a custom relative config path', function (): void {
 
         expect($config)->toBe([
             'history' => ['enabled' => false],
-            'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true],
+            'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true, 'show_process' => true],
             'tools' => [
                 'pint' => [
                     'enabled' => false,
@@ -64,7 +64,7 @@ it('resolves absolute config paths', function (): void {
     try {
         $path = writeSiftConfig($other, [
             'history' => ['enabled' => true],
-            'output' => ['format' => 'json', 'size' => 'compact', 'pretty' => true],
+            'output' => ['format' => 'json', 'size' => 'compact', 'pretty' => true, 'show_process' => false],
             'tools' => [],
         ]);
 
@@ -100,7 +100,7 @@ it('rejects invalid config documents', function (): void {
 it('returns normalized tool settings when reading a single tool config', function (): void {
     $config = [
         'history' => ['enabled' => true],
-        'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false],
+        'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
         'tools' => [
             'phpstan' => [
                 'enabled' => false,

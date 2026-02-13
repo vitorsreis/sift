@@ -8,6 +8,7 @@ use Sift\Exceptions\UserFacingException;
 it('parses global runtime options before the command', function (): void {
     $parsed = (new OptionParser)->parse([
         '--raw',
+        '--show-process',
         '--pretty',
         '--size=fuller',
         '--no-history',
@@ -22,6 +23,7 @@ it('parses global runtime options before the command', function (): void {
         'format' => null,
         'size' => 'fuller',
         'raw' => true,
+        'show_process' => true,
         'history' => false,
         'config' => 'custom.sift.json',
         'arguments' => ['src'],
@@ -92,6 +94,7 @@ it('parses raw mode for wrapped tools only', function (): void {
     ]);
 
     expect($parsed['raw'])->toBeTrue()
+        ->and($parsed['show_process'])->toBeNull()
         ->and($parsed['command'])->toBe('pint')
         ->and($parsed['arguments'])->toBe(['src']);
 });

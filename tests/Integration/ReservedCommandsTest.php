@@ -10,7 +10,7 @@ it('renders help with the current cli options', function (): void {
     $payload = decodeJsonOutput($process);
 
     expect($payload['commands'])->toContain('add', 'view')
-        ->and($payload['options'])->toContain('--config=<path>', '--no-history');
+        ->and($payload['options'])->toContain('--config=<path>', '--no-history', '--show-process | --no-show-process');
 });
 
 it('initializes and validates a custom config path after the command name', function (): void {

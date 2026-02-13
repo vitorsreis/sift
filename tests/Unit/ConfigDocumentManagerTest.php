@@ -17,6 +17,7 @@ it('writes config documents with two-space indentation', function (): void {
             'output' => [
                 'format' => 'json',
                 'size' => 'normal',
+                'show_process' => false,
             ],
             'tools' => [
                 'phpstan' => [
@@ -31,6 +32,7 @@ it('writes config documents with two-space indentation', function (): void {
         expect($raw)->toContain("\n  \"\$schema\": \"./resources/schema/config.schema.json\",")
             ->and($raw)->toContain("\n  \"history\": {")
             ->and($raw)->toContain("\n    \"enabled\": true")
+            ->and($raw)->toContain("\n    \"show_process\": false")
             ->and($raw)->not->toContain("\n    \"history\": {");
     } finally {
         removeDirectory($cwd);
@@ -51,6 +53,7 @@ it('returns a default config document when the file does not exist', function ()
             'output' => [
                 'format' => 'json',
                 'size' => 'normal',
+                'show_process' => false,
             ],
             'tools' => [],
         ]);
@@ -66,6 +69,7 @@ it('ships a valid json schema for the sift config', function (): void {
     expect(is_file($path))->toBeTrue()
         ->and($schema['type'])->toBe('object')
         ->and($schema['properties'])->toHaveKeys(['history', 'output', 'tools'])
+        ->and($schema['properties']['output']['properties'])->toHaveKey('show_process')
         ->and($schema['properties']['tools']['additionalProperties']['properties'])->toHaveKeys([
             'enabled',
             'toolBinary',
