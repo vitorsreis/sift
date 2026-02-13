@@ -7,6 +7,7 @@ use Sift\Exceptions\UserFacingException;
 
 it('parses global runtime options before the command', function (): void {
     $parsed = (new OptionParser)->parse([
+        '--raw',
         '--pretty',
         '--size=fuller',
         '--no-history',
@@ -20,6 +21,7 @@ it('parses global runtime options before the command', function (): void {
         'pretty' => true,
         'format' => null,
         'size' => 'fuller',
+        'raw' => true,
         'history' => false,
         'config' => 'custom.sift.json',
         'arguments' => ['src'],
@@ -79,6 +81,19 @@ it('parses command-level options for view clear', function (): void {
         'pretty' => true,
         'config' => 'custom.sift.json',
     ]);
+});
+
+it('parses raw mode for wrapped tools only', function (): void {
+    $parsed = (new OptionParser)->parse([
+        '--raw',
+        '--format=markdown',
+        'pint',
+        'src',
+    ]);
+
+    expect($parsed['raw'])->toBeTrue()
+        ->and($parsed['command'])->toBe('pint')
+        ->and($parsed['arguments'])->toBe(['src']);
 });
 
 it('rejects invalid positional arguments for view clear', function (): void {
