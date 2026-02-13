@@ -94,3 +94,31 @@ it('blocks configured native arguments before execution', function (): void {
         removeDirectory($cwd);
     }
 });
+
+it('fails early when a configured tool binary does not exist', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        writeSiftConfig($cwd, [
+            'history' => ['enabled' => true],
+            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => true],
+            'tools' => [
+                'pint' => [
+                    'enabled' => true,
+                    'toolBinary' => 'vendor/bin/missing-pint.bat',
+                ],
+            ],
+        ]);
+
+        $process = runSift(['pint'], $cwd);
+
+        expect($process->getExitCode())->toBe(1);
+
+        $payload = decodeJsonOutput($process);
+
+        expect($payload['error']['code'])->toBe('tool_not_installed')
+            ->and($payload['error']['tool'])->toBe('pint');
+    } finally {
+        removeDirectory($cwd);
+    }
+});
