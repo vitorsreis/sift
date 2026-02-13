@@ -33,7 +33,10 @@ it('normalizes passing phpcs executions', function (): void {
             ->and($decoded['items'])->toBe([])
             ->and($decoded['meta']['command'])->toContain('--report=json')
             ->and($decoded['meta']['command'])->toContain('--no-colors')
-            ->and($decoded['meta']['command'])->toContain('-q');
+            ->and($decoded['meta']['command'])->toContain('-q')
+            ->and($decoded['meta']['exit_code'])->toBe(0)
+            ->and($decoded['meta']['duration'])->toBeInt()
+            ->and($decoded['meta']['created_at'])->toBeString();
     } finally {
         removeDirectory($cwd);
     }
@@ -110,7 +113,10 @@ it('normalizes failing phpcs executions with issue details', function (): void {
                 'message' => 'Opening brace should be on a new line',
                 'rule' => 'PSR2.Classes.ClassDeclaration.OpenBraceNewLine',
                 'fixable' => true,
-            ]);
+            ])
+            ->and($decoded['meta']['exit_code'])->toBe(1)
+            ->and($decoded['meta']['duration'])->toBeInt()
+            ->and($decoded['meta']['created_at'])->toBeString();
     } finally {
         removeDirectory($cwd);
     }

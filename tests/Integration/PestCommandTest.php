@@ -34,7 +34,10 @@ it('normalizes passing pest executions', function (): void {
                 'skipped' => 0,
             ])
             ->and($payload['meta']['filter'])->toBeFalse()
-            ->and($payload['meta']['coverage'])->toBeFalse();
+            ->and($payload['meta']['coverage'])->toBeFalse()
+            ->and($payload['meta']['exit_code'])->toBe(0)
+            ->and($payload['meta']['duration'])->toBeInt()
+            ->and($payload['meta']['created_at'])->toBeString();
     } finally {
         removeDirectory($cwd);
     }
@@ -69,7 +72,10 @@ it('normalizes failing pest executions with testcase details', function (): void
             ->and($payload['items'])->toHaveCount(1)
             ->and($payload['items'][0]['type'])->toBe('failure')
             ->and($payload['items'][0]['test'])->toBe('it fails')
-            ->and($payload['items'][0]['message'])->not->toBe('');
+            ->and($payload['items'][0]['message'])->not->toBe('')
+            ->and($payload['meta']['exit_code'])->toBe(1)
+            ->and($payload['meta']['duration'])->toBeInt()
+            ->and($payload['meta']['created_at'])->toBeString();
     } finally {
         removeDirectory($cwd);
     }
