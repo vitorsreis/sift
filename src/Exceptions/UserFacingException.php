@@ -50,6 +50,7 @@ final class UserFacingException extends RuntimeException
                 'code' => 'unsupported_tool',
                 'message' => sprintf('The tool `%s` is not supported by Sift.', $tool),
                 'tool' => $tool,
+                'hint' => 'Run `sift list` to see the tools supported by this Sift build.',
             ],
         ]);
     }
@@ -63,6 +64,10 @@ final class UserFacingException extends RuntimeException
                 'message' => sprintf('The tool `%s` is not installed in this project.', $tool),
                 'tool' => $tool,
                 'hint' => $hint,
+                'suggestions' => [
+                    $hint,
+                    sprintf('If `%s` is already installed, run `sift add %s` to register the project binary.', $tool, $tool),
+                ],
             ],
         ]);
     }
@@ -87,6 +92,7 @@ final class UserFacingException extends RuntimeException
                 'code' => 'parse_failure',
                 'message' => $message,
                 'tool' => $tool,
+                'hint' => 'Try `--raw` to inspect the native tool output.',
             ],
         ]);
     }
@@ -99,6 +105,7 @@ final class UserFacingException extends RuntimeException
                 'code' => 'config_already_exists',
                 'message' => sprintf('The config file `%s` already exists.', $path),
                 'path' => $path,
+                'hint' => 'Use `init --force` to overwrite the existing file.',
             ],
         ]);
     }
@@ -111,6 +118,7 @@ final class UserFacingException extends RuntimeException
                 'code' => 'config_not_found',
                 'message' => sprintf('The config file `%s` was not found.', $path),
                 'path' => $path,
+                'hint' => 'Create it with `sift init` or pass `--config=<path>` to an existing file.',
             ],
         ]);
     }
@@ -123,6 +131,8 @@ final class UserFacingException extends RuntimeException
                 'code' => 'invalid_config',
                 'message' => sprintf('The config file `%s` is invalid: %s', $path, $reason),
                 'path' => $path,
+                'reason' => $reason,
+                'hint' => 'Fix the JSON or schema mismatch and rerun `sift validate`.',
             ],
         ]);
     }
@@ -135,6 +145,7 @@ final class UserFacingException extends RuntimeException
                 'code' => 'tool_disabled',
                 'message' => sprintf('The tool `%s` is disabled by project configuration.', $tool),
                 'tool' => $tool,
+                'hint' => sprintf('Set `tools.%s.enabled` to true in `sift.json` to allow this run.', $tool),
             ],
         ]);
     }
@@ -148,6 +159,7 @@ final class UserFacingException extends RuntimeException
                 'message' => sprintf('The argument `%s` is blocked for the tool `%s`.', $argument, $tool),
                 'tool' => $tool,
                 'argument' => $argument,
+                'hint' => sprintf('Remove `%s` from the CLI arguments or from `tools.%s.defaultArgs` in `sift.json`.', $argument, $tool),
             ],
         ]);
     }
