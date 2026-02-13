@@ -85,6 +85,7 @@ final class ConfigDocumentManager
             'output' => [
                 'format' => 'json',
                 'size' => 'normal',
+                'show_process' => false,
             ],
             'tools' => [],
         ];

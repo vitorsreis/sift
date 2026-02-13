@@ -10,7 +10,7 @@ use Symfony\Component\Process\Process;
 
 final class ProcessExecutor
 {
-    public function run(PreparedCommand $preparedCommand): ExecutionResult
+    public function run(PreparedCommand $preparedCommand, ?callable $outputCallback = null): ExecutionResult
     {
         $startedAt = microtime(true);
         $stdout = '';
@@ -23,14 +23,22 @@ final class ProcessExecutor
         );
 
         $process->setTimeout(null);
-        $process->run(function (string $type, string $buffer) use (&$stdout, &$stderr): void {
+        $process->run(function (string $type, string $buffer) use (&$stdout, &$stderr, $outputCallback): void {
             if ($type === Process::ERR) {
                 $stderr .= $buffer;
+
+                if ($outputCallback !== null) {
+                    $outputCallback($type, $buffer);
+                }
 
                 return;
             }
 
             $stdout .= $buffer;
+
+            if ($outputCallback !== null) {
+                $outputCallback($type, $buffer);
+            }
         });
 
         return new ExecutionResult(

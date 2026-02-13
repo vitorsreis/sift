@@ -34,6 +34,7 @@ final class ValidateService
                 'format' => $config['output']['format'],
                 'size' => $config['output']['size'],
                 'pretty' => $config['output']['pretty'],
+                'show_process' => $config['output']['show_process'],
             ],
             'history' => $config['history'],
         ];

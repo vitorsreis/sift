@@ -12,7 +12,7 @@ final class ConfigLoader
     /**
      * @return array{
      *   history: array{enabled: bool},
-     *   output: array{format: string, size: string, pretty: bool},
+     *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}>
      * }
      */
@@ -53,6 +53,7 @@ final class ConfigLoader
         $format = $output['format'] ?? $defaults['output']['format'];
         $size = $output['size'] ?? $defaults['output']['size'];
         $pretty = $output['pretty'] ?? $defaults['output']['pretty'];
+        $showProcess = $output['show_process'] ?? $defaults['output']['show_process'];
 
         if (! in_array($format, ['json', 'markdown'], true)) {
             throw UserFacingException::invalidConfig($path, 'The `output.format` value must be `json` or `markdown`.');
@@ -64,6 +65,10 @@ final class ConfigLoader
 
         if (! is_bool($pretty)) {
             throw UserFacingException::invalidConfig($path, 'The `output.pretty` value must be boolean.');
+        }
+
+        if (! is_bool($showProcess)) {
+            throw UserFacingException::invalidConfig($path, 'The `output.show_process` value must be boolean.');
         }
 
         $enabled = $history['enabled'] ?? $defaults['history']['enabled'];
@@ -120,6 +125,7 @@ final class ConfigLoader
                 'format' => $format,
                 'size' => $size,
                 'pretty' => $pretty,
+                'show_process' => $showProcess,
             ],
             'tools' => $normalizedTools,
         ];
@@ -141,7 +147,7 @@ final class ConfigLoader
     /**
      * @param  array{
      *   history: array{enabled: bool},
-     *   output: array{format: string, size: string, pretty: bool},
+     *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}>
      * }  $config
      * @return array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}
@@ -176,7 +182,7 @@ final class ConfigLoader
     /**
      * @return array{
      *   history: array{enabled: bool},
-     *   output: array{format: string, size: string, pretty: bool},
+     *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array<string, mixed>>
      * }
      */
@@ -190,6 +196,7 @@ final class ConfigLoader
                 'format' => 'json',
                 'size' => 'normal',
                 'pretty' => false,
+                'show_process' => false,
             ],
             'tools' => [],
         ];

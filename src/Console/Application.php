@@ -37,6 +37,15 @@ use Sift\Tools\PintToolAdapter;
 final class Application
 {
     /**
+     * @var list<string>
+     */
+    private array $processLines = [];
+
+    private int $renderedProcessHeight = 0;
+
+    private string $processLineRemainder = '';
+
+    /**
      * @param  list<string>  $argv
      */
     public static function run(array $argv): int
@@ -162,6 +171,7 @@ final class Application
                     '--format=<json|markdown>',
                     '--size=<compact|normal|fuller>',
                     '--raw',
+                    '--show-process | --no-show-process',
                     '--pretty | --no-pretty',
                     '--no-history',
                     '--config=<path>',
@@ -177,6 +187,7 @@ final class Application
         $format = $parsed['format'] ?? $config['output']['format'];
         $size = $parsed['size'] ?? $config['output']['size'];
         $pretty = $parsed['pretty'] ?? $config['output']['pretty'];
+        $showProcess = ($parsed['show_process'] ?? $config['output']['show_process']) === true;
         $historyEnabled = $parsed['history'] ?? $config['history']['enabled'];
 
         if ($command === 'init') {
@@ -315,7 +326,10 @@ final class Application
         $preparedCommand = $tool->prepare($cwd, $toolArguments, $context);
 
         try {
-            $executionResult = $this->processExecutor->run($preparedCommand);
+            $executionResult = $this->processExecutor->run(
+                $preparedCommand,
+                $showProcess ? $this->processOutputCallback() : null,
+            );
             $result = $this->stampResult(
                 $tool->parse($executionResult, $preparedCommand, $context),
             );
@@ -331,6 +345,7 @@ final class Application
                 '_format' => $format,
             ];
         } finally {
+            $this->clearProcessOutput();
             $this->cleanupTempFiles($preparedCommand);
         }
     }
@@ -401,6 +416,102 @@ final class Application
 
             @unlink($tempFile);
         }
+    }
+
+    /**
+     * @return callable(string, string): void
+     */
+    private function processOutputCallback(): callable
+    {
+        return function (string $type, string $buffer): void {
+            unset($type);
+            $this->recordProcessOutput($buffer);
+        };
+    }
+
+    private function recordProcessOutput(string $buffer): void
+    {
+        $normalized = str_replace("\r", "\n", $buffer);
+        $parts = explode("\n", $this->processLineRemainder.$normalized);
+        $this->processLineRemainder = array_pop($parts) ?? '';
+
+        $changed = false;
+
+        foreach ($parts as $line) {
+            $line = trim($line);
+
+            if ($line === '') {
+                continue;
+            }
+
+            $this->processLines[] = $line;
+
+            if (count($this->processLines) > 5) {
+                array_shift($this->processLines);
+            }
+
+            $changed = true;
+        }
+
+        if ($changed) {
+            $this->renderProcessOutput();
+        }
+    }
+
+    private function renderProcessOutput(): void
+    {
+        $this->clearRenderedProcessBlock();
+
+        foreach ($this->processLines as $line) {
+            fwrite(STDERR, "\r\033[2K{$line}".PHP_EOL);
+        }
+
+        fflush(STDERR);
+        $this->renderedProcessHeight = count($this->processLines);
+    }
+
+    private function clearProcessOutput(): void
+    {
+        $remainder = trim($this->processLineRemainder);
+
+        if ($remainder !== '') {
+            $this->processLines[] = $remainder;
+
+            if (count($this->processLines) > 5) {
+                array_shift($this->processLines);
+            }
+
+            $this->processLineRemainder = '';
+            $this->renderProcessOutput();
+        }
+
+        $this->clearRenderedProcessBlock();
+        $this->processLines = [];
+        $this->processLineRemainder = '';
+    }
+
+    private function clearRenderedProcessBlock(): void
+    {
+        if ($this->renderedProcessHeight === 0) {
+            return;
+        }
+
+        fwrite(STDERR, sprintf("\033[%dA", $this->renderedProcessHeight));
+
+        for ($index = 0; $index < $this->renderedProcessHeight; $index++) {
+            fwrite(STDERR, "\r\033[2K");
+
+            if ($index < $this->renderedProcessHeight - 1) {
+                fwrite(STDERR, "\033[1B");
+            }
+        }
+
+        if ($this->renderedProcessHeight > 1) {
+            fwrite(STDERR, sprintf("\033[%dA", $this->renderedProcessHeight - 1));
+        }
+
+        fflush(STDERR);
+        $this->renderedProcessHeight = 0;
     }
 
     private static function registry(ToolLocator $toolLocator): ToolRegistry

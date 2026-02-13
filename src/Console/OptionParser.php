@@ -10,7 +10,7 @@ final class OptionParser
 {
     /**
      * @param  list<string>  $arguments
-     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, raw: ?bool, history: ?bool, config: ?string, arguments: list<string>}
+     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, raw: ?bool, show_process: ?bool, history: ?bool, config: ?string, arguments: list<string>}
      */
     public function parse(array $arguments): array
     {
@@ -18,6 +18,7 @@ final class OptionParser
         $format = null;
         $size = null;
         $raw = null;
+        $showProcess = null;
         $history = null;
         $config = null;
         $command = null;
@@ -25,7 +26,7 @@ final class OptionParser
 
         foreach ($arguments as $argument) {
             if ($command === null) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $history, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
                     continue;
                 }
 
@@ -39,7 +40,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $history, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
                     continue;
                 }
 
@@ -55,6 +56,7 @@ final class OptionParser
             'format' => $format,
             'size' => $size,
             'raw' => $raw,
+            'show_process' => $showProcess,
             'history' => $history,
             'config' => $config,
             'arguments' => $toolArguments,
@@ -67,6 +69,7 @@ final class OptionParser
         ?string &$size,
         ?bool &$pretty,
         ?bool &$raw,
+        ?bool &$showProcess,
         ?bool &$history,
         ?string &$config,
     ): bool {
@@ -76,6 +79,18 @@ final class OptionParser
 
         if ($argument === '--raw') {
             $raw = true;
+
+            return true;
+        }
+
+        if ($argument === '--show-process') {
+            $showProcess = true;
+
+            return true;
+        }
+
+        if ($argument === '--no-show-process') {
+            $showProcess = false;
 
             return true;
         }
