@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sift\Console;
 
 use Sift\Contracts\ToolAdapterInterface;
-use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
@@ -20,6 +19,7 @@ use Sift\Runtime\InitService;
 use Sift\Runtime\PolicyRunner;
 use Sift\Runtime\ProcessExecutor;
 use Sift\Runtime\ProjectInspector;
+use Sift\Runtime\ResultMetaStamper;
 use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolEnabledPolicy;
 use Sift\Runtime\ToolInstalledPolicy;
@@ -62,6 +62,7 @@ final class Application
             new MarkdownRenderer,
             new ProcessExecutor,
             new ResultPayloadFactory,
+            new ResultMetaStamper,
             $configLoader,
             $runStore,
             new InitService($toolLocator, $configDocumentManager),
@@ -117,6 +118,7 @@ final class Application
         private readonly MarkdownRenderer $markdownRenderer,
         private readonly ProcessExecutor $processExecutor,
         private readonly ResultPayloadFactory $resultPayloadFactory,
+        private readonly ResultMetaStamper $resultMetaStamper,
         private readonly ConfigLoader $configLoader,
         private readonly FileRunStore $runStore,
         private readonly InitService $initService,
@@ -330,8 +332,9 @@ final class Application
                 $preparedCommand,
                 $showProcess ? $this->processOutputCallback() : null,
             );
-            $result = $this->stampResult(
+            $result = $this->resultMetaStamper->stamp(
                 $tool->parse($executionResult, $preparedCommand, $context),
+                $executionResult,
             );
             $runId = null;
 
@@ -348,18 +351,6 @@ final class Application
             $this->clearProcessOutput();
             $this->cleanupTempFiles($preparedCommand);
         }
-    }
-
-    private function stampResult(NormalizedResult $result): NormalizedResult
-    {
-        if (is_string($result->meta['created_at'] ?? null) && $result->meta['created_at'] !== '') {
-            return $result;
-        }
-
-        return $result->withMeta([
-            ...$result->meta,
-            'created_at' => gmdate('c'),
-        ]);
     }
 
     /**
