@@ -29,6 +29,7 @@ use Sift\Runtime\ViewService;
 use Sift\Sift;
 use Sift\Tools\ComposerAuditToolAdapter;
 use Sift\Tools\PestToolAdapter;
+use Sift\Tools\PhpcsToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PhpunitToolAdapter;
 use Sift\Tools\PintToolAdapter;
@@ -407,6 +408,7 @@ final class Application
         return new ToolRegistry([
             new ComposerAuditToolAdapter($toolLocator),
             new PestToolAdapter($toolLocator),
+            new PhpcsToolAdapter($toolLocator),
             new PintToolAdapter($toolLocator),
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
