@@ -106,20 +106,7 @@ final readonly class PintToolAdapter implements ToolAdapterInterface
         $decoded = $this->decodeOutput($executionResult);
 
         if (! is_array($decoded)) {
-            return new NormalizedResult(
-                tool: $this->name(),
-                status: $executionResult->exitCode === 0 ? 'passed' : 'error',
-                extra: [
-                    'stdout' => trim($executionResult->stdout),
-                    'stderr' => trim($executionResult->stderr),
-                ],
-                meta: [
-                    'exit_code' => $executionResult->exitCode,
-                    'duration' => $executionResult->duration,
-                    'command' => $preparedCommand->command,
-                    'mode' => (string) ($preparedCommand->metadata['mode'] ?? $context['mode'] ?? 'test'),
-                ],
-            );
+            throw UserFacingException::parseFailure($this->name(), 'Unable to parse Pint JSON output.');
         }
 
         $files = is_array($decoded['files'] ?? null) ? $decoded['files'] : [];

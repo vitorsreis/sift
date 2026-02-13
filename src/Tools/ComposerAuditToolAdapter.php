@@ -92,19 +92,7 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
         $decoded = json_decode($executionResult->stdout, true);
 
         if (! is_array($decoded)) {
-            return new NormalizedResult(
-                tool: $this->name(),
-                status: $executionResult->exitCode === 0 ? 'passed' : 'error',
-                extra: [
-                    'stdout' => trim($executionResult->stdout),
-                    'stderr' => trim($executionResult->stderr),
-                ],
-                meta: [
-                    'exit_code' => $executionResult->exitCode,
-                    'duration' => $executionResult->duration,
-                    'command' => $preparedCommand->command,
-                ],
-            );
+            throw UserFacingException::parseFailure($this->name(), 'Unable to parse Composer audit JSON output.');
         }
 
         $advisories = is_array($decoded['advisories'] ?? null) ? $decoded['advisories'] : [];

@@ -104,23 +104,7 @@ final readonly class PhpstanToolAdapter implements ToolAdapterInterface
         $decoded = json_decode($executionResult->stdout, true);
 
         if (! is_array($decoded)) {
-            return new NormalizedResult(
-                tool: $this->name(),
-                status: $executionResult->exitCode === 0 ? 'passed' : 'error',
-                summary: [
-                    'errors' => 0,
-                    'files' => 0,
-                ],
-                extra: [
-                    'stdout' => trim($executionResult->stdout),
-                    'stderr' => trim($executionResult->stderr),
-                ],
-                meta: [
-                    'exit_code' => $executionResult->exitCode,
-                    'duration' => $executionResult->duration,
-                    'command' => $preparedCommand->command,
-                ],
-            );
+            throw UserFacingException::parseFailure($this->name(), 'Unable to parse PHPStan JSON output.');
         }
 
         $totals = is_array($decoded['totals'] ?? null) ? $decoded['totals'] : [];
