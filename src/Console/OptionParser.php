@@ -10,13 +10,14 @@ final class OptionParser
 {
     /**
      * @param  list<string>  $arguments
-     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, history: ?bool, config: ?string, arguments: list<string>}
+     * @return array{command: string, pretty: ?bool, format: ?string, size: ?string, raw: ?bool, history: ?bool, config: ?string, arguments: list<string>}
      */
     public function parse(array $arguments): array
     {
         $pretty = null;
         $format = null;
         $size = null;
+        $raw = null;
         $history = null;
         $config = null;
         $command = null;
@@ -24,7 +25,7 @@ final class OptionParser
 
         foreach ($arguments as $argument) {
             if ($command === null) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $history, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $history, $config)) {
                     continue;
                 }
 
@@ -38,7 +39,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $history, $config)) {
+                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $history, $config)) {
                     continue;
                 }
 
@@ -53,6 +54,7 @@ final class OptionParser
             'pretty' => $pretty,
             'format' => $format,
             'size' => $size,
+            'raw' => $raw,
             'history' => $history,
             'config' => $config,
             'arguments' => $toolArguments,
@@ -64,10 +66,17 @@ final class OptionParser
         ?string &$format,
         ?string &$size,
         ?bool &$pretty,
+        ?bool &$raw,
         ?bool &$history,
         ?string &$config,
     ): bool {
         if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+            return true;
+        }
+
+        if ($argument === '--raw') {
+            $raw = true;
+
             return true;
         }
 

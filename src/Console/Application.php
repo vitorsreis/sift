@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Contracts\ToolAdapterInterface;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
@@ -60,6 +61,7 @@ final class Application
                 new BlockedArgumentsPolicy,
                 new ToolInstalledPolicy($toolLocator),
             ]),
+            $toolLocator,
             new ProjectInspector($toolLocator),
             new ValidateService($configLoader),
             new ViewService($runStore),
@@ -67,9 +69,26 @@ final class Application
 
         try {
             $payload = $application->handle(array_slice($argv, 1));
+            $processExitCode = (int) ($payload['_process_exit_code'] ?? 0);
+
+            if (($payload['_passthrough'] ?? false) === true) {
+                $stdout = (string) ($payload['_stdout'] ?? '');
+                $stderr = (string) ($payload['_stderr'] ?? '');
+
+                if ($stdout !== '') {
+                    fwrite(STDOUT, $stdout);
+                }
+
+                if ($stderr !== '') {
+                    fwrite(STDERR, $stderr);
+                }
+
+                return $processExitCode;
+            }
+
             fwrite(STDOUT, $application->render($payload).PHP_EOL);
 
-            return 0;
+            return $processExitCode;
         } catch (UserFacingException $exception) {
             $payload = $exception->payload();
             $preferences = $application->resolveRenderPreferences(array_slice($argv, 1));
@@ -93,6 +112,7 @@ final class Application
         private readonly InitService $initService,
         private readonly AddService $addService,
         private readonly PolicyRunner $policyRunner,
+        private readonly ToolLocator $toolLocator,
         private readonly ProjectInspector $projectInspector,
         private readonly ValidateService $validateService,
         private readonly ViewService $viewService,
@@ -140,6 +160,7 @@ final class Application
                 'options' => [
                     '--format=<json|markdown>',
                     '--size=<compact|normal|fuller>',
+                    '--raw',
                     '--pretty | --no-pretty',
                     '--no-history',
                     '--config=<path>',
@@ -269,6 +290,23 @@ final class Application
 
         $this->policyRunner->enforce($cwd, $tool, $toolArguments, $toolConfig);
 
+        if (($parsed['raw'] ?? false) === true) {
+            $preparedCommand = $this->prepareRawCommand($cwd, $tool, $toolArguments, $toolConfig);
+
+            try {
+                $executionResult = $this->processExecutor->run($preparedCommand);
+
+                return [
+                    '_passthrough' => true,
+                    '_process_exit_code' => $executionResult->exitCode,
+                    '_stdout' => $executionResult->stdout,
+                    '_stderr' => $executionResult->stderr,
+                ];
+            } finally {
+                $this->cleanupTempFiles($preparedCommand);
+            }
+        }
+
         $context = [
             ...$tool->detectContext($toolArguments),
             'tool_binary' => $toolConfig['toolBinary'],
@@ -323,6 +361,28 @@ final class Application
         }
 
         return $this->jsonRenderer->render($payload, $pretty);
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     * @param  array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}  $toolConfig
+     */
+    private function prepareRawCommand(string $cwd, ToolAdapterInterface $tool, array $arguments, array $toolConfig): PreparedCommand
+    {
+        $configuredBinary = $toolConfig['toolBinary'];
+        $candidates = $configuredBinary !== null
+            ? [$configuredBinary]
+            : $tool->discoveryCandidates();
+        $resolved = $this->toolLocator->locate($cwd, $candidates);
+
+        if ($resolved === null) {
+            throw UserFacingException::toolNotInstalled($tool->name(), $tool->installHint());
+        }
+
+        return new PreparedCommand(
+            command: [...$resolved['command_prefix'], ...$arguments],
+            cwd: $cwd,
+        );
     }
 
     private function cleanupTempFiles(PreparedCommand $preparedCommand): void
