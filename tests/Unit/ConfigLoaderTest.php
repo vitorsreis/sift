@@ -90,7 +90,8 @@ it('rejects invalid config documents', function (): void {
             $this->fail('Expected invalid config exception.');
         } catch (UserFacingException $exception) {
             expect($exception->payload()['error']['code'])->toBe('invalid_config')
-                ->and($exception->payload()['error']['path'])->toBe($path);
+                ->and($exception->payload()['error']['path'])->toBe($path)
+                ->and($exception->payload()['error']['hint'])->toBe('Fix the JSON or schema mismatch and rerun `sift validate`.');
         }
     } finally {
         removeDirectory($cwd);

@@ -29,7 +29,8 @@ it('disables tools through a custom config path', function (): void {
 
         $payload = decodeJsonOutput($process);
 
-        expect($payload['error']['code'])->toBe('tool_disabled');
+        expect($payload['error']['code'])->toBe('tool_disabled')
+            ->and($payload['error']['hint'])->toBe('Set `tools.pint.enabled` to true in `sift.json` to allow this run.');
     } finally {
         removeDirectory($cwd);
     }
@@ -89,7 +90,8 @@ it('blocks configured native arguments before execution', function (): void {
 
         expect($payload['error']['code'])->toBe('blocked_argument')
             ->and($payload['error']['tool'])->toBe('pint')
-            ->and($payload['error']['argument'])->toBe('--dirty');
+            ->and($payload['error']['argument'])->toBe('--dirty')
+            ->and($payload['error']['hint'])->toBe('Remove `--dirty` from the CLI arguments or from `tools.pint.defaultArgs` in `sift.json`.');
     } finally {
         removeDirectory($cwd);
     }
@@ -117,7 +119,8 @@ it('fails early when a configured tool binary does not exist', function (): void
         $payload = decodeJsonOutput($process);
 
         expect($payload['error']['code'])->toBe('tool_not_installed')
-            ->and($payload['error']['tool'])->toBe('pint');
+            ->and($payload['error']['tool'])->toBe('pint')
+            ->and($payload['error']['suggestions'])->toContain('If `pint` is already installed, run `sift add pint` to register the project binary.');
     } finally {
         removeDirectory($cwd);
     }
