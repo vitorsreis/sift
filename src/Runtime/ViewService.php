@@ -13,11 +13,12 @@ final class ViewService
     ) {}
 
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array<string, mixed>
      */
-    public function list(string $cwd, int $limit, int $offset): array
+    public function list(string $cwd, int $limit, int $offset, array $historyConfig = []): array
     {
-        $listing = $this->runStore->list($cwd, $limit, $offset);
+        $listing = $this->runStore->list($cwd, $limit, $offset, $historyConfig);
 
         return [
             'status' => 'ok',
@@ -31,11 +32,12 @@ final class ViewService
     }
 
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array<string, mixed>
      */
-    public function clear(string $cwd): array
+    public function clear(string $cwd, array $historyConfig = []): array
     {
-        $cleared = $this->runStore->clear($cwd);
+        $cleared = $this->runStore->clear($cwd, $historyConfig);
 
         return [
             'status' => 'cleared',
@@ -45,11 +47,12 @@ final class ViewService
     }
 
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array<string, mixed>
      */
-    public function view(string $cwd, string $runId, string $scope, int $limit, int $offset): array
+    public function view(string $cwd, string $runId, string $scope, int $limit, int $offset, array $historyConfig = []): array
     {
-        $stored = $this->runStore->get($cwd, $runId);
+        $stored = $this->runStore->get($cwd, $runId, $historyConfig);
 
         if ($stored === null) {
             throw UserFacingException::runNotFound($runId);

@@ -11,7 +11,7 @@ final class ConfigLoader
 {
     /**
      * @return array{
-     *   history: array{enabled: bool},
+     *   history: array{enabled: bool, max_files: int, path: string},
      *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array{enabled: bool, toolBinary: ?string, defaultArgs: list<string>, blockedArgs: list<string>}>
      * }
@@ -72,9 +72,19 @@ final class ConfigLoader
         }
 
         $enabled = $history['enabled'] ?? $defaults['history']['enabled'];
+        $maxFiles = $history['max_files'] ?? $defaults['history']['max_files'];
+        $historyPath = $history['path'] ?? $defaults['history']['path'];
 
         if (! is_bool($enabled)) {
             throw UserFacingException::invalidConfig($path, 'The `history.enabled` value must be boolean.');
+        }
+
+        if (! is_int($maxFiles) || $maxFiles < 1) {
+            throw UserFacingException::invalidConfig($path, 'The `history.max_files` value must be an integer greater than zero.');
+        }
+
+        if (! is_string($historyPath) || trim($historyPath) === '') {
+            throw UserFacingException::invalidConfig($path, 'The `history.path` value must be a non-empty string.');
         }
 
         $normalizedTools = [];
@@ -120,6 +130,8 @@ final class ConfigLoader
         return [
             'history' => [
                 'enabled' => $enabled,
+                'max_files' => $maxFiles,
+                'path' => str_replace('\\', '/', trim($historyPath)),
             ],
             'output' => [
                 'format' => $format,
@@ -181,7 +193,7 @@ final class ConfigLoader
 
     /**
      * @return array{
-     *   history: array{enabled: bool},
+     *   history: array{enabled: bool, max_files: int, path: string},
      *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array<string, mixed>>
      * }
@@ -191,6 +203,8 @@ final class ConfigLoader
         return [
             'history' => [
                 'enabled' => true,
+                'max_files' => 50,
+                'path' => '.sift/history',
             ],
             'output' => [
                 'format' => 'json',

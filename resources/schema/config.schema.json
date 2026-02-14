@@ -14,6 +14,14 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "max_files": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

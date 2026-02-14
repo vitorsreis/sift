@@ -272,15 +272,16 @@ final class Application
             $pretty = $view['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
 
             $payload = $view['clear']
-                ? $this->viewService->clear($cwd)
+                ? $this->viewService->clear($cwd, $commandConfig['history'])
                 : ($view['list']
-                    ? $this->viewService->list($cwd, $view['limit'], $view['offset'])
+                    ? $this->viewService->list($cwd, $view['limit'], $view['offset'], $commandConfig['history'])
                     : $this->viewService->view(
                         $cwd,
                         (string) $view['run_id'],
                         $view['scope'],
                         $view['limit'],
                         $view['offset'],
+                        $commandConfig['history'],
                     ));
 
             return [
@@ -339,7 +340,7 @@ final class Application
             $runId = null;
 
             if ($historyEnabled === true) {
-                $runId = $this->runStore->put($cwd, $result);
+                $runId = $this->runStore->put($cwd, $result, $config['history']);
             }
 
             return [
@@ -593,8 +594,8 @@ final class Application
 
     /**
      * @return array{
-     *   history: array{enabled: bool},
-     *   output: array{format: string, size: string, pretty: bool},
+     *   history: array{enabled: bool, max_files: int, path: string},
+     *   output: array{format: string, size: string, pretty: bool, show_process: bool},
      *   tools: array<string, array<string, mixed>>
      * }
      */
@@ -604,8 +605,8 @@ final class Application
             return $this->configLoader->load($cwd, $configPath);
         } catch (UserFacingException) {
             return [
-                'history' => ['enabled' => true],
-                'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false],
+                'history' => ['enabled' => true, 'max_files' => 50, 'path' => '.sift/history'],
+                'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
                 'tools' => [],
             ];
         }

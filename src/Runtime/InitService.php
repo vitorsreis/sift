@@ -52,6 +52,8 @@ final class InitService
         $document = [
             'history' => [
                 'enabled' => true,
+                'max_files' => 50,
+                'path' => '.sift/history',
             ],
             'output' => [
                 'format' => 'json',

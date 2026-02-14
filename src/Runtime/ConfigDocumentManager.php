@@ -81,6 +81,8 @@ final class ConfigDocumentManager
             '$schema' => './resources/schema/config.schema.json',
             'history' => [
                 'enabled' => true,
+                'max_files' => 50,
+                'path' => '.sift/history',
             ],
             'output' => [
                 'format' => 'json',
@@ -101,7 +103,13 @@ final class ConfigDocumentManager
         $schema = is_string($document['$schema'] ?? null) && trim((string) $document['$schema']) !== ''
             ? trim((string) $document['$schema'])
             : $defaults['$schema'];
-        $history = is_array($document['history'] ?? null) ? $document['history'] : $defaults['history'];
+        $history = is_array($document['history'] ?? null)
+            ? [
+                'enabled' => $document['history']['enabled'] ?? $defaults['history']['enabled'],
+                'max_files' => $document['history']['max_files'] ?? $defaults['history']['max_files'],
+                'path' => $document['history']['path'] ?? $defaults['history']['path'],
+            ]
+            : $defaults['history'];
         $output = is_array($document['output'] ?? null) ? $document['output'] : $defaults['output'];
         $tools = $this->normalizeTools($document['tools'] ?? null);
 

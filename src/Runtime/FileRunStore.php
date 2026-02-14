@@ -11,11 +11,12 @@ use Sift\Core\NormalizedResult;
 final class FileRunStore
 {
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array{items: list<array<string, mixed>>, total: int}
      */
-    public function list(string $cwd, int $limit, int $offset): array
+    public function list(string $cwd, int $limit, int $offset, array $historyConfig = []): array
     {
-        $directory = $this->directory($cwd);
+        $directory = $this->directory($cwd, $historyConfig);
 
         if (! is_dir($directory)) {
             return [
@@ -48,13 +49,20 @@ final class FileRunStore
             $items[] = [
                 'run_id' => pathinfo($path, PATHINFO_FILENAME),
                 'created_at' => (int) ($stored['created_at'] ?? 0),
+                '_stored_at' => (int) ($stored['stored_at'] ?? $stored['created_at'] ?? 0),
                 'tool' => (string) ($result['tool'] ?? 'unknown'),
                 'status' => (string) ($result['status'] ?? 'unknown'),
                 ...$summary,
             ];
         }
 
-        usort($items, static fn (array $left, array $right): int => [$right['created_at'], $right['run_id']] <=> [$left['created_at'], $left['run_id']]);
+        usort($items, static fn (array $left, array $right): int => [$right['_stored_at'], $right['created_at'], $right['run_id']] <=> [$left['_stored_at'], $left['created_at'], $left['run_id']]);
+
+        $items = array_map(static function (array $item): array {
+            unset($item['_stored_at']);
+
+            return $item;
+        }, $items);
 
         return [
             'items' => array_slice($items, $offset, $limit),
@@ -62,9 +70,12 @@ final class FileRunStore
         ];
     }
 
-    public function put(string $cwd, NormalizedResult $result): string
+    /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
+     */
+    public function put(string $cwd, NormalizedResult $result, array $historyConfig = []): string
     {
-        $directory = $this->directory($cwd);
+        $directory = $this->directory($cwd, $historyConfig);
 
         if (! is_dir($directory) && ! mkdir($directory, 0777, true) && ! is_dir($directory)) {
             throw new RuntimeException(sprintf('Unable to create history directory: %s', $directory));
@@ -74,6 +85,7 @@ final class FileRunStore
         $createdAt = strtotime((string) ($result->meta['created_at'] ?? ''));
         $payload = [
             'created_at' => $createdAt === false ? time() : $createdAt,
+            'stored_at' => (int) round(microtime(true) * 1000000),
             'result' => $result->toArray(),
         ];
 
@@ -82,15 +94,18 @@ final class FileRunStore
             json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
         );
 
+        $this->rotate($directory, $this->maxFiles($historyConfig));
+
         return $runId;
     }
 
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array<string, mixed>|null
      */
-    public function get(string $cwd, string $runId): ?array
+    public function get(string $cwd, string $runId, array $historyConfig = []): ?array
     {
-        $path = $this->directory($cwd).'/'.$runId.'.json';
+        $path = $this->directory($cwd, $historyConfig).'/'.$runId.'.json';
 
         if (! is_file($path)) {
             return null;
@@ -100,11 +115,12 @@ final class FileRunStore
     }
 
     /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
      * @return array{deleted: int, path: string}
      */
-    public function clear(string $cwd): array
+    public function clear(string $cwd, array $historyConfig = []): array
     {
-        $directory = $this->directory($cwd);
+        $directory = $this->directory($cwd, $historyConfig);
 
         if (! is_dir($directory)) {
             return [
@@ -142,9 +158,30 @@ final class FileRunStore
         ];
     }
 
-    private function directory(string $cwd): string
+    /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
+     */
+    private function directory(string $cwd, array $historyConfig = []): string
     {
-        return $cwd.'/.sift/history';
+        $path = is_string($historyConfig['path'] ?? null) && trim((string) $historyConfig['path']) !== ''
+            ? trim((string) $historyConfig['path'])
+            : '.sift/history';
+
+        if ($this->isAbsolutePath($path)) {
+            return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        }
+
+        return $cwd.DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+    }
+
+    /**
+     * @param  array{enabled?: bool, max_files?: int, path?: string}  $historyConfig
+     */
+    private function maxFiles(array $historyConfig): int
+    {
+        $maxFiles = $historyConfig['max_files'] ?? 50;
+
+        return is_int($maxFiles) && $maxFiles > 0 ? $maxFiles : 50;
     }
 
     /**
@@ -165,5 +202,40 @@ final class FileRunStore
         }
 
         return is_array($decoded) ? $decoded : null;
+    }
+
+    private function rotate(string $directory, int $maxFiles): void
+    {
+        $paths = glob($directory.'/*.json');
+
+        if (! is_array($paths) || count($paths) <= $maxFiles) {
+            return;
+        }
+
+        $items = [];
+
+        foreach ($paths as $path) {
+            $stored = $this->read($path);
+            $runId = pathinfo($path, PATHINFO_FILENAME);
+            $items[] = [
+                'path' => $path,
+                'run_id' => $runId,
+                'created_at' => (int) ($stored['created_at'] ?? filemtime($path) ?: 0),
+                'stored_at' => (int) ($stored['stored_at'] ?? filemtime($path) ?: 0),
+            ];
+        }
+
+        usort($items, static fn (array $left, array $right): int => [$left['stored_at'], $left['created_at'], $left['run_id']] <=> [$right['stored_at'], $right['created_at'], $right['run_id']]);
+
+        foreach (array_slice($items, 0, max(0, count($items) - $maxFiles)) as $item) {
+            @unlink((string) $item['path']);
+        }
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, DIRECTORY_SEPARATOR)
+            || str_starts_with($path, '\\\\')
+            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
     }
 }
