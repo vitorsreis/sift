@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Sift preview</title>
+  <desc id="desc">Preview of compact, normal, fuller, and view outputs.</desc>
+  <rect width="1200" height="760" fill="#f5efe4"/>
+  <rect x="32" y="32" width="1136" height="696" rx="28" fill="#fffaf0" stroke="#d6c7aa" stroke-width="4"/>
+  <text x="72" y="98" fill="#1f2933" font-family="'Courier New', monospace" font-size="34" font-weight="700">sift</text>
+  <text x="144" y="98" fill="#8f5a2a" font-family="'Courier New', monospace" font-size="22">agent-shaped output for PHP tools</text>
+
+  <rect x="64" y="130" width="320" height="250" rx="18" fill="#1f2933"/>
+  <text x="88" y="168" fill="#f8d49b" font-family="'Courier New', monospace" font-size="20">compact</text>
+  <text x="88" y="210" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">{</text>
+  <text x="104" y="236" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">"run_id": "a1b2c3d4",</text>
+  <text x="104" y="262" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">"status": "failed",</text>
+  <text x="104" y="288" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">"tests": 142,</text>
+  <text x="104" y="314" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">"failures": 3</text>
+  <text x="88" y="340" fill="#fff6e8" font-family="'Courier New', monospace" font-size="18">}</text>
+
+  <rect x="440" y="130" width="320" height="250" rx="18" fill="#264653"/>
+  <text x="464" y="168" fill="#ffd08a" font-family="'Courier New', monospace" font-size="20">normal</text>
+  <text x="464" y="210" fill="#f6fffd" font-family="'Courier New', monospace" font-size="18">summary + items</text>
+  <text x="464" y="244" fill="#f6fffd" font-family="'Courier New', monospace" font-size="18">src/Auth.php:45</text>
+  <text x="464" y="270" fill="#f6fffd" font-family="'Courier New', monospace" font-size="18">Undefined property</text>
+  <text x="464" y="304" fill="#f6fffd" font-family="'Courier New', monospace" font-size="18">tests/UserTest.php:12</text>
+  <text x="464" y="330" fill="#f6fffd" font-family="'Courier New', monospace" font-size="18">Expected true, got false</text>
+
+  <rect x="816" y="130" width="320" height="250" rx="18" fill="#7f5539"/>
+  <text x="840" y="168" fill="#fff1cb" font-family="'Courier New', monospace" font-size="20">fuller</text>
+  <text x="840" y="210" fill="#fff8ed" font-family="'Courier New', monospace" font-size="18">meta.exit_code = 1</text>
+  <text x="840" y="236" fill="#fff8ed" font-family="'Courier New', monospace" font-size="18">meta.duration = 0.412</text>
+  <text x="840" y="262" fill="#fff8ed" font-family="'Courier New', monospace" font-size="18">artifacts = ["coverage.xml"]</text>
+  <text x="840" y="288" fill="#fff8ed" font-family="'Courier New', monospace" font-size="18">extra.assertions = 156</text>
+
+  <rect x="64" y="426" width="1072" height="246" rx="18" fill="#efe1c6" stroke="#cfb98d" stroke-width="2"/>
+  <text x="92" y="468" fill="#5c3d1c" font-family="'Courier New', monospace" font-size="22">history-aware workflow</text>
+  <text x="92" y="514" fill="#2d3748" font-family="'Courier New', monospace" font-size="20">$ sift pest --size=compact</text>
+  <text x="92" y="548" fill="#2d3748" font-family="'Courier New', monospace" font-size="20">$ sift view a1b2c3d4 summary</text>
+  <text x="92" y="582" fill="#2d3748" font-family="'Courier New', monospace" font-size="20">$ sift view a1b2c3d4 items --limit=5</text>
+  <text x="92" y="628" fill="#7c4a21" font-family="'Courier New', monospace" font-size="18">compact for the first pass, fuller data kept on disk for follow-up inspection.</text>
+</svg>

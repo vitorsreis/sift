@@ -1,0 +1,52 @@
+# Adapters
+
+## Contract
+
+Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible for:
+
+- exposing a stable tool name
+- resolving an installation hint
+- detecting execution context from CLI arguments
+- preparing a native command with structured output flags
+- parsing native output into the Sift payload shape
+
+## Current Adapters
+
+### `phpunit`
+
+- Parses JUnit XML
+- Normalizes test summary, failures, and errors
+
+### `pest`
+
+- Reuses the PHPUnit-style JUnit flow
+- Targets Pest's native test runner
+
+### `phpstan`
+
+- Forces JSON output
+- Normalizes file diagnostics and totals
+
+### `phpcs`
+
+- Forces JSON output with quiet mode
+- Normalizes warnings and errors as `items`
+
+### `pint`
+
+- Forces JSON output
+- Extracts files and fixers
+- Tolerates noisy output around the JSON payload
+
+### `composer-audit`
+
+- Forces Composer audit JSON output
+- Normalizes vulnerabilities by package and severity
+
+## Adding a New Adapter
+
+1. Implement `ToolAdapterInterface`
+2. Register the adapter in `Application::registry()`
+3. Add unit tests for parsing and context handling
+4. Add at least one integration test through `bin/sift`
+5. Document install hints and supported contexts here
