@@ -34,6 +34,7 @@ use Sift\Tools\PhpcsToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PhpunitToolAdapter;
 use Sift\Tools\PintToolAdapter;
+use Sift\Tools\PsalmToolAdapter;
 
 final class Application
 {
@@ -515,6 +516,7 @@ final class Application
             new PestToolAdapter($toolLocator),
             new PhpcsToolAdapter($toolLocator),
             new PintToolAdapter($toolLocator),
+            new PsalmToolAdapter($toolLocator),
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
         ]);

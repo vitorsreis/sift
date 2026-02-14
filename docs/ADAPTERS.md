@@ -38,6 +38,12 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - Forces JSON output with quiet mode
 - Normalizes warnings and errors as `items`
 
+### `psalm`
+
+- Forces JSON output with `--output-format=json`
+- Disables progress noise with `--no-progress`
+- Normalizes issue severity, rule, file, line, and column into `items`
+
 ### `pint`
 
 - Forces JSON output
