@@ -22,6 +22,12 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - Reuses the PHPUnit-style JUnit flow
 - Targets Pest's native test runner
 
+### `paratest`
+
+- Uses JUnit output for parallel test execution
+- Normalizes the same failure and error shape used by `phpunit` and `pest`
+- Preserves `filter` and coverage-related execution context in `meta`
+
 ### `phpstan`
 
 - Forces JSON output

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 - Added normalized adapters for `phpunit`, `pest`, `phpstan`, `phpcs`, `pint`, and `composer-audit`
+- Added a normalized adapter for `paratest`
 - Added history storage, `sift view`, and `sift add`
 - Added configurable history paths and automatic history rotation with `history.max_files`
 - Added `--raw`, `--show-process`, `--config`, and `--no-history`

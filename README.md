@@ -4,7 +4,7 @@ Sift is a PHP CLI wrapper that turns tool output into compact, agent-friendly pa
 
 ## Current Scope
 
-- Normalized output for `phpunit`, `pest`, `phpstan`, `phpcs`, `pint`, and `composer-audit`
+- Normalized output for `phpunit`, `pest`, `paratest`, `phpstan`, `phpcs`, `pint`, and `composer-audit`
 - Output rendering in `json` and `markdown`
 - Output sizes: `compact`, `normal`, and `fuller`
 - Local run history with `sift view`
