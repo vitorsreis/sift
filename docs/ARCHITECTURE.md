@@ -72,5 +72,6 @@ The current policy chain covers:
 - disabled tools
 - blocked arguments
 - missing binaries
+- rector write-mode rejection outside `--dry-run`
 
 Policies fail with `UserFacingException`, which is rendered in the same output format selected for the command.

@@ -44,6 +44,13 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - Disables progress noise with `--no-progress`
 - Normalizes issue severity, rule, file, line, and column into `items`
 
+### `rector`
+
+- Supports `rector process --dry-run` flows
+- Forces JSON output with `--output-format=json`
+- Normalizes file diffs into `items` and `artifacts`
+- Rejects write mode before execution, including `--raw`
+
 ### `pint`
 
 - Forces JSON output
