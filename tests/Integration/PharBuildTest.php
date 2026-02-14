@@ -32,9 +32,15 @@ it('builds an executable phar distribution', function (): void {
     expect($pharPath)->toBeFile()
         ->and($checksumPath)->toBeFile();
 
+    $archive = new Phar($pharPath);
+
+    expect(isset($archive['vendor/autoload.php']))->toBeFalse();
+
+    unset($archive);
+
     $process = new Process(
         command: [PHP_BINARY, $pharPath, 'help', '--format=json'],
-        cwd: $root,
+        cwd: $distDirectory,
     );
 
     $process->run();
