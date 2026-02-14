@@ -10,5 +10,5 @@ All notable changes to this project will be documented in this file.
 - Added history storage, `sift view`, and `sift add`
 - Added configurable history paths and automatic history rotation with `history.max_files`
 - Added `--raw`, `--show-process`, `--config`, and `--no-history`
-- Added PHAR build support through `composer build:phar`
+- Added PHAR build support through `composer build:phar` with external `vendor/` resolution
 - Added project documentation, release notes, and open source metadata

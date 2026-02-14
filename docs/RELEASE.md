@@ -39,6 +39,7 @@ if ($expected -ne $actual) { throw 'Checksum mismatch for sift.phar' }
 
 ## Packaging Notes
 
-- the PHAR includes `src`, `resources`, and production `vendor`
-- build-time dependencies are installed in a temporary workspace with `composer install --no-dev`
+- the PHAR includes `src`, `resources`, and release metadata only
+- runtime dependencies stay outside the archive in `vendor/`
+- the stub resolves `vendor/autoload.php` next to `sift.phar` or one directory above it
 - the PHAR bootstraps `Sift\Console\Application::run()`

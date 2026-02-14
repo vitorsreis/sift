@@ -3,8 +3,6 @@
 
 declare(strict_types=1);
 
-use Symfony\Component\Process\Process;
-
 require __DIR__.'/../vendor/autoload.php';
 
 $root = dirname(__DIR__);
@@ -12,7 +10,6 @@ $distDirectory = $root.DIRECTORY_SEPARATOR.'dist';
 $pharPath = $distDirectory.DIRECTORY_SEPARATOR.'sift.phar';
 $checksumPath = $pharPath.'.sha256';
 $alias = 'sift.phar';
-$buildDirectory = createBuildDirectory($root);
 
 if ((bool) ini_get('phar.readonly')) {
     fwrite(STDERR, "phar.readonly must be disabled to build the PHAR.\n");
@@ -25,14 +22,10 @@ prepareDistDirectory($distDirectory);
 @unlink($pharPath);
 @unlink($checksumPath);
 
-try {
-    stageProjectFiles($root, $buildDirectory);
-    installProductionDependencies($root, $buildDirectory);
-
     $phar = new Phar($pharPath, 0, $alias);
     $phar->startBuffering();
 
-    foreach (packageFiles($buildDirectory) as $localPath => $sourcePath) {
+    foreach (packageFiles($root) as $localPath => $sourcePath) {
         $phar->addFile($sourcePath, $localPath);
     }
 
@@ -50,9 +43,6 @@ try {
         'phar' => $pharPath,
         'sha256' => $checksumPath,
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
-} finally {
-    deleteDirectory($buildDirectory);
-}
 
 function prepareDistDirectory(string $distDirectory): void
 {
@@ -65,130 +55,28 @@ function prepareDistDirectory(string $distDirectory): void
     }
 }
 
-function createBuildDirectory(string $root): string
-{
-    $directory = sys_get_temp_dir().DIRECTORY_SEPARATOR.'sift-phar-'.bin2hex(random_bytes(8));
-
-    if (! mkdir($directory, 0777, true) && ! is_dir($directory)) {
-        throw new RuntimeException(sprintf('Unable to create build directory: %s', $directory));
-    }
-
-    return $directory;
-}
-
-function stageProjectFiles(string $root, string $buildDirectory): void
-{
-    foreach (['src', 'resources'] as $relativePath) {
-        $source = $root.DIRECTORY_SEPARATOR.$relativePath;
-
-        if (! is_dir($source)) {
-            continue;
-        }
-
-        copyDirectory($source, $buildDirectory.DIRECTORY_SEPARATOR.$relativePath);
-    }
-
-    foreach (['composer.json', 'composer.lock', 'README.md', 'LICENSE.md'] as $relativePath) {
-        $source = $root.DIRECTORY_SEPARATOR.$relativePath;
-
-        if (! is_file($source)) {
-            continue;
-        }
-
-        copyFile($source, $buildDirectory.DIRECTORY_SEPARATOR.$relativePath);
-    }
-}
-
-function installProductionDependencies(string $root, string $buildDirectory): void
-{
-    $process = new Process([
-        ...resolveComposerCommand($root),
-        'install',
-        '--no-dev',
-        '--prefer-dist',
-        '--no-interaction',
-        '--classmap-authoritative',
-        '--optimize-autoloader',
-    ], $buildDirectory);
-
-    $process->setTimeout(null);
-    $process->run(function (string $type, string $buffer): void {
-        if ($buffer === '') {
-            return;
-        }
-
-        fwrite($type === Process::ERR ? STDERR : STDOUT, $buffer);
-    });
-
-    if (! $process->isSuccessful()) {
-        throw new RuntimeException('Composer failed while preparing the PHAR workspace.');
-    }
-}
-
-/**
- * @return list<string>
- */
-function resolveComposerCommand(string $root): array
-{
-    $customBinary = getenv('COMPOSER_BINARY');
-
-    if (is_string($customBinary) && $customBinary !== '') {
-        return wrapComposerBinary($customBinary);
-    }
-
-    $localPhar = $root.DIRECTORY_SEPARATOR.'composer.phar';
-
-    if (is_file($localPhar)) {
-        return [PHP_BINARY, $localPhar];
-    }
-
-    if (DIRECTORY_SEPARATOR === '\\') {
-        return ['cmd', '/c', 'composer'];
-    }
-
-    return ['composer'];
-}
-
-/**
- * @return list<string>
- */
-function wrapComposerBinary(string $binary): array
-{
-    $normalized = str_replace('\\', '/', $binary);
-
-    if (str_ends_with($normalized, '.phar')) {
-        return [PHP_BINARY, $binary];
-    }
-
-    if (DIRECTORY_SEPARATOR === '\\' && str_ends_with($normalized, '.bat')) {
-        return ['cmd', '/c', $binary];
-    }
-
-    return [$binary];
-}
-
 /**
  * @return array<string, string>
  */
-function packageFiles(string $buildDirectory): array
+function packageFiles(string $root): array
 {
     $files = [];
 
-    foreach (['src', 'resources', 'vendor'] as $relativePath) {
-        $directory = $buildDirectory.DIRECTORY_SEPARATOR.$relativePath;
+    foreach (['src', 'resources'] as $relativePath) {
+        $directory = $root.DIRECTORY_SEPARATOR.$relativePath;
 
         if (! is_dir($directory)) {
             continue;
         }
 
         foreach (directoryFiles($directory) as $filePath) {
-            $localPath = str_replace('\\', '/', substr($filePath, strlen($buildDirectory) + 1));
+            $localPath = str_replace('\\', '/', substr($filePath, strlen($root) + 1));
             $files[$localPath] = $filePath;
         }
     }
 
     foreach (['composer.json', 'README.md', 'LICENSE.md'] as $relativePath) {
-        $filePath = $buildDirectory.DIRECTORY_SEPARATOR.$relativePath;
+        $filePath = $root.DIRECTORY_SEPARATOR.$relativePath;
 
         if (! is_file($filePath)) {
             continue;
@@ -212,37 +100,62 @@ declare(strict_types=1);
 
 Phar::mapPhar('{$alias}');
 
-require 'phar://{$alias}/vendor/autoload.php';
+spl_autoload_register(static function (string \$class): void {
+    \$prefix = 'Sift\\\\';
+
+    if (! str_starts_with(\$class, \$prefix)) {
+        return;
+    }
+
+    \$relativeClass = substr(\$class, strlen(\$prefix));
+    \$file = 'phar://{$alias}/src/'.str_replace('\\\\', '/', \$relativeClass).'.php';
+
+    if (is_file(\$file)) {
+        require \$file;
+    }
+});
+
+\$pharFile = Phar::running(false);
+\$resolvedPharFile = realpath(\$pharFile);
+
+if (is_string(\$resolvedPharFile)) {
+    \$pharFile = \$resolvedPharFile;
+} elseif (! str_contains(\$pharFile, DIRECTORY_SEPARATOR) && ! str_contains(\$pharFile, '/')) {
+    \$pharFile = getcwd().DIRECTORY_SEPARATOR.\$pharFile;
+}
+
+\$pharDirectory = dirname(\$pharFile);
+\$workingDirectory = getcwd() ?: \$pharDirectory;
+\$autoloadCandidates = [
+    \$pharDirectory.'/vendor/autoload.php',
+    dirname(\$pharDirectory).'/vendor/autoload.php',
+    \$workingDirectory.'/vendor/autoload.php',
+    dirname(\$workingDirectory).'/vendor/autoload.php',
+];
+
+\$autoloadLoaded = false;
+
+foreach (\$autoloadCandidates as \$autoloadPath) {
+    if (! is_file(\$autoloadPath)) {
+        continue;
+    }
+
+    require \$autoloadPath;
+    \$autoloadLoaded = true;
+
+    break;
+}
+
+if (! \$autoloadLoaded) {
+    fwrite(STDERR, "Unable to locate vendor/autoload.php next to sift.phar or in its parent directory.\\n");
+
+    exit(1);
+}
 
 exit(Sift\\Console\\Application::run(\$_SERVER['argv'] ?? []));
 
 __HALT_COMPILER();
 PHP;
-}
-
-function copyDirectory(string $source, string $destination): void
-{
-    if (! mkdir($destination, 0777, true) && ! is_dir($destination)) {
-        throw new RuntimeException(sprintf('Unable to create directory: %s', $destination));
-    }
-
-    foreach (directoryFiles($source) as $filePath) {
-        $relativePath = substr($filePath, strlen($source) + 1);
-        copyFile($filePath, $destination.DIRECTORY_SEPARATOR.$relativePath);
-    }
-}
-
-function copyFile(string $source, string $destination): void
-{
-    $directory = dirname($destination);
-
-    if (! is_dir($directory) && ! mkdir($directory, 0777, true) && ! is_dir($directory)) {
-        throw new RuntimeException(sprintf('Unable to create directory: %s', $directory));
-    }
-
-    if (! copy($source, $destination)) {
-        throw new RuntimeException(sprintf('Unable to copy file from %s to %s.', $source, $destination));
-    }
 }
 
 /**
@@ -266,28 +179,4 @@ function directoryFiles(string $directory): array
     sort($files);
 
     return $files;
-}
-
-function deleteDirectory(string $directory): void
-{
-    if (! is_dir($directory)) {
-        return;
-    }
-
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST,
-    );
-
-    foreach ($iterator as $item) {
-        if ($item->isDir()) {
-            rmdir($item->getPathname());
-
-            continue;
-        }
-
-        unlink($item->getPathname());
-    }
-
-    rmdir($directory);
 }
