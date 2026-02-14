@@ -22,27 +22,27 @@ prepareDistDirectory($distDirectory);
 @unlink($pharPath);
 @unlink($checksumPath);
 
-    $phar = new Phar($pharPath, 0, $alias);
-    $phar->startBuffering();
+$phar = new Phar($pharPath, 0, $alias);
+$phar->startBuffering();
 
-    foreach (packageFiles($root) as $localPath => $sourcePath) {
-        $phar->addFile($sourcePath, $localPath);
-    }
+foreach (packageFiles($root) as $localPath => $sourcePath) {
+    $phar->addFile($sourcePath, $localPath);
+}
 
-    $phar->setStub(buildStub($alias));
-    $phar->setSignatureAlgorithm(Phar::SHA512);
-    $phar->stopBuffering();
+$phar->setStub(buildStub($alias));
+$phar->setSignatureAlgorithm(Phar::SHA512);
+$phar->stopBuffering();
 
-    @chmod($pharPath, 0755);
+@chmod($pharPath, 0755);
 
-    $checksum = hash_file('sha256', $pharPath);
-    file_put_contents($checksumPath, $checksum.'  sift.phar'.PHP_EOL);
+$checksum = hash_file('sha256', $pharPath);
+file_put_contents($checksumPath, $checksum.'  sift.phar'.PHP_EOL);
 
-    fwrite(STDOUT, json_encode([
-        'status' => 'built',
-        'phar' => $pharPath,
-        'sha256' => $checksumPath,
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
+fwrite(STDOUT, json_encode([
+    'status' => 'built',
+    'phar' => $pharPath,
+    'sha256' => $checksumPath,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
 
 function prepareDistDirectory(string $distDirectory): void
 {

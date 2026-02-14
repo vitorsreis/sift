@@ -7,10 +7,10 @@ namespace Sift\Runtime;
 use JsonException;
 use Sift\Exceptions\UserFacingException;
 
-final class ConfigDocumentManager
+final readonly class ConfigDocumentManager
 {
     public function __construct(
-        private readonly ConfigLoader $configLoader,
+        private ConfigLoader $configLoader,
     ) {}
 
     public function path(string $cwd, ?string $configPath = null): string

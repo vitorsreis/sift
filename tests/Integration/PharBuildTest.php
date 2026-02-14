@@ -23,13 +23,13 @@ it('builds an executable phar distribution', function (): void {
 
     $payload = json_decode(trim($build->getOutput()), true, flags: JSON_THROW_ON_ERROR);
 
-    expect($payload)->toMatchArray([
-        'status' => 'built',
-        'phar' => $pharPath,
-        'sha256' => $checksumPath,
-    ]);
-
-    expect($pharPath)->toBeFile()
+    expect($payload)
+        ->toMatchArray([
+            'status' => 'built',
+            'phar' => $pharPath,
+            'sha256' => $checksumPath,
+        ])
+        ->and($pharPath)->toBeFile()
         ->and($checksumPath)->toBeFile();
 
     $archive = new Phar($pharPath);

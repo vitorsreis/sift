@@ -79,6 +79,6 @@ foreach (\$required as \$flag) {
 fwrite(STDERR, "Scanning src\\n");
 usleep(5000);
 fwrite(STDERR, "Finished src\\n");
-echo {$payloadExport};
+echo $payloadExport;
 PHP);
 }

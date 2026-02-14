@@ -7,11 +7,11 @@ namespace Sift\Runtime;
 use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 
-final class AddService
+final readonly class AddService
 {
     public function __construct(
-        private readonly ToolLocator $toolLocator,
-        private readonly ConfigDocumentManager $configDocumentManager,
+        private ToolLocator $toolLocator,
+        private ConfigDocumentManager $configDocumentManager,
     ) {}
 
     /**

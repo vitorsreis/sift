@@ -6,10 +6,10 @@ namespace Sift\Runtime;
 
 use Sift\Registry\ToolRegistry;
 
-final class ProjectInspector
+final readonly class ProjectInspector
 {
     public function __construct(
-        private readonly ToolLocator $toolLocator,
+        private ToolLocator $toolLocator,
     ) {}
 
     /**

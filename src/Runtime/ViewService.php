@@ -6,10 +6,10 @@ namespace Sift\Runtime;
 
 use Sift\Exceptions\UserFacingException;
 
-final class ViewService
+final readonly class ViewService
 {
     public function __construct(
-        private readonly FileRunStore $runStore,
+        private FileRunStore $runStore,
     ) {}
 
     /**

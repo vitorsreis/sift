@@ -19,9 +19,10 @@ it('defines a dedicated phar build script', function (): void {
     /** @var array{scripts: array<string, mixed>} $composer */
     $composer = json_decode((string) file_get_contents(siftRoot().DIRECTORY_SEPARATOR.'composer.json'), true, flags: JSON_THROW_ON_ERROR);
 
-    expect($composer['scripts'])->toHaveKey('build:phar');
-    expect($composer['scripts']['build:phar'])->toBe([
-        'Composer\\Config::disableProcessTimeout',
-        '@php -d phar.readonly=0 bin/phar',
-    ]);
+    expect($composer['scripts'])
+        ->toHaveKey('build:phar')
+        ->and($composer['scripts']['build:phar'])->toBe([
+            'Composer\\Config::disableProcessTimeout',
+            '@php -d phar.readonly=0 bin/phar',
+        ]);
 });

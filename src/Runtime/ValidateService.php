@@ -6,10 +6,10 @@ namespace Sift\Runtime;
 
 use Sift\Exceptions\UserFacingException;
 
-final class ValidateService
+final readonly class ValidateService
 {
     public function __construct(
-        private readonly ConfigLoader $configLoader,
+        private ConfigLoader $configLoader,
     ) {}
 
     /**

@@ -171,13 +171,7 @@ final readonly class PhpcsToolAdapter implements ToolAdapterInterface
      */
     private function hasShortOption(array $arguments, string $option): bool
     {
-        foreach ($arguments as $argument) {
-            if ($argument === $option) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($option, $arguments, true);
     }
 
     /**

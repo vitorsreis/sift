@@ -130,8 +130,8 @@ if (! is_string(\$junit) || \$junit === '') {
     exit(9);
 }
 
-file_put_contents(\$junit, {$xmlExport});
+file_put_contents(\$junit, $xmlExport);
 
-exit({$exitCode});
+exit($exitCode);
 PHP);
 }

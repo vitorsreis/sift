@@ -182,8 +182,8 @@ if (! in_array('--output-format=json', \$arguments, true)) {
     exit(7);
 }
 
-echo {$json};
+echo $json;
 
-exit({$exitCode});
+exit($exitCode);
 PHP);
 }

@@ -102,7 +102,7 @@ function createProxyToolBinary(string $cwd, string $tool, string $target): strin
 
 declare(strict_types=1);
 
-\$target = {$targetExport};
+\$target = $targetExport;
 \$arguments = array_slice(\$_SERVER['argv'] ?? [], 1);
 \$command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(\$target);
 

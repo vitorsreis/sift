@@ -75,7 +75,7 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
-        if ($arguments === [] || str_starts_with((string) ($arguments[0] ?? ''), '-')) {
+        if ($arguments === [] || str_starts_with($arguments[0] ?? '', '-')) {
             array_unshift($arguments, 'process');
         }
 

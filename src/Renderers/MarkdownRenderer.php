@@ -43,7 +43,7 @@ final class MarkdownRenderer implements RendererInterface
         if (is_array($value)) {
             return sprintf(
                 '- `%s`: `%s`',
-                (string) $key,
+                $key,
                 json_encode($value, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
             );
         }
@@ -52,7 +52,7 @@ final class MarkdownRenderer implements RendererInterface
             return sprintf('- %s', $this->scalar($value));
         }
 
-        return sprintf('- **%s:** %s', $this->label((string) $key), $this->scalar($value));
+        return sprintf('- **%s:** %s', $this->label($key), $this->scalar($value));
     }
 
     private function scalar(mixed $value): string

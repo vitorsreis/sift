@@ -6,5 +6,5 @@ namespace Sift;
 
 final class Sift
 {
-    public const string VERSION = '0.1.0-dev';
+    public const string VERSION = '1.0.0';
 }

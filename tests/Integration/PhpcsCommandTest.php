@@ -144,8 +144,8 @@ foreach (\$required as \$flag) {
     }
 }
 
-echo {$json};
+echo $json;
 
-exit({$exitCode});
+exit($exitCode);
 PHP);
 }
