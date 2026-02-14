@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a new command, adapter, policy, payload field, or release improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What gap are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Command or payload examples
+      description: Add sample commands or normalized output if relevant.
