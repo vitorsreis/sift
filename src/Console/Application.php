@@ -19,6 +19,7 @@ use Sift\Runtime\InitService;
 use Sift\Runtime\PolicyRunner;
 use Sift\Runtime\ProcessExecutor;
 use Sift\Runtime\ProjectInspector;
+use Sift\Runtime\RectorCommandPolicy;
 use Sift\Runtime\ResultMetaStamper;
 use Sift\Runtime\ResultPayloadFactory;
 use Sift\Runtime\ToolEnabledPolicy;
@@ -35,6 +36,7 @@ use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PhpunitToolAdapter;
 use Sift\Tools\PintToolAdapter;
 use Sift\Tools\PsalmToolAdapter;
+use Sift\Tools\RectorToolAdapter;
 
 final class Application
 {
@@ -73,6 +75,7 @@ final class Application
                 new ToolEnabledPolicy,
                 new BlockedArgumentsPolicy,
                 new ToolInstalledPolicy($toolLocator),
+                new RectorCommandPolicy,
             ]),
             $toolLocator,
             new ProjectInspector($toolLocator),
@@ -516,6 +519,7 @@ final class Application
             new PestToolAdapter($toolLocator),
             new PhpcsToolAdapter($toolLocator),
             new PintToolAdapter($toolLocator),
+            new RectorToolAdapter($toolLocator),
             new PsalmToolAdapter($toolLocator),
             new PhpstanToolAdapter($toolLocator),
             new PhpunitToolAdapter($toolLocator),
