@@ -11,6 +11,7 @@ use Sift\Tools\PhpcsToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PintToolAdapter;
 use Sift\Tools\PsalmToolAdapter;
+use Sift\Tools\RectorToolAdapter;
 
 it('reports parse failure when composer audit json output is invalid', function (): void {
     $adapter = new ComposerAuditToolAdapter(new ToolLocator);
@@ -73,6 +74,22 @@ it('reports parse failure when psalm json output is invalid', function (): void 
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('parse_failure')
             ->and($exception->payload()['error']['tool'])->toBe('psalm');
+    }
+});
+
+it('reports parse failure when rector json output is invalid', function (): void {
+    $adapter = new RectorToolAdapter(new ToolLocator);
+
+    try {
+        $adapter->parse(
+            new ExecutionResult(1, 'not-json', 'stderr', 12),
+            new PreparedCommand(['rector', 'process', '--dry-run'], siftRoot()),
+            ['dry_run' => true],
+        );
+        $this->fail('Expected parse failure.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('parse_failure')
+            ->and($exception->payload()['error']['tool'])->toBe('rector');
     }
 });
 
