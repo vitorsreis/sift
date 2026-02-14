@@ -10,6 +10,7 @@ use Sift\Tools\ComposerAuditToolAdapter;
 use Sift\Tools\PhpcsToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PintToolAdapter;
+use Sift\Tools\PsalmToolAdapter;
 
 it('reports parse failure when composer audit json output is invalid', function (): void {
     $adapter = new ComposerAuditToolAdapter(new ToolLocator);
@@ -56,6 +57,22 @@ it('reports parse failure when phpstan json output is invalid', function (): voi
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('parse_failure')
             ->and($exception->payload()['error']['tool'])->toBe('phpstan');
+    }
+});
+
+it('reports parse failure when psalm json output is invalid', function (): void {
+    $adapter = new PsalmToolAdapter(new ToolLocator);
+
+    try {
+        $adapter->parse(
+            new ExecutionResult(1, 'not-json', 'stderr', 12),
+            new PreparedCommand(['psalm'], siftRoot()),
+            [],
+        );
+        $this->fail('Expected parse failure.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('parse_failure')
+            ->and($exception->payload()['error']['tool'])->toBe('psalm');
     }
 });
 
