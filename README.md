@@ -70,7 +70,9 @@ The current `sift.json` shape is:
 {
   "$schema": "./resources/schema/config.schema.json",
   "history": {
-    "enabled": true
+    "enabled": true,
+    "max_files": 50,
+    "path": ".sift/history"
   },
   "output": {
     "format": "json",
@@ -92,6 +94,8 @@ The current `sift.json` shape is:
 ```
 
 See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for the full reference.
+
+History storage can be moved away from the default `.sift/history` path and rotated automatically with `history.max_files`.
 
 ## Commands
 

@@ -31,7 +31,7 @@ CLI
 - `PolicyRunner` applies execution checks before the process starts
 - `ResultMetaStamper` backfills `exit_code`, `duration`, and `created_at`
 - `ResultPayloadFactory` renders `compact`, `normal`, and `fuller`
-- `FileRunStore` persists full payloads under `.sift/history`
+- `FileRunStore` persists full payloads under the configured history path and rotates old files according to `history.max_files`
 - `ViewService` slices stored payloads for `sift view`
 
 ### Registry and Adapters

@@ -18,7 +18,9 @@ The local schema file lives at `resources/schema/config.schema.json`.
 {
   "$schema": "./resources/schema/config.schema.json",
   "history": {
-    "enabled": true
+    "enabled": true,
+    "max_files": 50,
+    "path": ".sift/history"
   },
   "output": {
     "format": "json",
@@ -49,6 +51,8 @@ CLI flags override config values when both are present.
 ## History
 
 - `history.enabled`: when `true`, normalized runs are stored under `.sift/history`
+- `history.max_files`: maximum number of stored run payloads kept on disk
+- `history.path`: relative or absolute path used by the history store
 - `--no-history` disables storage for the current execution only
 
 ## Tool Settings
