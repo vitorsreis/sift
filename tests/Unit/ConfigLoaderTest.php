@@ -12,7 +12,7 @@ it('returns defaults when the config file is missing', function (): void {
         $config = (new ConfigLoader)->load($cwd);
 
         expect($config)->toBe([
-            'history' => ['enabled' => true],
+            'history' => ['enabled' => true, 'max_files' => 50, 'path' => '.sift/history'],
             'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
             'tools' => [],
         ]);
@@ -26,7 +26,7 @@ it('loads and normalizes a custom relative config path', function (): void {
 
     try {
         writeSiftConfig($cwd, [
-            'history' => ['enabled' => false],
+            'history' => ['enabled' => false, 'max_files' => 5, 'path' => 'var/history'],
             'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true, 'show_process' => true],
             'tools' => [
                 'pint' => [
@@ -41,7 +41,7 @@ it('loads and normalizes a custom relative config path', function (): void {
         $config = (new ConfigLoader)->load($cwd, 'custom.sift.json');
 
         expect($config)->toBe([
-            'history' => ['enabled' => false],
+            'history' => ['enabled' => false, 'max_files' => 5, 'path' => 'var/history'],
             'output' => ['format' => 'markdown', 'size' => 'fuller', 'pretty' => true, 'show_process' => true],
             'tools' => [
                 'pint' => [
@@ -63,7 +63,7 @@ it('resolves absolute config paths', function (): void {
 
     try {
         $path = writeSiftConfig($other, [
-            'history' => ['enabled' => true],
+            'history' => ['enabled' => true, 'max_files' => 20, 'path' => '.custom/history'],
             'output' => ['format' => 'json', 'size' => 'compact', 'pretty' => true, 'show_process' => false],
             'tools' => [],
         ]);
@@ -100,7 +100,7 @@ it('rejects invalid config documents', function (): void {
 
 it('returns normalized tool settings when reading a single tool config', function (): void {
     $config = [
-        'history' => ['enabled' => true],
+        'history' => ['enabled' => true, 'max_files' => 50, 'path' => '.sift/history'],
         'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
         'tools' => [
             'phpstan' => [
@@ -118,4 +118,26 @@ it('returns normalized tool settings when reading a single tool config', functio
         'defaultArgs' => ['analyse'],
         'blockedArgs' => ['--generate-baseline'],
     ]);
+});
+
+it('rejects invalid history rotation settings', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        writeSiftConfig($cwd, [
+            'history' => ['enabled' => true, 'max_files' => 0, 'path' => ''],
+            'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
+            'tools' => [],
+        ]);
+
+        try {
+            (new ConfigLoader)->load($cwd);
+            $this->fail('Expected invalid history config exception.');
+        } catch (UserFacingException $exception) {
+            expect($exception->payload()['error']['code'])->toBe('invalid_config')
+                ->and($exception->payload()['error']['reason'])->toContain('history.max_files');
+        }
+    } finally {
+        removeDirectory($cwd);
+    }
 });

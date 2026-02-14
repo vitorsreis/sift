@@ -13,6 +13,8 @@ it('writes config documents with two-space indentation', function (): void {
         $manager->write($cwd, [
             'history' => [
                 'enabled' => true,
+                'max_files' => 25,
+                'path' => 'var/history',
             ],
             'output' => [
                 'format' => 'json',
@@ -32,6 +34,8 @@ it('writes config documents with two-space indentation', function (): void {
         expect($raw)->toContain("\n  \"\$schema\": \"./resources/schema/config.schema.json\",")
             ->and($raw)->toContain("\n  \"history\": {")
             ->and($raw)->toContain("\n    \"enabled\": true")
+            ->and($raw)->toContain("\n    \"max_files\": 25")
+            ->and($raw)->toContain("\n    \"path\": \"var/history\"")
             ->and($raw)->toContain("\n    \"show_process\": false")
             ->and($raw)->not->toContain("\n    \"history\": {");
     } finally {
@@ -49,6 +53,8 @@ it('returns a default config document when the file does not exist', function ()
             '$schema' => './resources/schema/config.schema.json',
             'history' => [
                 'enabled' => true,
+                'max_files' => 50,
+                'path' => '.sift/history',
             ],
             'output' => [
                 'format' => 'json',
@@ -69,6 +75,7 @@ it('ships a valid json schema for the sift config', function (): void {
     expect(is_file($path))->toBeTrue()
         ->and($schema['type'])->toBe('object')
         ->and($schema['properties'])->toHaveKeys(['history', 'output', 'tools'])
+        ->and($schema['properties']['history']['properties'])->toHaveKeys(['enabled', 'max_files', 'path'])
         ->and($schema['properties']['output']['properties'])->toHaveKey('show_process')
         ->and($schema['properties']['tools']['additionalProperties']['properties'])->toHaveKeys([
             'enabled',

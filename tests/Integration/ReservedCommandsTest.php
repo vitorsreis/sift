@@ -40,7 +40,7 @@ it('reports normalized tool settings during validation', function (): void {
 
     try {
         writeSiftConfig($cwd, [
-            'history' => ['enabled' => true],
+            'history' => ['enabled' => true, 'max_files' => 7, 'path' => 'var/history'],
             'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => true],
             'tools' => [
                 'pint' => [
@@ -63,7 +63,12 @@ it('reports normalized tool settings during validation', function (): void {
             'toolBinary' => 'vendor/bin/pint-custom',
             'defaultArgs' => ['--test'],
             'blockedArgs' => ['--dirty'],
-        ]);
+        ])
+            ->and($payload['history'])->toBe([
+                'enabled' => true,
+                'max_files' => 7,
+                'path' => 'var/history',
+            ]);
     } finally {
         removeDirectory($cwd);
     }
@@ -123,7 +128,12 @@ it('writes detected tool binaries into new init configs', function (): void {
             'enabled' => true,
             'defaultArgs' => ['--test'],
             'toolBinary' => 'vendor/bin/pint.bat',
-        ]);
+        ])
+            ->and($config['history'])->toBe([
+                'enabled' => true,
+                'max_files' => 50,
+                'path' => '.sift/history',
+            ]);
     } finally {
         removeDirectory($cwd);
     }
