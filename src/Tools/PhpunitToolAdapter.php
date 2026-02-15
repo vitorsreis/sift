@@ -10,10 +10,15 @@ use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
+use Sift\Tools\Concerns\DetectsCliOptions;
+use Sift\Tools\Concerns\ResolvesToolCandidates;
 use SimpleXMLElement;
 
 final readonly class PhpunitToolAdapter implements ToolAdapterInterface
 {
+    use DetectsCliOptions;
+    use ResolvesToolCandidates;
+
     public function __construct(
         private ToolLocator $toolLocator,
     ) {}
@@ -59,9 +64,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
         return [
             'arguments' => $arguments,
             'has_filter' => $this->hasOption($arguments, '--filter'),
-            'has_coverage' => $this->hasOption($arguments, '--coverage-text')
-                || $this->hasOption($arguments, '--coverage-clover')
-                || $this->hasOption($arguments, '--coverage-html'),
+            'has_coverage' => $this->hasAnyOption($arguments, ['--coverage-text', '--coverage-clover', '--coverage-html']),
         ];
     }
 
@@ -71,7 +74,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
      */
     public function prepare(string $cwd, array $arguments, array $context): PreparedCommand
     {
-        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context));
+        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context, $this->discoveryCandidates()));
 
         if ($resolved === null) {
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
@@ -187,20 +190,6 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
 
     /**
      * @param  list<string>  $arguments
-     */
-    private function hasOption(array $arguments, string $option): bool
-    {
-        foreach ($arguments as $argument) {
-            if ($argument === $option || str_starts_with($argument, $option.'=')) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param  list<string>  $arguments
      * @return array{0: list<string>, 1: string}
      */
     private function ensureOptionValue(array $arguments, string $option, string $defaultValue): array
@@ -233,18 +222,5 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
         @rename($path, $target);
 
         return $target;
-    }
-
-    /**
-     * @param  array<string, mixed>  $context
-     * @return list<string>
-     */
-    private function resolveCandidates(array $context): array
-    {
-        $configured = is_string($context['tool_binary'] ?? null) && trim((string) $context['tool_binary']) !== ''
-            ? [trim((string) $context['tool_binary'])]
-            : [];
-
-        return $configured !== [] ? $configured : $this->discoveryCandidates();
     }
 }

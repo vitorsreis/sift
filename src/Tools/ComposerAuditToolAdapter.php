@@ -10,9 +10,16 @@ use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
+use Sift\Tools\Concerns\DecodesJsonOutput;
+use Sift\Tools\Concerns\DetectsCliOptions;
+use Sift\Tools\Concerns\ResolvesToolCandidates;
 
 final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
 {
+    use DecodesJsonOutput;
+    use DetectsCliOptions;
+    use ResolvesToolCandidates;
+
     public function __construct(
         private ToolLocator $toolLocator,
     ) {}
@@ -62,7 +69,7 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
      */
     public function prepare(string $cwd, array $arguments, array $context): PreparedCommand
     {
-        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context));
+        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context, $this->discoveryCandidates()));
 
         if ($resolved === null) {
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
@@ -89,7 +96,7 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
         PreparedCommand $preparedCommand,
         array $context,
     ): NormalizedResult {
-        $decoded = json_decode($executionResult->stdout, true);
+        $decoded = $this->decodeJsonOutput($executionResult);
 
         if (! is_array($decoded)) {
             throw UserFacingException::parseFailure($this->name(), 'Unable to parse Composer audit JSON output.');
@@ -133,32 +140,5 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
                 'command' => $preparedCommand->command,
             ],
         );
-    }
-
-    /**
-     * @param  list<string>  $arguments
-     */
-    private function hasOption(array $arguments, string $option): bool
-    {
-        foreach ($arguments as $argument) {
-            if ($argument === $option || str_starts_with($argument, $option.'=')) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param  array<string, mixed>  $context
-     * @return list<string>
-     */
-    private function resolveCandidates(array $context): array
-    {
-        $configured = is_string($context['tool_binary'] ?? null) && trim((string) $context['tool_binary']) !== ''
-            ? [trim((string) $context['tool_binary'])]
-            : [];
-
-        return $configured !== [] ? $configured : $this->discoveryCandidates();
     }
 }

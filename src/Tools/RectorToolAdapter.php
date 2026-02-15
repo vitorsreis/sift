@@ -10,9 +10,16 @@ use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
+use Sift\Tools\Concerns\DecodesJsonOutput;
+use Sift\Tools\Concerns\DetectsCliOptions;
+use Sift\Tools\Concerns\ResolvesToolCandidates;
 
 final readonly class RectorToolAdapter implements ToolAdapterInterface
 {
+    use DecodesJsonOutput;
+    use DetectsCliOptions;
+    use ResolvesToolCandidates;
+
     public function __construct(
         private ToolLocator $toolLocator,
     ) {}
@@ -69,7 +76,7 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
      */
     public function prepare(string $cwd, array $arguments, array $context): PreparedCommand
     {
-        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context));
+        $resolved = $this->toolLocator->locate($cwd, $this->resolveCandidates($context, $this->discoveryCandidates()));
 
         if ($resolved === null) {
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
@@ -102,7 +109,7 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
         PreparedCommand $preparedCommand,
         array $context,
     ): NormalizedResult {
-        $decoded = $this->decodeOutput($executionResult);
+        $decoded = $this->decodeJsonOutput($executionResult, allowNoisy: true);
 
         if (! is_array($decoded)) {
             throw UserFacingException::parseFailure($this->name(), 'Unable to parse Rector JSON output.');
@@ -185,20 +192,6 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
     /**
      * @param  list<string>  $arguments
      */
-    private function hasOption(array $arguments, string $option): bool
-    {
-        foreach ($arguments as $argument) {
-            if ($argument === $option || str_starts_with($argument, $option.'=')) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param  list<string>  $arguments
-     */
     private function command(array $arguments): string
     {
         $command = $arguments[0] ?? 'process';
@@ -208,61 +201,6 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
         }
 
         return $command;
-    }
-
-    /**
-     * @param  array<string, mixed>  $context
-     * @return list<string>
-     */
-    private function resolveCandidates(array $context): array
-    {
-        $configured = is_string($context['tool_binary'] ?? null) && trim((string) $context['tool_binary']) !== ''
-            ? [trim((string) $context['tool_binary'])]
-            : [];
-
-        return $configured !== [] ? $configured : $this->discoveryCandidates();
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function decodeOutput(ExecutionResult $executionResult): ?array
-    {
-        $streams = [$executionResult->stdout, $executionResult->stderr];
-
-        foreach ($streams as $stream) {
-            $decoded = json_decode($stream, true);
-
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-
-            $candidate = $this->extractJsonObject($stream);
-
-            if ($candidate === null) {
-                continue;
-            }
-
-            $decoded = json_decode($candidate, true);
-
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-        }
-
-        return null;
-    }
-
-    private function extractJsonObject(string $stream): ?string
-    {
-        $start = strpos($stream, '{');
-        $end = strrpos($stream, '}');
-
-        if ($start === false || $end === false || $end <= $start) {
-            return null;
-        }
-
-        return substr($stream, $start, $end - $start + 1);
     }
 
     private function normalizePath(string $path): string
