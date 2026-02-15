@@ -26,7 +26,7 @@ trait DecodesJsonOutput
                 continue;
             }
 
-            $candidate = $this->extractJsonObject($stream);
+            $candidate = $this->extractJsonValue($stream);
 
             if ($candidate === null) {
                 continue;
@@ -42,15 +42,80 @@ trait DecodesJsonOutput
         return null;
     }
 
-    private function extractJsonObject(string $stream): ?string
+    private function extractJsonValue(string $stream): ?string
     {
-        $start = strpos($stream, '{');
-        $end = strrpos($stream, '}');
+        $objectStart = strpos($stream, '{');
+        $arrayStart = strpos($stream, '[');
 
-        if ($start === false || $end === false || $end <= $start) {
+        if ($objectStart === false && $arrayStart === false) {
             return null;
         }
 
-        return substr($stream, $start, $end - $start + 1);
+        $start = $this->firstJsonStart($objectStart, $arrayStart);
+        $opening = $stream[$start];
+        $closing = $opening === '{' ? '}' : ']';
+        $depth = 0;
+        $inString = false;
+        $escaped = false;
+        $length = strlen($stream);
+
+        for ($index = $start; $index < $length; $index++) {
+            $character = $stream[$index];
+
+            if ($inString) {
+                if ($escaped) {
+                    $escaped = false;
+
+                    continue;
+                }
+
+                if ($character === '\\') {
+                    $escaped = true;
+
+                    continue;
+                }
+
+                if ($character === '"') {
+                    $inString = false;
+                }
+
+                continue;
+            }
+
+            if ($character === '"') {
+                $inString = true;
+
+                continue;
+            }
+
+            if ($character === $opening) {
+                $depth++;
+
+                continue;
+            }
+
+            if ($character === $closing) {
+                $depth--;
+
+                if ($depth === 0) {
+                    return substr($stream, $start, $index - $start + 1);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function firstJsonStart(int|false $objectStart, int|false $arrayStart): int
+    {
+        if ($objectStart === false) {
+            return (int) $arrayStart;
+        }
+
+        if ($arrayStart === false) {
+            return (int) $objectStart;
+        }
+
+        return min($objectStart, $arrayStart);
     }
 }

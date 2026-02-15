@@ -12,6 +12,7 @@ use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\AddService;
 use Sift\Runtime\BlockedArgumentsPolicy;
+use Sift\Runtime\ComposerCommandPolicy;
 use Sift\Runtime\ConfigDocumentManager;
 use Sift\Runtime\ConfigLoader;
 use Sift\Runtime\FileRunStore;
@@ -29,6 +30,7 @@ use Sift\Runtime\ValidateService;
 use Sift\Runtime\ViewService;
 use Sift\Sift;
 use Sift\Tools\ComposerAuditToolAdapter;
+use Sift\Tools\ComposerToolAdapter;
 use Sift\Tools\ParatestToolAdapter;
 use Sift\Tools\PestToolAdapter;
 use Sift\Tools\PhpcsToolAdapter;
@@ -75,6 +77,7 @@ final class Application
                 new ToolEnabledPolicy,
                 new BlockedArgumentsPolicy,
                 new ToolInstalledPolicy($toolLocator),
+                new ComposerCommandPolicy,
                 new RectorCommandPolicy,
             ]),
             $toolLocator,
@@ -620,6 +623,7 @@ final class Application
     {
         return new ToolRegistry([
             new ComposerAuditToolAdapter($toolLocator),
+            new ComposerToolAdapter($toolLocator),
             new ParatestToolAdapter($toolLocator),
             new PestToolAdapter($toolLocator),
             new PhpcsToolAdapter($toolLocator),
