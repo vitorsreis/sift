@@ -166,7 +166,7 @@ final class Application
                     'sift help',
                     'sift version',
                     'sift [options] init',
-                    'sift [options] add <tool>',
+                    'sift [options] add [tool]',
                     'sift [options] list',
                     'sift [options] validate',
                     'sift [options] view list',
@@ -222,10 +222,11 @@ final class Application
             $format = $add['format'] ?? $parsed['format'] ?? $commandConfig['output']['format'];
             $size = $add['size'] ?? $parsed['size'] ?? $commandConfig['output']['size'];
             $pretty = $add['pretty'] ?? $parsed['pretty'] ?? $commandConfig['output']['pretty'];
+            $toolName = $this->resolveAddToolName($cwd, $add['tool'], $commandConfig);
 
             return [
                 ...$this->resultPayloadFactory->commandPayload(
-                    $this->addService->add($cwd, $add['tool'], $this->toolRegistry, $commandConfigPath),
+                    $this->addService->add($cwd, $toolName, $this->toolRegistry, $commandConfigPath),
                     $size,
                 ),
                 '_pretty' => $pretty,
@@ -413,6 +414,110 @@ final class Application
 
             @unlink($tempFile);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     */
+    private function resolveAddToolName(string $cwd, ?string $toolName, array $config): string
+    {
+        if (is_string($toolName) && $toolName !== '') {
+            return $toolName;
+        }
+
+        $items = array_values(array_filter(
+            $this->projectInspector->inspect($cwd, $this->toolRegistry, $config),
+            static fn (array $item): bool => ($item['installed'] ?? false) === true,
+        ));
+
+        usort(
+            $items,
+            static fn (array $left, array $right): int => strcmp((string) $left['tool'], (string) $right['tool']),
+        );
+
+        if ($items === []) {
+            throw UserFacingException::invalidUsage(
+                'No supported tools were detected for interactive add. Install a supported tool or pass an explicit tool name.',
+            );
+        }
+
+        $this->renderAddPrompt($items);
+        $selection = $this->readAddSelection();
+
+        if ($selection === '') {
+            throw UserFacingException::invalidUsage('No tool was selected for `add`.');
+        }
+
+        if (ctype_digit($selection)) {
+            $index = (int) $selection - 1;
+
+            if (isset($items[$index]['tool']) && is_string($items[$index]['tool'])) {
+                return (string) $items[$index]['tool'];
+            }
+        }
+
+        foreach ($items as $item) {
+            if (($item['tool'] ?? null) === $selection) {
+                return $selection;
+            }
+        }
+
+        $supported = implode(', ', array_map(
+            static fn (array $item): string => (string) $item['tool'],
+            $items,
+        ));
+
+        throw UserFacingException::invalidUsage(
+            sprintf('Invalid tool selection `%s`. Choose one of: %s.', $selection, $supported),
+        );
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $items
+     */
+    private function renderAddPrompt(array $items): void
+    {
+        if (! $this->canRenderInteractivePrompt()) {
+            return;
+        }
+
+        fwrite(STDERR, "Select a tool to add:\n");
+
+        foreach ($items as $index => $item) {
+            $path = is_string($item['path'] ?? null) ? str_replace('\\', '/', (string) $item['path']) : null;
+            $suffix = $path !== null && $path !== '' ? sprintf(' (%s)', $path) : '';
+            fwrite(STDERR, sprintf("  [%d] %s%s\n", $index + 1, (string) $item['tool'], $suffix));
+        }
+
+        fwrite(STDERR, 'Enter the number or tool name: ');
+        fflush(STDERR);
+    }
+
+    private function readAddSelection(): string
+    {
+        if ($this->hasInteractiveInput()) {
+            return trim((string) fgets(STDIN));
+        }
+
+        $buffer = stream_get_contents(STDIN);
+
+        if ($buffer === false) {
+            return '';
+        }
+
+        $line = strtok($buffer, "\r\n");
+
+        return trim($line === false ? '' : $line);
+    }
+
+    private function hasInteractiveInput(): bool
+    {
+        return function_exists('stream_isatty') && stream_isatty(STDIN);
+    }
+
+    private function canRenderInteractivePrompt(): bool
+    {
+        return function_exists('stream_isatty') && stream_isatty(STDERR);
     }
 
     /**

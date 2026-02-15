@@ -269,7 +269,7 @@ final class OptionParser
 
     /**
      * @param  list<string>  $arguments
-     * @return array{tool: string, format: ?string, size: ?string, pretty: ?bool, config: ?string}
+     * @return array{tool: ?string, interactive: bool, format: ?string, size: ?string, pretty: ?bool, config: ?string}
      */
     public function parseAdd(array $arguments): array
     {
@@ -295,12 +295,13 @@ final class OptionParser
             $positionals[] = $argument;
         }
 
-        if (count($positionals) !== 1) {
-            throw UserFacingException::invalidUsage('The `add` command requires a supported tool name.');
+        if (count($positionals) > 1) {
+            throw UserFacingException::invalidUsage('The `add` command accepts at most one supported tool name.');
         }
 
         return [
-            'tool' => $positionals[0],
+            'tool' => $positionals[0] ?? null,
+            'interactive' => $positionals === [],
             'format' => $format,
             'size' => $size,
             'pretty' => $pretty,
