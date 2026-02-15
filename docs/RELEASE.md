@@ -2,6 +2,8 @@
 
 Sift currently ships PHAR builds through `composer build:phar`.
 
+The repository also ships a `box.json` aligned with the same thin-distribution layout for projects that prefer Box-based release automation.
+
 ## Local Build
 
 ```bash
@@ -43,3 +45,4 @@ if ($expected -ne $actual) { throw 'Checksum mismatch for sift.phar' }
 - runtime dependencies stay outside the archive in `vendor/`
 - the stub resolves `vendor/autoload.php` next to `sift.phar` or one directory above it
 - the PHAR bootstraps `Sift\Console\Application::run()`
+- `bin/phar` and `box.json` share the same `resources/box.stub.php` bootstrap entrypoint
