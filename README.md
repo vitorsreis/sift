@@ -2,14 +2,7 @@
 
 Sift is a PHP CLI wrapper that turns tool output into compact, agent-friendly payloads.
 
-## Current Scope
-
-- Normalized output for `phpunit`, `pest`, `paratest`, `phpstan`, `phpcs`, `pint`, `psalm`, `rector`, and `composer-audit`
-- Output rendering in `json` and `markdown`
-- Output sizes: `compact`, `normal`, and `fuller`
-- Local run history with `sift view`
-- Configurable execution policies with `defaultArgs`, `blockedArgs`, and per-tool binaries
-- PHAR distribution through `composer build:phar`
+It sits in front of tools such as `phpunit`, `pest`, `paratest`, `phpstan`, `phpcs`, `pint`, `psalm`, `rector`, and `composer-audit`, then normalizes their output into a stable shape that is easier to consume from terminals, agents, and automation.
 
 ![Sift preview](resources/preview.svg)
 
@@ -21,38 +14,25 @@ Install Sift as a development dependency:
 composer require --dev vitorsreis/sift
 ```
 
-Run it from the project root:
-
-```bash
-vendor/bin/sift help
-```
-
-### PHAR
-
-Build a local PHAR:
+Or build a local PHAR:
 
 ```bash
 composer build:phar
 php dist/sift.phar help
 ```
 
-Release installation and checksum verification are documented in [docs/RELEASE.md](docs/RELEASE.md).
-
 ## Quick Start
 
-Initialize a config file:
+Initialize a project config:
 
 ```bash
 vendor/bin/sift init
 ```
 
-Run a tool:
+Run a tool through Sift:
 
 ```bash
 vendor/bin/sift phpstan analyse src
-vendor/bin/sift pest --testsuite=Integration
-vendor/bin/sift rector process --dry-run src
-vendor/bin/sift composer-audit
 ```
 
 Inspect a stored run:
@@ -60,72 +40,8 @@ Inspect a stored run:
 ```bash
 vendor/bin/sift view list
 vendor/bin/sift view <run_id> summary
-vendor/bin/sift view <run_id> items --limit=10
 ```
-
-## Configuration
-
-The current `sift.json` shape is:
-
-```json
-{
-  "$schema": "./resources/schema/config.schema.json",
-  "history": {
-    "enabled": true,
-    "max_files": 50,
-    "path": ".sift/history"
-  },
-  "output": {
-    "format": "json",
-    "size": "normal",
-    "pretty": false,
-    "show_process": false
-  },
-  "tools": {
-    "phpstan": {
-      "enabled": true,
-      "toolBinary": "vendor/bin/phpstan",
-      "defaultArgs": [
-        "analyse"
-      ],
-      "blockedArgs": []
-    }
-  }
-}
-```
-
-See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for the full reference.
-
-History storage can be moved away from the default `.sift/history` path and rotated automatically with `history.max_files`.
-
-## Commands
-
-- `sift help`
-- `sift version`
-- `sift init`
-- `sift add [tool]`
-- `sift list`
-- `sift validate`
-- `sift view list`
-- `sift view <run_id> [summary|items|meta|artifacts|extra]`
-- `sift <tool> [tool-args]`
 
 ## Documentation
 
-- [docs/README.md](docs/README.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/ADAPTERS.md](docs/ADAPTERS.md)
-- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
-- [docs/RELEASE.md](docs/RELEASE.md)
-
-## Development
-
-```bash
-composer lint
-composer test
-composer build:phar
-```
-
-## License
-
-Sift is released under the [MIT license](LICENSE.md).
+Full documentation lives in [docs/README.md](docs/README.md).
