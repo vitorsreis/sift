@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/box-project/box/master/res/schema.json",
+  "main": "resources/box.stub.php",
+  "output": "dist/sift.phar",
+  "alias": "sift.phar",
+  "stub": true,
+  "chmod": "0755",
+  "compression": "NONE",
+  "directories": [
+    "src",
+    "resources"
+  ],
+  "files": [
+    "composer.json",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "exclude": [
+    ".github",
+    "dist",
+    "tests",
+    "vendor"
+  ]
+}

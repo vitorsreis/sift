@@ -99,60 +99,7 @@ function buildStub(string $alias): string
 declare(strict_types=1);
 
 Phar::mapPhar('{$alias}');
-
-spl_autoload_register(static function (string \$class): void {
-    \$prefix = 'Sift\\\\';
-
-    if (! str_starts_with(\$class, \$prefix)) {
-        return;
-    }
-
-    \$relativeClass = substr(\$class, strlen(\$prefix));
-    \$file = 'phar://{$alias}/src/'.str_replace('\\\\', '/', \$relativeClass).'.php';
-
-    if (is_file(\$file)) {
-        require \$file;
-    }
-});
-
-\$pharFile = Phar::running(false);
-\$resolvedPharFile = realpath(\$pharFile);
-
-if (is_string(\$resolvedPharFile)) {
-    \$pharFile = \$resolvedPharFile;
-} elseif (! str_contains(\$pharFile, DIRECTORY_SEPARATOR) && ! str_contains(\$pharFile, '/')) {
-    \$pharFile = getcwd().DIRECTORY_SEPARATOR.\$pharFile;
-}
-
-\$pharDirectory = dirname(\$pharFile);
-\$workingDirectory = getcwd() ?: \$pharDirectory;
-\$autoloadCandidates = [
-    \$pharDirectory.'/vendor/autoload.php',
-    dirname(\$pharDirectory).'/vendor/autoload.php',
-    \$workingDirectory.'/vendor/autoload.php',
-    dirname(\$workingDirectory).'/vendor/autoload.php',
-];
-
-\$autoloadLoaded = false;
-
-foreach (\$autoloadCandidates as \$autoloadPath) {
-    if (! is_file(\$autoloadPath)) {
-        continue;
-    }
-
-    require \$autoloadPath;
-    \$autoloadLoaded = true;
-
-    break;
-}
-
-if (! \$autoloadLoaded) {
-    fwrite(STDERR, "Unable to locate vendor/autoload.php next to sift.phar or in its parent directory.\\n");
-
-    exit(1);
-}
-
-exit(Sift\\Console\\Application::run(\$_SERVER['argv'] ?? []));
+require 'phar://{$alias}/resources/box.stub.php';
 
 __HALT_COMPILER();
 PHP;
