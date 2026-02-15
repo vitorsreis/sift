@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 620" role="img" aria-labelledby="title desc">
   <title id="title">Sift terminal preview</title>
-  <desc id="desc">Dark terminal preview inspired by the legacy Sift artwork, updated to show the current normalized payload with run_id, summary, items, artifacts, extra, and meta.</desc>
+  <desc id="desc">Dark terminal preview inspired by the legacy Sift artwork, updated to show the current normal payload for vendor/bin/sift --pretty --show-process --size=normal pest.</desc>
 
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="920" y2="620" gradientUnits="userSpaceOnUse">
@@ -27,7 +27,7 @@
   <rect x="742" y="35" width="132" height="22" rx="11" fill="#1d4ed8" opacity="0.24"/>
   <text x="758" y="50" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">legacy-inspired</text>
 
-  <text x="44" y="97" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15">$ vendor/bin/sift --pretty --show-process --size=fuller pest</text>
+  <text x="44" y="97" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15">$ vendor/bin/sift --pretty --show-process --size=normal pest</text>
   <text x="44" y="122" fill="#64748b" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:44] Pest 4.4.1</text>
   <text x="44" y="141" fill="#64748b" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:45] Running Integration suite...</text>
   <text x="44" y="160" fill="#fca5a5" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:46] FAILED Tests\Feature\DashboardTest</text>
@@ -37,102 +37,76 @@
   <rect x="40" y="194" width="840" height="322" rx="10" fill="#0b1325" stroke="#23324c"/>
   <text x="56" y="219" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">{</text>
 
-  <text x="72" y="239" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"run_id"</text>
+  <text x="72" y="239" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"status"</text>
   <text x="136" y="239" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="148" y="239" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"aa30a4ab"</text>
-  <text x="226" y="239" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="148" y="239" fill="#fca5a5" font-family="'Courier New', monospace" font-size="13">"failed"</text>
+  <text x="220" y="239" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
 
-  <text x="72" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"tool"</text>
-  <text x="120" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="132" y="259" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"pest"</text>
-  <text x="180" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="72" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"summary"</text>
+  <text x="144" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">: {</text>
+  <text x="164" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"tests"</text>
+  <text x="220" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="232" y="259" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">25</text>
+  <text x="248" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="262" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"passed"</text>
+  <text x="326" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="338" y="259" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">24</text>
+  <text x="354" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="368" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"failures"</text>
+  <text x="448" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="460" y="259" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">1</text>
+  <text x="468" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="482" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"errors"</text>
+  <text x="546" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="558" y="259" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">0</text>
+  <text x="566" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="580" y="259" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"skipped"</text>
+  <text x="652" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="664" y="259" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">0</text>
+  <text x="672" y="259" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13"> },</text>
 
-  <text x="72" y="279" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"status"</text>
-  <text x="136" y="279" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="148" y="279" fill="#fca5a5" font-family="'Courier New', monospace" font-size="13">"failed"</text>
-  <text x="220" y="279" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="72" y="279" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"items"</text>
+  <text x="128" y="279" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">: [</text>
 
-  <text x="72" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"summary"</text>
-  <text x="144" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">: {</text>
-  <text x="164" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"tests"</text>
-  <text x="220" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="232" y="299" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">25</text>
-  <text x="248" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="262" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"passed"</text>
-  <text x="326" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="338" y="299" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">24</text>
-  <text x="354" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="368" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"failures"</text>
-  <text x="448" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="460" y="299" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">1</text>
-  <text x="468" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="482" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"errors"</text>
-  <text x="546" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="558" y="299" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">0</text>
-  <text x="566" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="580" y="299" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"skipped"</text>
-  <text x="652" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="664" y="299" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">0</text>
-  <text x="672" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13"> },</text>
+  <text x="92" y="299" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">{</text>
+  <text x="112" y="319" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"type"</text>
+  <text x="160" y="319" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="172" y="319" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"failure"</text>
+  <text x="244" y="319" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
 
-  <text x="72" y="319" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"items"</text>
-  <text x="128" y="319" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">: [</text>
+  <text x="112" y="339" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"test"</text>
+  <text x="160" y="339" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="172" y="339" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"it renders dashboard metrics"</text>
+  <text x="388" y="339" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
 
-  <text x="92" y="339" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">{</text>
-  <text x="112" y="359" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"type"</text>
-  <text x="160" y="359" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="172" y="359" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"failure"</text>
-  <text x="244" y="359" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="112" y="359" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"class"</text>
+  <text x="168" y="359" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="180" y="359" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"Tests\Feature\DashboardTest"</text>
+  <text x="388" y="359" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
 
-  <text x="112" y="379" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"test"</text>
+  <text x="112" y="379" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"file"</text>
   <text x="160" y="379" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="172" y="379" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"it renders dashboard metrics"</text>
-  <text x="388" y="379" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="172" y="379" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"Tests/Feature/DashboardTest"</text>
+  <text x="380" y="379" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
 
-  <text x="112" y="399" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"file"</text>
-  <text x="160" y="399" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="172" y="399" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"tests/Feature/DashboardTest.php"</text>
-  <text x="428" y="399" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
+  <text x="112" y="399" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"message"</text>
+  <text x="184" y="399" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="196" y="399" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"Expected status 200, got 500"</text>
+  <text x="92" y="419" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">}],</text>
 
-  <text x="112" y="419" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"message"</text>
-  <text x="184" y="419" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="196" y="419" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"Expected status 200, got 500"</text>
-  <text x="92" y="439" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">}],</text>
+  <text x="72" y="439" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"run_id"</text>
+  <text x="136" y="439" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
+  <text x="148" y="439" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"aa30a4ab"</text>
 
-  <text x="72" y="459" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"artifacts"</text>
-  <text x="160" y="459" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="172" y="459" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">[],</text>
-
-  <text x="72" y="479" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"extra"</text>
-  <text x="128" y="479" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="140" y="479" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">{},</text>
-
-  <text x="72" y="499" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"meta"</text>
-  <text x="120" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">: {</text>
-  <text x="140" y="499" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"created_at"</text>
-  <text x="236" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="248" y="499" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"2026-02-15T07:28:46-03:00"</text>
-  <text x="468" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="482" y="499" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"exit_code"</text>
-  <text x="570" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="582" y="499" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">1</text>
-  <text x="590" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">,</text>
-  <text x="604" y="499" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"duration"</text>
-  <text x="684" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">:</text>
-  <text x="696" y="499" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13">1.184</text>
-  <text x="736" y="499" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13"> }</text>
-
-  <text x="56" y="520" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">}</text>
+  <text x="56" y="459" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">}</text>
 
   <rect x="40" y="534" width="840" height="42" rx="10" fill="#0b1325" stroke="#23324c"/>
-  <text x="56" y="560" fill="#f8fafc" font-family="'Courier New', monospace" font-size="13">$ vendor/bin/sift view aa30a4ab summary</text>
+  <text x="56" y="560" fill="#f8fafc" font-family="'Courier New', monospace" font-size="13">normal output = status + summary + items + run_id</text>
 
-  <rect x="628" y="544" width="68" height="20" rx="10" fill="#172554"/>
-  <text x="645" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">summary</text>
-  <rect x="704" y="544" width="52" height="20" rx="10" fill="#172554"/>
-  <text x="722" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">items</text>
-  <rect x="764" y="544" width="46" height="20" rx="10" fill="#172554"/>
-  <text x="779" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">meta</text>
-  <rect x="818" y="544" width="54" height="20" rx="10" fill="#172554"/>
-  <text x="828" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">stored</text>
+  <rect x="672" y="544" width="62" height="20" rx="10" fill="#172554"/>
+  <text x="689" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">normal</text>
+  <rect x="742" y="544" width="64" height="20" rx="10" fill="#172554"/>
+  <text x="754" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">history</text>
+  <rect x="814" y="544" width="58" height="20" rx="10" fill="#172554"/>
+  <text x="829" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">pretty</text>
 </svg>
