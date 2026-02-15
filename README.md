@@ -103,7 +103,7 @@ History storage can be moved away from the default `.sift/history` path and rota
 - `sift help`
 - `sift version`
 - `sift init`
-- `sift add <tool>`
+- `sift add [tool]`
 - `sift list`
 - `sift validate`
 - `sift view list`

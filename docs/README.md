@@ -16,13 +16,15 @@ This folder documents the current `sift-final` implementation.
 sift help
 sift version
 sift init
-sift add <tool>
+sift add [tool]
 sift list
 sift validate
 sift view list
 sift view <run_id> [summary|items|meta|artifacts|extra]
 sift <tool> [tool-args]
 ```
+
+When `tool` is omitted from `sift add`, Sift can resolve it interactively from detected project binaries.
 
 ## Output Modes
 

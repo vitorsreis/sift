@@ -67,6 +67,6 @@ Each entry under `tools` supports:
 ## Commands That Write Config
 
 - `sift init`
-- `sift add <tool>`
+- `sift add [tool]`
 
 Both commands keep JSON indentation at 2 spaces.
