@@ -7,6 +7,7 @@ This folder documents the current `sift-final` implementation.
 - [ARCHITECTURE.md](ARCHITECTURE.md): runtime flow, policies, and payload lifecycle
 - [ADAPTERS.md](ADAPTERS.md): adapter contract and current tool coverage
 - [CONFIGURATION.md](CONFIGURATION.md): `sift.json` reference and runtime overrides
+- [PAYLOADS.md](PAYLOADS.md): normalized payload contract and per-adapter field matrix
 - [RELEASE.md](RELEASE.md): PHAR build and release flow
 
 ## Command Reference
