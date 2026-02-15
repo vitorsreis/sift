@@ -7,6 +7,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
 use Sift\Tools\ComposerAuditToolAdapter;
+use Sift\Tools\ComposerToolAdapter;
 use Sift\Tools\PhpcsToolAdapter;
 use Sift\Tools\PhpstanToolAdapter;
 use Sift\Tools\PintToolAdapter;
@@ -26,6 +27,22 @@ it('reports parse failure when composer audit json output is invalid', function 
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('parse_failure')
             ->and($exception->payload()['error']['tool'])->toBe('composer-audit');
+    }
+});
+
+it('reports parse failure when composer json output is invalid', function (): void {
+    $adapter = new ComposerToolAdapter(new ToolLocator);
+
+    try {
+        $adapter->parse(
+            new ExecutionResult(1, 'not-json', 'stderr', 12),
+            new PreparedCommand(['composer', 'licenses'], siftRoot(), ['subcommand' => 'licenses', 'mode' => 'licenses']),
+            ['subcommand' => 'licenses', 'mode' => 'licenses'],
+        );
+        $this->fail('Expected parse failure.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('parse_failure')
+            ->and($exception->payload()['error']['tool'])->toBe('composer');
     }
 });
 
