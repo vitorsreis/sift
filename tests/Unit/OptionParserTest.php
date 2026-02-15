@@ -57,7 +57,24 @@ it('parses command-level options for add', function (): void {
 
     expect($parsed)->toBe([
         'tool' => 'phpstan',
+        'interactive' => false,
         'format' => 'markdown',
+        'size' => null,
+        'pretty' => true,
+        'config' => 'custom.sift.json',
+    ]);
+});
+
+it('parses interactive add when the tool name is omitted', function (): void {
+    $parsed = (new OptionParser)->parseAdd([
+        '--config=custom.sift.json',
+        '--pretty',
+    ]);
+
+    expect($parsed)->toBe([
+        'tool' => null,
+        'interactive' => true,
+        'format' => null,
         'size' => null,
         'pretty' => true,
         'config' => 'custom.sift.json',
@@ -119,12 +136,12 @@ it('rejects unknown validate options', function (): void {
     }
 });
 
-it('rejects add without a tool name', function (): void {
+it('rejects add with multiple tool names', function (): void {
     try {
-        (new OptionParser)->parseAdd(['--pretty']);
+        (new OptionParser)->parseAdd(['phpstan', 'pint']);
         $this->fail('Expected invalid usage exception.');
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('invalid_usage')
-            ->and($exception->payload()['error']['message'])->toBe('The `add` command requires a supported tool name.');
+            ->and($exception->payload()['error']['message'])->toBe('The `add` command accepts at most one supported tool name.');
     }
 });
