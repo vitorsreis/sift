@@ -1,6 +1,17 @@
 # Payloads
 
-`sift` normaliza todos os adapters para o mesmo shape base:
+This document defines the structural contract of Sift's normalized result.
+
+Use this file for:
+
+- the shared top-level shape
+- which fields are guaranteed
+- common meta guarantees
+- the per-adapter matrix of required fields
+
+If you need to understand rendering, `compact` / `normal` / `fuller`, `markdown` vs `json`, or `--raw`, use [OUTPUTS.md](OUTPUTS.md).
+
+`sift` normalizes all adapters to the same base shape:
 
 ```json
 {
@@ -13,24 +24,25 @@
 }
 ```
 
-## Base Contract
+## Shared Shape
 
-- `status`: sempre presente, com estado final normalizado do run
-- `summary`: sempre presente, agregado curto e estável para consumo de agentes
-- `items`: sempre presente, lista de achados ou eventos relevantes
-- `artifacts`: opcional por adapter; quando ausente no resultado bruto, o payload normalizado expõe lista vazia
-- `extra`: opcional por adapter; quando ausente no resultado bruto, o payload normalizado expõe objeto vazio
-- `meta`: sempre presente, com `exit_code`, `duration`, `created_at` e outros metadados contextuais quando disponíveis
+- `tool`: always present
+- `status`: always present
+- `summary`: always present
+- `items`: always present
+- `artifacts`: always present in the normalized shape, even when empty
+- `extra`: always present in the normalized shape, even when empty
+- `meta`: always present
 
-## Common Meta Fields
+## Common Meta Guarantees
 
-Campos garantidos para todos os adapters depois do `ResultMetaStamper`:
+Fields guaranteed for every adapter after `ResultMetaStamper`:
 
 - `meta.exit_code`
 - `meta.duration`
 - `meta.created_at`
 
-Campos contextuais podem aparecer além desses:
+Contextual meta fields may appear beyond those:
 
 - `meta.command`
 - `meta.filter`
@@ -54,6 +66,6 @@ Campos contextuais podem aparecer além desses:
 
 ## Notes
 
-- Campos listados como obrigatórios são garantidos pelo adapter quando o parse é bem-sucedido.
-- Campos extras dentro de `items`, `artifacts` ou `meta` podem aparecer sem quebrar o contrato.
-- Em `--size=compact` e `--size=normal`, parte do shape pode ser omitida só na renderização final; o `NormalizedResult` interno continua convergindo para o contrato acima.
+- Fields listed as required are guaranteed when the adapter parse succeeds.
+- Extra fields inside `items`, `artifacts`, `extra`, or `meta` may appear without breaking the contract.
+- Smaller rendered outputs may omit parts of this structure, but the internal normalized result still converges to the contract above.

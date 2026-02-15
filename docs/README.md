@@ -7,10 +7,10 @@ If the repository root README is the project presentation, this folder is where 
 ## Start Here
 
 - [COMMANDS.md](COMMANDS.md): what every command does, when to use it, reserved commands, interactive `add`, `view`, and runtime flags
-- [OUTPUTS.md](OUTPUTS.md): `json` vs `markdown`, `compact` / `normal` / `fuller`, `--raw`, normalized payload shape, and view scopes
+- [OUTPUTS.md](OUTPUTS.md): `json` vs `markdown`, `compact` / `normal` / `fuller`, `--raw`, view scopes, and how results are rendered
 - [CONFIGURATION.md](CONFIGURATION.md): full `sift.json` reference, defaults, schema, overrides, and config-writing commands
 - [ADAPTERS.md](ADAPTERS.md): current supported tools, adapter responsibilities, and how new adapters are added
-- [PAYLOADS.md](PAYLOADS.md): per-adapter field contract, required summary fields, item shape, artifacts, and meta guarantees
+- [PAYLOADS.md](PAYLOADS.md): normalized result contract, common guarantees, and the per-adapter field matrix
 - [ARCHITECTURE.md](ARCHITECTURE.md): runtime flow, policies, history persistence, and payload lifecycle
 - [RELEASE.md](RELEASE.md): PHAR build, Box packaging, checksums, and release flow
 
@@ -31,7 +31,7 @@ Use [OUTPUTS.md](OUTPUTS.md) and [PAYLOADS.md](PAYLOADS.md) if you need to under
 
 - which renderer is used for `json` or `markdown`
 - what changes between `compact`, `normal`, and `fuller`
-- what is preserved in `meta`, `items`, `artifacts`, and `extra`
+- how `view` scopes surface stored results
 - when native output is passed through unchanged with `--raw`
 
 ### Configuration

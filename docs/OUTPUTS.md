@@ -1,23 +1,17 @@
 # Outputs
 
-This document explains how Sift renders tool results and what changes across output modes.
+This document explains how Sift presents results to the user.
 
-## Normalized Result Shape
+Use this file for:
 
-Adapters converge on the same base structure before rendering:
+- render formats
+- output sizes
+- `view` scopes
+- `--pretty`
+- `--raw`
+- how normalized data is surfaced in terminal output
 
-```json
-{
-  "status": "passed|failed|error|changed",
-  "summary": {},
-  "items": [],
-  "artifacts": [],
-  "extra": {},
-  "meta": {}
-}
-```
-
-The detailed per-adapter field contract lives in [PAYLOADS.md](PAYLOADS.md).
+If you need the structural contract of the normalized result itself, use [PAYLOADS.md](PAYLOADS.md).
 
 ## Render Formats
 
@@ -33,6 +27,18 @@ Format can come from:
 
 CLI flags win over config.
 
+## What Gets Rendered
+
+For wrapped tool execution, Sift first produces a normalized result and only then renders it.
+
+What you see on screen depends on:
+
+- the selected format
+- the selected output size
+- whether the run is a normal wrapped execution or `--raw`
+
+The exact normalized shape and the field contract for `summary`, `items`, `artifacts`, `extra`, and `meta` are documented in [PAYLOADS.md](PAYLOADS.md).
+
 ## Output Sizes
 
 ### `compact`
@@ -42,8 +48,9 @@ Designed for low-token consumption.
 Typical characteristics:
 
 - a flattened summary
-- minimal item detail
-- no heavy payload sections unless strictly required by the payload factory
+- minimal detail
+- optimized for a first pass
+- intended to reduce noise and token use
 
 ### `normal`
 
@@ -59,10 +66,11 @@ This is the most balanced mode for terminals and agents.
 
 ### `fuller`
 
-Full normalized payload.
+Full rendered payload.
 
 Typical characteristics:
 
+- `tool`
 - `summary`
 - `items`
 - `artifacts`
@@ -70,68 +78,6 @@ Typical characteristics:
 - `meta`
 
 Useful when you need to preserve diffs, contextual metadata, or adapter-specific detail.
-
-## `meta`
-
-Every normalized result is backfilled with common metadata through the meta stamper.
-
-Guaranteed common fields:
-
-- `meta.exit_code`
-- `meta.duration`
-- `meta.created_at`
-
-Contextual fields may also be present:
-
-- `meta.command`
-- `meta.filter`
-- `meta.coverage`
-- `meta.mode`
-- `meta.dry_run`
-
-## `summary`
-
-`summary` is the stable aggregation layer.
-
-Examples:
-
-- tests, failures, errors, skipped
-- files and fixers
-- vulnerabilities and packages
-- changed files and errors
-
-It is the first place to look when deciding whether the run passed and what kind of result it produced.
-
-## `items`
-
-`items` holds the primary findings or events.
-
-Examples:
-
-- failing test cases
-- static analysis issues
-- code style violations
-- advisories
-- changed files
-
-When a tool produces many details, `items` is the section that usually matters most for follow-up automation.
-
-## `artifacts`
-
-`artifacts` is for heavier structured payloads that should not always be mixed into `items`.
-
-Current examples:
-
-- Rector file diffs
-- applied rectors per file
-
-If a tool does not produce artifacts, the normalized shape still treats the section as present conceptually, even if smaller render modes omit it.
-
-## `extra`
-
-`extra` is reserved for adapter-specific structured data that does not belong naturally in `summary`, `items`, `artifacts`, or `meta`.
-
-Most current adapters do not need it, but it remains part of the shared contract.
 
 ## Stored Runs and `view`
 
@@ -146,7 +92,7 @@ Available `view` scopes map directly to payload sections:
 - `extra`
 - full payload when no scope is provided
 
-This is why the normalized structure is kept stable even when the main execution renderer uses smaller output sizes.
+This is why Sift can render smaller execution payloads while still preserving the fuller normalized result on disk.
 
 ## `--pretty`
 
@@ -154,9 +100,9 @@ This is why the normalized structure is kept stable even when the main execution
 
 It does not change:
 
-- adapter parsing
-- normalized shape
-- history content
+- adapter behavior
+- stored history payloads
+- the underlying normalized result
 
 It only changes how the final payload is printed.
 
@@ -167,7 +113,7 @@ It only changes how the final payload is printed.
 When `--raw` is used:
 
 - no normalized payload is generated
-- no payload size is applied
+- no output size is applied
 - no renderer is used
 - no history record is written
 - native `stdout`, `stderr`, and exit code are preserved
