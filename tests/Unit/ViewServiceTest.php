@@ -58,3 +58,50 @@ it('clears history directories', function (): void {
         removeDirectory($cwd);
     }
 });
+
+it('exposes fuller scopes and reports missing runs', function (): void {
+    $cwd = makeTempDirectory();
+    $store = new FileRunStore;
+    $service = new ViewService($store);
+
+    try {
+        $runId = $store->put($cwd, new NormalizedResult(
+            tool: 'pest',
+            status: 'failed',
+            items: [['type' => 'failure', 'test' => 'it fails', 'file' => 'tests/FailingTest.php', 'line' => 6]],
+            artifacts: [['path' => 'build/coverage/clover.xml']],
+            extra: ['coverage' => ['coverage_percent' => 79.5]],
+            meta: ['created_at' => '2026-02-16T08:47:58+00:00', 'coverage' => true],
+        ));
+
+        $meta = $service->view($cwd, $runId, 'meta', 10, 0);
+        $artifacts = $service->view($cwd, $runId, 'artifacts', 10, 0);
+        $extra = $service->view($cwd, $runId, 'extra', 10, 0);
+
+        expect($meta)->toBe([
+            'status' => 'failed',
+            'meta' => ['created_at' => '2026-02-16T08:47:58+00:00', 'coverage' => true],
+            'run_id' => $runId,
+        ])
+            ->and($artifacts)->toBe([
+                'status' => 'failed',
+                'scope' => 'artifacts',
+                'offset' => 0,
+                'limit' => 10,
+                'count' => 1,
+                'total' => 1,
+                'items' => [['path' => 'build/coverage/clover.xml']],
+                'run_id' => $runId,
+            ])
+            ->and($extra)->toBe([
+                'status' => 'failed',
+                'extra' => ['coverage' => ['coverage_percent' => 79.5]],
+                'run_id' => $runId,
+            ]);
+
+        expect(fn () => $service->view($cwd, 'missing-run', 'summary', 10, 0))
+            ->toThrow(\Sift\Exceptions\UserFacingException::class);
+    } finally {
+        removeDirectory($cwd);
+    }
+});
