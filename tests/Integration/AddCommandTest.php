@@ -84,6 +84,7 @@ it('adds a detected tool through interactive selection', function (): void {
         $process = new Process(
             command: [PHP_BINARY, siftRoot().DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift', 'add', '--format=json', '--pretty'],
             cwd: $cwd,
+            env: siftTestEnvironment(),
         );
         $process->setInput("pint\n");
         $process->run();
@@ -136,6 +137,7 @@ it('reports invalid interactive add selections', function (): void {
         $process = new Process(
             command: [PHP_BINARY, siftRoot().DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift', 'add', '--format=json', '--pretty'],
             cwd: $cwd,
+            env: siftTestEnvironment(),
         );
         $process->setInput("bogus\n");
         $process->run();

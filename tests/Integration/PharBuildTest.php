@@ -15,6 +15,7 @@ it('builds an executable phar distribution', function (): void {
     $build = new Process(
         command: [PHP_BINARY, '-d', 'phar.readonly=0', $root.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'phar'],
         cwd: $root,
+        env: siftTestEnvironment(),
     );
 
     $build->run();
@@ -41,6 +42,7 @@ it('builds an executable phar distribution', function (): void {
     $process = new Process(
         command: [PHP_BINARY, $pharPath, 'help', '--format=json'],
         cwd: $distDirectory,
+        env: siftTestEnvironment(),
     );
 
     $process->run();

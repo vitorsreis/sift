@@ -49,15 +49,12 @@
     }
   },
   "scripts": {
-    "sift": "@php bin/sift",
+    "sift": "@php -dxdebug.mode=off bin/sift",
     "lint": "@sift pint",
     "test": "@sift pest --parallel",
     "test:unit": "@test --testsuite=Unit",
     "test:integration": "@test --testsuite=Integration",
-    "test:coverage": [
-      "@php -r \"is_dir('build/coverage') || mkdir('build/coverage', 0777, true);\"",
-      "@php -d xdebug.mode=coverage bin/sift --raw pest --parallel --coverage --min=80 --coverage-clover build/coverage/clover.xml"
-    ],
+    "test:coverage": "@php -dxdebug.mode=coverage bin/sift --pretty pest --parallel --coverage --min=80",
     "build:phar": [
       "Composer\\Config::disableProcessTimeout",
       "@php -d phar.readonly=0 bin/phar"

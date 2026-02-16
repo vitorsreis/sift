@@ -171,7 +171,7 @@ function runSift(array $arguments, ?string $cwd = null, ?array $environment = nu
     $process = new Process(
         command: [PHP_BINARY, siftRoot().DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift', ...$arguments],
         cwd: $cwd ?? siftRoot(),
-        env: $environment,
+        env: siftTestEnvironment($environment),
     );
 
     $process->run();
@@ -184,14 +184,122 @@ function runSift(array $arguments, ?string $cwd = null, ?array $environment = nu
  */
 function decodeJsonOutput(Process $process): array
 {
-    $raw = trim($process->getOutput() !== '' ? $process->getOutput() : $process->getErrorOutput());
+    foreach ([$process->getOutput(), $process->getErrorOutput()] as $stream) {
+        $raw = trim(str_replace("\r", '', $stream));
 
-    if ($raw === '') {
-        throw new RuntimeException('The process did not produce JSON output.');
+        if ($raw === '') {
+            continue;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (is_array($decoded)) {
+            /** @var array<string, mixed> $decoded */
+            return $decoded;
+        }
+
+        $candidate = extractJsonValue($raw);
+
+        if ($candidate === null) {
+            continue;
+        }
+
+        $decoded = json_decode($candidate, true);
+
+        if (is_array($decoded)) {
+            /** @var array<string, mixed> $decoded */
+            return $decoded;
+        }
     }
 
-    /** @var array<string, mixed> $decoded */
-    $decoded = json_decode(str_replace("\r", '', $raw), true, flags: JSON_THROW_ON_ERROR);
+    throw new RuntimeException('The process did not produce decodable JSON output.');
+}
 
-    return $decoded;
+/**
+ * @param  array<string, string>|null  $environment
+ * @return array<string, string>
+ */
+function siftTestEnvironment(?array $environment = null): array
+{
+    return array_replace([
+        'XDEBUG_MODE' => 'off',
+        'XDEBUG_START_WITH_REQUEST' => 'no',
+    ], $environment ?? []);
+}
+
+function extractJsonValue(string $stream): ?string
+{
+    $objectStart = strpos($stream, '{');
+    $arrayStart = strpos($stream, '[');
+
+    if ($objectStart === false && $arrayStart === false) {
+        return null;
+    }
+
+    $start = firstJsonStart($objectStart, $arrayStart);
+    $opening = $stream[$start];
+    $closing = $opening === '{' ? '}' : ']';
+    $depth = 0;
+    $inString = false;
+    $escaped = false;
+    $length = strlen($stream);
+
+    for ($index = $start; $index < $length; $index++) {
+        $character = $stream[$index];
+
+        if ($inString) {
+            if ($escaped) {
+                $escaped = false;
+
+                continue;
+            }
+
+            if ($character === '\\') {
+                $escaped = true;
+
+                continue;
+            }
+
+            if ($character === '"') {
+                $inString = false;
+            }
+
+            continue;
+        }
+
+        if ($character === '"') {
+            $inString = true;
+
+            continue;
+        }
+
+        if ($character === $opening) {
+            $depth++;
+
+            continue;
+        }
+
+        if ($character === $closing) {
+            $depth--;
+
+            if ($depth === 0) {
+                return substr($stream, $start, $index - $start + 1);
+            }
+        }
+    }
+
+    return null;
+}
+
+function firstJsonStart(int|false $objectStart, int|false $arrayStart): int
+{
+    if ($objectStart === false) {
+        return (int) $arrayStart;
+    }
+
+    if ($arrayStart === false) {
+        return (int) $objectStart;
+    }
+
+    return min($objectStart, $arrayStart);
 }
