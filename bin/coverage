@@ -9,6 +9,14 @@ use Symfony\Component\Process\Process;
 require __DIR__.'/../vendor/autoload.php';
 
 $projectRoot = dirname(__DIR__);
+$coverageDirectory = $projectRoot.DIRECTORY_SEPARATOR.'build'.DIRECTORY_SEPARATOR.'coverage';
+
+if (! is_dir($coverageDirectory) && ! mkdir($coverageDirectory, 0777, true) && ! is_dir($coverageDirectory)) {
+    fwrite(STDERR, sprintf('Unable to create coverage directory `%s`.', $coverageDirectory).PHP_EOL);
+
+    exit(1);
+}
+
 $factory = new CoverageCommandFactory(
     phpBinary: PHP_BINARY,
     loadedExtensions: get_loaded_extensions(),

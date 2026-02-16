@@ -60,3 +60,9 @@ jobs:
 
       - name: Coverage
         run: composer test:coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clover-coverage
+          path: build/coverage/clover.xml

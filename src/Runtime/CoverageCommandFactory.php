@@ -22,10 +22,11 @@ final readonly class CoverageCommandFactory
     public function build(string $projectRoot): array
     {
         $siftBinary = $projectRoot.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift';
+        $cloverPath = $projectRoot.DIRECTORY_SEPARATOR.'build'.DIRECTORY_SEPARATOR.'coverage'.DIRECTORY_SEPARATOR.'clover.xml';
         $command = ['pest', '--coverage', '--min=80'];
 
         if ($this->hasExtensionDriver()) {
-            return [$this->phpBinary, $siftBinary, ...$command];
+            return [$this->phpBinary, $siftBinary, ...$command, '--coverage-clover', $cloverPath];
         }
 
         throw new RuntimeException(
