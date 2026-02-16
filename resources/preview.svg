@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 620" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 520" role="img" aria-labelledby="title desc">
   <title id="title">Sift terminal preview</title>
   <desc id="desc">Dark terminal preview inspired by the legacy Sift artwork, updated to show the current normal payload for vendor/bin/sift --pretty --show-process --size=normal pest.</desc>
 
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="920" y2="620" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="0" y1="0" x2="920" y2="520" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#08111f"/>
       <stop offset="1" stop-color="#111b30"/>
     </linearGradient>
@@ -13,8 +13,8 @@
     </linearGradient>
   </defs>
 
-  <rect width="920" height="620" fill="url(#bg)"/>
-  <rect x="24" y="24" width="872" height="572" rx="18" fill="url(#panel)" stroke="#243247" stroke-width="2"/>
+  <rect width="920" height="520" fill="url(#bg)"/>
+  <rect x="24" y="24" width="872" height="472" rx="18" fill="url(#panel)" stroke="#243247" stroke-width="2"/>
   <rect x="24" y="24" width="872" height="44" rx="18" fill="#121c31"/>
   <rect x="24" y="50" width="872" height="18" fill="#121c31"/>
 
@@ -24,17 +24,14 @@
 
   <text x="114" y="51" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="14" font-weight="700">sift preview</text>
 
-  <rect x="742" y="35" width="132" height="22" rx="11" fill="#1d4ed8" opacity="0.24"/>
-  <text x="758" y="50" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">legacy-inspired</text>
-
-  <text x="44" y="97" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15">$ vendor/bin/sift --pretty --show-process --size=normal pest</text>
-  <text x="44" y="122" fill="#64748b" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:44] Pest 4.4.1</text>
+  <text x="44" y="97" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15">$ vendor/bin/sift --pretty --show-process pest</text>
+  <text x="44" y="122" fill="#64748b" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:44] Pest 4.4.5</text>
   <text x="44" y="141" fill="#64748b" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:45] Running Integration suite...</text>
   <text x="44" y="160" fill="#fca5a5" font-family="'Courier New', monospace" font-size="12">[2026-02-15 07:28:46] FAILED Tests\Feature\DashboardTest</text>
 
   <line x1="40" y1="178" x2="880" y2="178" stroke="#23324c" stroke-width="1"/>
 
-  <rect x="40" y="194" width="840" height="322" rx="10" fill="#0b1325" stroke="#23324c"/>
+  <rect x="40" y="194" width="840" height="285" rx="10" fill="#0b1325" stroke="#23324c"/>
   <text x="56" y="219" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">{</text>
 
   <text x="72" y="239" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13">"status"</text>
@@ -99,14 +96,4 @@
   <text x="148" y="439" fill="#86efac" font-family="'Courier New', monospace" font-size="13">"aa30a4ab"</text>
 
   <text x="56" y="459" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13">}</text>
-
-  <rect x="40" y="534" width="840" height="42" rx="10" fill="#0b1325" stroke="#23324c"/>
-  <text x="56" y="560" fill="#f8fafc" font-family="'Courier New', monospace" font-size="13">normal output = status + summary + items + run_id</text>
-
-  <rect x="672" y="544" width="62" height="20" rx="10" fill="#172554"/>
-  <text x="689" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">normal</text>
-  <rect x="742" y="544" width="64" height="20" rx="10" fill="#172554"/>
-  <text x="754" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">history</text>
-  <rect x="814" y="544" width="58" height="20" rx="10" fill="#172554"/>
-  <text x="829" y="558" fill="#bfdbfe" font-family="'Courier New', monospace" font-size="11">pretty</text>
 </svg>
