@@ -3,4 +3,5 @@
 /.sift/
 /composer.lock
 /.phpunit.cache/
+/build/
 /dist/
