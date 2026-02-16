@@ -8,6 +8,7 @@ Coverage note:
 
 - `composer test:coverage` is available, but it requires `xdebug` or `pcov` in the active PHP runtime.
 - the GitHub Actions CI includes a dedicated `php-coverage` job with `xdebug`
+- that coverage job uploads `build/coverage/clover.xml` as an artifact
 
 ## Start Here
 

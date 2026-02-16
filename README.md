@@ -42,7 +42,7 @@ composer test
 composer test:coverage
 ```
 
-The repository CI also runs `composer test:coverage` in a dedicated PHP + Xdebug job.
+The repository CI also runs `composer test:coverage` in a dedicated PHP + Xdebug job and publishes `build/coverage/clover.xml` as an artifact.
 
 Inspect a stored run:
 
