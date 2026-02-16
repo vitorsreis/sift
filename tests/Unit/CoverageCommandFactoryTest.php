@@ -16,6 +16,8 @@ it('builds a sift coverage command when xdebug is loaded', function (): void {
         'pest',
         '--coverage',
         '--min=80',
+        '--coverage-clover',
+        siftRoot().DIRECTORY_SEPARATOR.'build'.DIRECTORY_SEPARATOR.'coverage'.DIRECTORY_SEPARATOR.'clover.xml',
     ]);
 });
 

@@ -8,5 +8,7 @@ it('defines a dedicated CI coverage job with xdebug', function (): void {
     expect($workflow)->toContain('coverage:')
         ->and($workflow)->toContain('php-coverage')
         ->and($workflow)->toContain('coverage: xdebug')
-        ->and($workflow)->toContain('composer test:coverage');
+        ->and($workflow)->toContain('composer test:coverage')
+        ->and($workflow)->toContain('actions/upload-artifact@v4')
+        ->and($workflow)->toContain('build/coverage/clover.xml');
 });
