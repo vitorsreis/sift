@@ -8,6 +8,14 @@ use Symfony\Component\Process\Process;
 
 final class ToolLocator
 {
+    private readonly string $scriptPhpBinary;
+
+    public function __construct(?string $scriptPhpBinary = null)
+    {
+        $configured = trim($scriptPhpBinary ?? '');
+        $this->scriptPhpBinary = $configured !== '' ? $configured : PHP_BINARY;
+    }
+
     /**
      * @param  list<string>  $candidates
      * @return array{candidate: string, command_prefix: list<string>, path: string}|null
@@ -54,7 +62,7 @@ final class ToolLocator
         }
 
         if (is_file($path)) {
-            return [PHP_BINARY, $path];
+            return [$this->scriptPhpBinary, $path];
         }
 
         return [$candidate];
