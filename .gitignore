@@ -1,7 +1,8 @@
-/vendor/
-/.idea/
-/.sift/
+/.coverage
+/.idea
+/.phpunit.cache
+/.sift
+/dist
+/vendor
 /composer.lock
-/.phpunit.cache/
-/build/
-/dist/
+/sift.json
