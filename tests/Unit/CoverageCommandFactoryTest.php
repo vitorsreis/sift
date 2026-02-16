@@ -8,7 +8,6 @@ it('builds a sift coverage command when xdebug is loaded', function (): void {
     $factory = new CoverageCommandFactory(
         phpBinary: 'php',
         loadedExtensions: ['json', 'xdebug'],
-        phpdbgBinary: null,
     );
 
     expect($factory->build(siftRoot()))->toBe([
@@ -20,28 +19,20 @@ it('builds a sift coverage command when xdebug is loaded', function (): void {
     ]);
 });
 
-it('builds a phpdbg coverage command when no extension driver is loaded', function (): void {
+it('fails when only phpdbg is available without a native coverage extension', function (): void {
     $factory = new CoverageCommandFactory(
         phpBinary: 'php',
         loadedExtensions: ['json'],
-        phpdbgBinary: 'phpdbg',
     );
 
-    expect($factory->build(siftRoot()))->toBe([
-        'phpdbg',
-        '-qrr',
-        siftRoot().DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'sift',
-        'pest',
-        '--coverage',
-        '--min=80',
-    ]);
+    expect(fn () => $factory->build(siftRoot()))
+        ->toThrow(RuntimeException::class, 'No PHP coverage driver is available.');
 });
 
 it('fails with a clear message when no coverage driver is available', function (): void {
     $factory = new CoverageCommandFactory(
         phpBinary: 'php',
         loadedExtensions: ['json'],
-        phpdbgBinary: null,
     );
 
     expect(fn () => $factory->build(siftRoot()))
