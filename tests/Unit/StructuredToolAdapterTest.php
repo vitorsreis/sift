@@ -146,6 +146,14 @@ it('normalizes phpcs messages with line and fixer metadata', function (): void {
             'column' => 8,
             'rule' => 'Squiz.ControlStructures.ControlSignature.SpaceAfterKeyword',
             'fixable' => true,
+        ])
+        ->and($result->items[1])->toBe([
+            'type' => 'warning',
+            'file' => 'src/Style.php',
+            'message' => 'Line exceeds 120 characters; contains 132 characters',
+            'line' => 18,
+            'column' => 1,
+            'rule' => 'Generic.Files.LineLength.TooLong',
         ]);
 });
 
@@ -246,7 +254,13 @@ it('normalizes rector dry-run changes and errors from noisy json output', functi
             ],
         ])
         ->and($result->items)->toHaveCount(2)
-        ->and($result->items[0]['type'])->toBe('change')
+        ->and($result->items[0])->toBe([
+            'type' => 'change',
+            'file' => 'src/Legacy.php',
+            'applied_rectors' => [
+                'Rector\\CodeQuality\\Rector\\If_\\SimplifyIfReturnBoolRector',
+            ],
+        ])
         ->and($result->items[1])->toMatchArray([
             'type' => 'error',
             'file' => 'src/Broken.php',

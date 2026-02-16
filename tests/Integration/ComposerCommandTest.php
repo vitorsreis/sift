@@ -122,8 +122,6 @@ it('normalizes composer outdated output with package details', function (): void
                     'latest' => '7.2.0',
                     'latest_status' => 'semver-safe-update',
                     'description' => 'Executes commands in sub-processes.',
-                    'abandoned' => false,
-                    'replacement' => '',
                 ],
             ])
             ->and($payload['meta']['subcommand'])->toBe('outdated')

@@ -184,12 +184,7 @@ XML);
             ->and($result->items[0]['type'])->toBe('coverage')
             ->and($result->items[0]['file'])->toBe('src/UnderCovered.php')
             ->and($result->items[0]['percent'])->toBe(60.0)
-            ->and($result->extra['coverage']['files_below_min'])->toBe([
-                [
-                    'file' => 'src/UnderCovered.php',
-                    'percent' => 60.0,
-                ],
-            ])
+            ->and($result->extra)->toBe([])
             ->and($result->meta['coverage'])->toBeTrue()
             ->and($result->meta['coverage_min'])->toBe(80.0);
     } finally {

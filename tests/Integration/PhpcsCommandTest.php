@@ -99,18 +99,17 @@ it('normalizes failing phpcs executions with issue details', function (): void {
             ->and($decoded['items'][0])->toBe([
                 'type' => 'error',
                 'file' => $file,
+                'message' => 'Missing file doc comment',
                 'line' => 1,
                 'column' => 1,
-                'message' => 'Missing file doc comment',
                 'rule' => 'Squiz.Commenting.FileComment.Missing',
-                'fixable' => false,
             ])
             ->and($decoded['items'][1])->toBe([
                 'type' => 'warning',
                 'file' => $file,
+                'message' => 'Opening brace should be on a new line',
                 'line' => 3,
                 'column' => 12,
-                'message' => 'Opening brace should be on a new line',
                 'rule' => 'PSR2.Classes.ClassDeclaration.OpenBraceNewLine',
                 'fixable' => true,
             ])

@@ -94,8 +94,6 @@ it('normalizes failing rector dry-run executions with diff details', function ()
                 [
                     'type' => 'change',
                     'file' => $file,
-                    'message' => 'Rector suggested changes.',
-                    'diff' => "--- Original\n+++ New\n@@ -1,4 +1,4 @@\n-class Demo {}\n+final class Demo {}\n",
                     'applied_rectors' => [
                         'Rector\\CodeQuality\\Rector\\Class_\\FinalizeClassesWithoutChildrenRector',
                     ],

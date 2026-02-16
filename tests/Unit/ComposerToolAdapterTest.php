@@ -133,8 +133,6 @@ it('normalizes composer show package lists and abandoned replacements', function
                 'latest' => '2.0.0',
                 'latest_status' => 'semver-safe-update',
                 'description' => 'Needs an update',
-                'abandoned' => false,
-                'replacement' => '',
             ],
         ])
         ->and($result->meta)->toMatchArray([
@@ -189,9 +187,6 @@ it('filters composer show output down to outdated packages in outdated mode', fu
                 'version' => '1.0.0',
                 'latest' => '1.1.0',
                 'latest_status' => 'semver-safe-update',
-                'description' => '',
-                'abandoned' => false,
-                'replacement' => '',
             ],
         ]);
 });

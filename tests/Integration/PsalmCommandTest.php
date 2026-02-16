@@ -82,16 +82,16 @@ it('normalizes failing psalm executions with issue details', function (): void {
             ])
             ->and($payload['items'][0])->toBe([
                 'type' => 'error',
-                'rule' => 'UndefinedClass',
                 'message' => 'Class App\\MissingClass does not exist',
+                'rule' => 'UndefinedClass',
                 'file' => str_replace('\\', '/', $cwd).'/src/Broken.php',
                 'line' => 12,
                 'column' => 7,
             ])
             ->and($payload['items'][1])->toBe([
                 'type' => 'info',
-                'rule' => 'UnusedVariable',
                 'message' => 'Possibly unused variable $value',
+                'rule' => 'UnusedVariable',
                 'file' => str_replace('\\', '/', $cwd).'/src/Broken.php',
                 'line' => 18,
                 'column' => 3,
