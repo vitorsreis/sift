@@ -12,6 +12,7 @@ it('routes composer scripts through sift commands', function (): void {
         'test' => '@sift pest',
         'test:unit' => '@sift pest --testsuite=Unit',
         'test:integration' => '@sift pest --testsuite=Integration',
+        'test:coverage' => '@php bin/coverage',
     ]);
 });
 
