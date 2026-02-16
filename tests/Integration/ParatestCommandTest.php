@@ -69,6 +69,8 @@ it('normalizes failing paratest executions with testcase details', function (): 
             ->and($payload['items'])->toHaveCount(1)
             ->and($payload['items'][0]['type'])->toBe('failure')
             ->and($payload['items'][0]['test'])->toBe('it fails in parallel')
+            ->and($payload['items'][0]['file'])->toBe('tests/FailingTest.php')
+            ->and($payload['items'][0]['line'])->toBe(12)
             ->and($payload['items'][0]['message'])->toContain('Expected true')
             ->and($payload['meta']['filter'])->toBeFalse()
             ->and($payload['meta']['coverage'])->toBeFalse()
@@ -87,8 +89,9 @@ function createFakeParatestBinary(string $cwd, bool $failing): void
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
   <testsuite tests="1" failures="1" errors="0" skipped="0">
-    <testcase class="Tests\Feature\ParallelSuite" name="it fails in parallel">
-      <failure message="Expected true, got false">Failed asserting that false is true.</failure>
+    <testcase class="Tests\Feature\ParallelSuite" name="it fails in parallel" file="tests/FailingTest.php::it fails in parallel">
+      <failure message="Expected true, got false">Failed asserting that false is true.
+at tests/FailingTest.php:12</failure>
     </testcase>
   </testsuite>
 </testsuites>

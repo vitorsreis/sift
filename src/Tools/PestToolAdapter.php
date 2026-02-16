@@ -11,12 +11,13 @@ use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
 use Sift\Tools\Concerns\DetectsCliOptions;
+use Sift\Tools\Concerns\ParsesJunitOutput;
 use Sift\Tools\Concerns\ResolvesToolCandidates;
-use SimpleXMLElement;
 
 final readonly class PestToolAdapter implements ToolAdapterInterface
 {
     use DetectsCliOptions;
+    use ParsesJunitOutput;
     use ResolvesToolCandidates;
 
     public function __construct(
@@ -105,87 +106,7 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
         PreparedCommand $preparedCommand,
         array $context,
     ): NormalizedResult {
-        $junitPath = (string) ($preparedCommand->metadata['junit'] ?? '');
-
-        if ($junitPath === '' || ! is_file($junitPath)) {
-            throw UserFacingException::parseFailure($this->name(), 'Missing or invalid JUnit output.');
-        }
-
-        $xml = simplexml_load_file($junitPath);
-
-        if (! $xml instanceof SimpleXMLElement) {
-            throw UserFacingException::parseFailure($this->name(), 'Unable to parse JUnit XML output.');
-        }
-
-        $items = [];
-        $tests = 0;
-        $failures = 0;
-        $errors = 0;
-        $skipped = 0;
-
-        foreach ($xml->xpath('//testcase') ?: [] as $testCase) {
-            if (! $testCase instanceof SimpleXMLElement) {
-                continue;
-            }
-
-            $tests++;
-            $testName = (string) ($testCase['name'] ?? 'unknown');
-            $className = (string) ($testCase['class'] ?? '');
-            $file = ($className !== '' ? str_replace('\\', '/', $className) : null);
-
-            foreach ($testCase->failure as $failure) {
-                $failures++;
-                $items[] = [
-                    'type' => 'failure',
-                    'test' => $testName,
-                    'class' => $className,
-                    'file' => $file,
-                    'message' => trim((string) ($failure['message'] ?? (string) $failure)),
-                ];
-            }
-
-            foreach ($testCase->error as $error) {
-                $errors++;
-                $items[] = [
-                    'type' => 'error',
-                    'test' => $testName,
-                    'class' => $className,
-                    'file' => $file,
-                    'message' => trim((string) ($error['message'] ?? (string) $error)),
-                ];
-            }
-
-            foreach ($testCase->skipped as $skip) {
-                $skipped++;
-                $items[] = [
-                    'type' => 'skipped',
-                    'test' => $testName,
-                    'class' => $className,
-                    'file' => $file,
-                    'message' => trim((string) ($skip['message'] ?? (string) $skip)),
-                ];
-            }
-        }
-
-        return new NormalizedResult(
-            tool: $this->name(),
-            status: ($failures > 0 || $errors > 0) ? 'failed' : 'passed',
-            summary: [
-                'tests' => $tests,
-                'passed' => max(0, $tests - $failures - $errors - $skipped),
-                'failures' => $failures,
-                'errors' => $errors,
-                'skipped' => $skipped,
-            ],
-            items: $items,
-            meta: [
-                'exit_code' => $executionResult->exitCode,
-                'duration' => $executionResult->duration,
-                'command' => $preparedCommand->command,
-                'filter' => (bool) ($context['has_filter'] ?? false),
-                'coverage' => (bool) ($context['has_coverage'] ?? false),
-            ],
-        );
+        return $this->parseJunitOutput($executionResult, $preparedCommand, $context);
     }
 
     /**

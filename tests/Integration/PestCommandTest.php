@@ -72,6 +72,8 @@ it('normalizes failing pest executions with testcase details', function (): void
             ->and($payload['items'])->toHaveCount(1)
             ->and($payload['items'][0]['type'])->toBe('failure')
             ->and($payload['items'][0]['test'])->toBe('it fails')
+            ->and(str_replace('\\', '/', (string) $payload['items'][0]['file']))->toContain('tests/FailingTest.php')
+            ->and($payload['items'][0]['line'])->toBe(6)
             ->and($payload['items'][0]['message'])->not->toBe('')
             ->and($payload['meta']['exit_code'])->toBe(1)
             ->and($payload['meta']['duration'])->toBeInt()

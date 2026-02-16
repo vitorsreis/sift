@@ -46,11 +46,12 @@ it('normalizes junit failures and skips for junit based adapters', function (str
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
   <testsuite name="default">
-    <testcase name="it passes" class="Tests\PassingTest" />
-    <testcase name="it fails" class="Tests\FailingTest">
-      <failure message="Expected true but received false">details</failure>
+    <testcase name="it passes" class="Tests\PassingTest" file="tests/PassingTest.php::it passes" />
+    <testcase name="it fails" class="Tests\FailingTest" file="tests/FailingTest.php::it fails">
+      <failure message="Expected true but received false">Failed asserting that false is true.
+at tests/FailingTest.php:16</failure>
     </testcase>
-    <testcase name="it skips" class="Tests\SkippedTest">
+    <testcase name="it skips" class="Tests\SkippedTest" file="tests/SkippedTest.php::it skips">
       <skipped message="Not applicable" />
     </testcase>
   </testsuite>
@@ -87,8 +88,10 @@ XML);
             ->and($result->items)->toHaveCount(2)
             ->and($result->items[0]['type'])->toBe('failure')
             ->and($result->items[0]['test'])->toBe('it fails')
-            ->and($result->items[0]['file'])->toBe('Tests/FailingTest')
+            ->and($result->items[0]['file'])->toBe('tests/FailingTest.php')
+            ->and($result->items[0]['line'])->toBe(16)
             ->and($result->items[1]['type'])->toBe('skipped')
+            ->and($result->items[1]['file'])->toBe('tests/SkippedTest.php')
             ->and($result->meta['exit_code'])->toBe(1)
             ->and($result->meta['duration'])->toBe(25)
             ->and($result->meta['filter'])->toBeTrue()
