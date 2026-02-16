@@ -28,15 +28,35 @@ it('detects long cli options and option families consistently', function (): voi
         {
             return $this->hasAnyOption($arguments, $options);
         }
+
+        /**
+         * @param  list<string>  $arguments
+         */
+        public function option(array $arguments, string $option): ?string
+        {
+            return $this->optionValue($arguments, $option);
+        }
+
+        /**
+         * @param  list<string>  $arguments
+         */
+        public function floatOption(array $arguments, string $option): ?float
+        {
+            return $this->floatOptionValue($arguments, $option);
+        }
     };
 
-    $arguments = ['--coverage-text', '--filter=FocusedTest'];
+    $arguments = ['--coverage-text', '--filter=FocusedTest', '--min', '82.5'];
 
     expect($helper->has($arguments, '--filter'))->toBeTrue()
         ->and($helper->has($arguments, '--filter=FocusedTest'))->toBeTrue()
         ->and($helper->has($arguments, '--testsuite'))->toBeFalse()
         ->and($helper->hasAny($arguments, ['--coverage', '--coverage-text']))->toBeTrue()
-        ->and($helper->hasAny($arguments, ['--coverage-html', '--log-junit']))->toBeFalse();
+        ->and($helper->hasAny($arguments, ['--coverage-html', '--log-junit']))->toBeFalse()
+        ->and($helper->option($arguments, '--min'))->toBe('82.5')
+        ->and($helper->floatOption($arguments, '--min'))->toBe(82.5)
+        ->and($helper->floatOption(['--min=75'], '--min'))->toBe(75.0)
+        ->and($helper->floatOption(['--min', 'bogus'], '--min'))->toBeNull();
 });
 
 it('prefers configured tool binaries over discovery candidates', function (): void {

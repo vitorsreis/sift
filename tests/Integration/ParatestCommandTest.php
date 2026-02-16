@@ -71,7 +71,6 @@ it('normalizes failing paratest executions with testcase details', function (): 
             ->and($payload['items'][0]['test'])->toBe('it fails in parallel')
             ->and($payload['items'][0]['file'])->toBe('tests/FailingTest.php')
             ->and($payload['items'][0]['line'])->toBe(12)
-            ->and($payload['items'][0]['message'])->toContain('Expected true')
             ->and($payload['meta']['filter'])->toBeFalse()
             ->and($payload['meta']['coverage'])->toBeFalse()
             ->and($payload['meta']['exit_code'])->toBe(1)

@@ -37,6 +37,27 @@ it('injects junit logging for junit based adapters', function (string $adapterCl
     }
 })->with('junit_tool_adapters');
 
+it('injects clover logging for pest when coverage minimum is requested', function (): void {
+    $cwd = makeTempDirectory('sift-pest-prepare-');
+
+    try {
+        createProjectTool($cwd, 'pest', "<?php\n");
+        $adapter = new PestToolAdapter(new ToolLocator(PHP_BINARY));
+        $prepared = $adapter->prepare($cwd, ['--coverage', '--min=80'], [
+            'tool_binary' => 'vendor/bin/pest',
+            'has_filter' => false,
+            'has_coverage' => true,
+            'coverage_min' => 80.0,
+        ]);
+
+        expect($prepared->command)->toContain('--log-junit', '--coverage-clover')
+            ->and(is_string($prepared->metadata['coverage_clover'] ?? null))->toBeTrue()
+            ->and(($prepared->metadata['temp_files'] ?? []))->toHaveCount(2);
+    } finally {
+        removeDirectory($cwd);
+    }
+});
+
 it('normalizes junit failures and skips for junit based adapters', function (string $adapterClass, string $binary): void {
     $directory = makeTempDirectory('sift-junit-adapter-');
 
@@ -100,3 +121,78 @@ XML);
         removeDirectory($directory);
     }
 })->with('junit_tool_adapters');
+
+it('surfaces coverage threshold results for pest junit parsing', function (): void {
+    $directory = makeTempDirectory('sift-pest-coverage-');
+
+    try {
+        $junitPath = $directory.DIRECTORY_SEPARATOR.'result.xml';
+        $coveragePath = $directory.DIRECTORY_SEPARATOR.'clover.xml';
+
+        file_put_contents($junitPath, <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="default">
+    <testcase name="it passes" class="Tests\PassingTest" file="tests/PassingTest.php::it passes" />
+  </testsuite>
+</testsuites>
+XML);
+
+        file_put_contents($coveragePath, <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1234567890">
+  <project timestamp="1234567890">
+    <metrics statements="10" coveredstatements="7" />
+    <file name="/project/src/UnderCovered.php">
+      <metrics statements="10" coveredstatements="6" />
+    </file>
+    <file name="/project/src/FullyCovered.php">
+      <metrics statements="5" coveredstatements="5" />
+    </file>
+  </project>
+</coverage>
+XML);
+
+        $adapter = new PestToolAdapter(new ToolLocator(PHP_BINARY));
+        $result = $adapter->parse(
+            new ExecutionResult(
+                exitCode: 1,
+                stdout: '',
+                stderr: '',
+                duration: 42,
+            ),
+            new PreparedCommand(
+                command: [PHP_BINARY, 'vendor/bin/pest', '--coverage', '--min=80'],
+                cwd: '/project',
+                metadata: [
+                    'junit' => $junitPath,
+                    'coverage_clover' => $coveragePath,
+                ],
+            ),
+            [
+                'has_filter' => false,
+                'has_coverage' => true,
+                'coverage_min' => 80.0,
+            ],
+        );
+
+        expect($result->status)->toBe('failed')
+            ->and($result->summary['coverage_percent'])->toBe(70.0)
+            ->and($result->summary['coverage_min'])->toBe(80.0)
+            ->and($result->summary['coverage_files_below_min'])->toBe(1)
+            ->and($result->items)->toHaveCount(1)
+            ->and($result->items[0]['type'])->toBe('coverage')
+            ->and($result->items[0]['file'])->toBe('src/UnderCovered.php')
+            ->and($result->items[0]['percent'])->toBe(60.0)
+            ->and($result->extra['coverage']['files_below_min'])->toBe([
+                [
+                    'file' => 'src/UnderCovered.php',
+                    'percent' => 60.0,
+                ],
+            ])
+            ->and($result->meta['coverage'])->toBeTrue()
+            ->and($result->meta['coverage_min'])->toBe(80.0);
+    } finally {
+        removeDirectory($directory);
+    }
+});

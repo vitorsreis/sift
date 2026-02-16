@@ -62,10 +62,13 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
      */
     public function detectContext(array $arguments): array
     {
+        $coverageMin = $this->floatOptionValue($arguments, '--min');
+
         return [
             'arguments' => $arguments,
             'has_filter' => $this->hasOption($arguments, '--filter'),
-            'has_coverage' => $this->hasAnyOption($arguments, ['--coverage', '--coverage-text', '--coverage-clover', '--coverage-html']),
+            'has_coverage' => $coverageMin !== null || $this->hasAnyOption($arguments, ['--coverage', '--coverage-text', '--coverage-clover', '--coverage-html']),
+            'coverage_min' => $coverageMin,
         ];
     }
 
@@ -81,11 +84,31 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
-        [$arguments, $junitPath] = $this->ensureOptionValue(
+        $tempFiles = [];
+
+        [$arguments, $junitPath, $createdJunit] = $this->ensureOptionValue(
             $arguments,
             '--log-junit',
             $this->tempFile('sift-pest-', '.xml'),
         );
+
+        if ($createdJunit) {
+            $tempFiles[] = $junitPath;
+        }
+
+        $coveragePath = null;
+
+        if (($context['has_coverage'] ?? false) === true) {
+            [$arguments, $coveragePath, $createdCoverage] = $this->ensureOptionValue(
+                $arguments,
+                '--coverage-clover',
+                $this->tempFile('sift-pest-coverage-', '.xml'),
+            );
+
+            if ($createdCoverage) {
+                $tempFiles[] = $coveragePath;
+            }
+        }
 
         return new PreparedCommand(
             command: [...$resolved['command_prefix'], ...$arguments],
@@ -93,7 +116,8 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
             metadata: [
                 ...$context,
                 'junit' => $junitPath,
-                'temp_files' => [$junitPath],
+                'coverage_clover' => $coveragePath,
+                'temp_files' => $tempFiles,
             ],
         );
     }
@@ -111,24 +135,24 @@ final readonly class PestToolAdapter implements ToolAdapterInterface
 
     /**
      * @param  list<string>  $arguments
-     * @return array{0: list<string>, 1: string}
+     * @return array{0: list<string>, 1: string, 2: bool}
      */
     private function ensureOptionValue(array $arguments, string $option, string $defaultValue): array
     {
         foreach ($arguments as $index => $argument) {
             if ($argument === $option && isset($arguments[$index + 1])) {
-                return [$arguments, $arguments[$index + 1]];
+                return [$arguments, $arguments[$index + 1], false];
             }
 
             if (str_starts_with($argument, $option.'=')) {
-                return [$arguments, substr($argument, strlen($option) + 1)];
+                return [$arguments, substr($argument, strlen($option) + 1), false];
             }
         }
 
         $arguments[] = $option;
         $arguments[] = $defaultValue;
 
-        return [$arguments, $defaultValue];
+        return [$arguments, $defaultValue, true];
     }
 
     private function tempFile(string $prefix, string $extension): string

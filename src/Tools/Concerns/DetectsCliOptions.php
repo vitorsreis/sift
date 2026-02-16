@@ -34,4 +34,42 @@ trait DetectsCliOptions
 
         return false;
     }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function optionValue(array $arguments, string $option): ?string
+    {
+        foreach ($arguments as $index => $argument) {
+            if ($argument === $option) {
+                $value = $arguments[$index + 1] ?? null;
+
+                if (! is_string($value) || str_starts_with($value, '--')) {
+                    return null;
+                }
+
+                return $value;
+            }
+
+            if (str_starts_with($argument, $option.'=')) {
+                return substr($argument, strlen($option) + 1);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function floatOptionValue(array $arguments, string $option): ?float
+    {
+        $value = $this->optionValue($arguments, $option);
+
+        if (! is_string($value) || ! is_numeric($value)) {
+            return null;
+        }
+
+        return (float) $value;
+    }
 }

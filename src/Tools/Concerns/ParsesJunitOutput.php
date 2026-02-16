@@ -65,23 +65,52 @@ trait ParsesJunitOutput
             }
         }
 
+        $coverage = $this->parseCoverageReport($toolName, $preparedCommand, $context);
+        $summary = [
+            'tests' => $tests,
+            'passed' => max(0, $tests - $failures - $errors - $skipped),
+            'failures' => $failures,
+            'errors' => $errors,
+            'skipped' => $skipped,
+        ];
+        $extra = [];
+
+        if ($coverage !== null) {
+            $summary['coverage_percent'] = $coverage['percent'];
+
+            if ($coverage['minimum'] !== null) {
+                $summary['coverage_min'] = $coverage['minimum'];
+                $summary['coverage_files_below_min'] = count($coverage['files_below_min']);
+            }
+
+            if ($coverage['files_below_min'] !== []) {
+                $items = [...$items, ...$this->coverageItems($coverage['files_below_min'], $coverage['minimum'])];
+            }
+
+            $extra['coverage'] = [
+                'percent' => $coverage['percent'],
+                'minimum' => $coverage['minimum'],
+                'files_below_min' => $coverage['files_below_min'],
+            ];
+        }
+
+        $status = ($failures > 0 || $errors > 0 || ($coverage['threshold_failed'] ?? false) === true || $executionResult->exitCode !== 0)
+            ? 'failed'
+            : 'passed';
+
         return new NormalizedResult(
             tool: $toolName,
-            status: ($failures > 0 || $errors > 0) ? 'failed' : 'passed',
-            summary: [
-                'tests' => $tests,
-                'passed' => max(0, $tests - $failures - $errors - $skipped),
-                'failures' => $failures,
-                'errors' => $errors,
-                'skipped' => $skipped,
-            ],
+            status: $status,
+            summary: $summary,
             items: $items,
+            extra: $extra,
             meta: [
                 'exit_code' => $executionResult->exitCode,
                 'duration' => $executionResult->duration,
                 'command' => $preparedCommand->command,
                 'filter' => (bool) ($context['has_filter'] ?? false),
                 'coverage' => (bool) ($context['has_coverage'] ?? false),
+                'coverage_min' => $coverage['minimum'] ?? null,
             ],
         );
     }
@@ -116,9 +145,7 @@ trait ParsesJunitOutput
         $item = [
             'type' => $type,
             'test' => $testName,
-            'class' => $className,
             'file' => $reportedFile ?? $resolvedFile,
-            'message' => $combined,
         ];
 
         if ($reportedLine !== null) {
@@ -182,5 +209,128 @@ trait ParsesJunitOutput
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array{
+     *   percent: float,
+     *   minimum: ?float,
+     *   threshold_failed: bool,
+     *   files_below_min: list<array{file: string, percent: float}>
+     * }|null
+     */
+    private function parseCoverageReport(string $toolName, PreparedCommand $preparedCommand, array $context): ?array
+    {
+        $coveragePath = (string) ($preparedCommand->metadata['coverage_clover'] ?? '');
+
+        if ($coveragePath === '') {
+            return null;
+        }
+
+        if (! is_file($coveragePath)) {
+            throw UserFacingException::parseFailure($toolName, 'Missing or invalid Clover coverage output.');
+        }
+
+        $xml = simplexml_load_file($coveragePath);
+
+        if (! $xml instanceof SimpleXMLElement) {
+            throw UserFacingException::parseFailure($toolName, 'Unable to parse Clover coverage output.');
+        }
+
+        $projectMetrics = $xml->xpath('/coverage/project/metrics') ?: $xml->xpath('//project/metrics');
+        $percent = $this->coveragePercentFromMetrics($projectMetrics[0] ?? null);
+
+        if ($percent === null) {
+            return null;
+        }
+
+        $minimum = is_numeric($context['coverage_min'] ?? null)
+            ? round((float) $context['coverage_min'], 2)
+            : null;
+        $filesBelowMin = [];
+
+        foreach ($xml->xpath('//file') ?: [] as $fileNode) {
+            if (! $fileNode instanceof SimpleXMLElement) {
+                continue;
+            }
+
+            $filePath = trim((string) ($fileNode['name'] ?? ''));
+
+            if ($filePath === '') {
+                continue;
+            }
+
+            $filePercent = $this->coveragePercentFromMetrics($fileNode->metrics[0] ?? null);
+
+            if ($filePercent === null) {
+                continue;
+            }
+
+            if ($minimum === null || $filePercent + 0.00001 >= $minimum) {
+                continue;
+            }
+
+            $filesBelowMin[] = [
+                'file' => $this->normalizeJunitPath($filePath, $preparedCommand->cwd),
+                'percent' => $filePercent,
+            ];
+        }
+
+        usort(
+            $filesBelowMin,
+            static fn (array $left, array $right): int => ($left['percent'] <=> $right['percent'])
+                ?: strcmp($left['file'], $right['file']),
+        );
+
+        return [
+            'percent' => $percent,
+            'minimum' => $minimum,
+            'threshold_failed' => $minimum !== null && $percent + 0.00001 < $minimum,
+            'files_below_min' => $filesBelowMin,
+        ];
+    }
+
+    private function coveragePercentFromMetrics(mixed $metrics): ?float
+    {
+        if (! $metrics instanceof SimpleXMLElement) {
+            return null;
+        }
+
+        foreach ([
+            ['coveredstatements', 'statements'],
+            ['coveredelements', 'elements'],
+            ['coveredmethods', 'methods'],
+        ] as [$coveredKey, $totalKey]) {
+            $covered = (int) ($metrics[$coveredKey] ?? 0);
+            $total = (int) ($metrics[$totalKey] ?? 0);
+
+            if ($total <= 0) {
+                continue;
+            }
+
+            return round(($covered / $total) * 100, 2);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<array{file: string, percent: float}>  $filesBelowMin
+     * @return list<array<string, mixed>>
+     */
+    private function coverageItems(array $filesBelowMin, ?float $minimum): array
+    {
+        $items = [];
+
+        foreach ($filesBelowMin as $entry) {
+            $items[] = [
+                'type' => 'coverage',
+                'file' => $entry['file'],
+                'percent' => $entry['percent'],
+            ];
+        }
+
+        return $items;
     }
 }

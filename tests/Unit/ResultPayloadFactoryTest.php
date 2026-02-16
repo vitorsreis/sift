@@ -24,6 +24,30 @@ it('builds compact payloads from summary fields', function (): void {
     ]);
 });
 
+it('keeps coverage threshold fields visible in compact payloads', function (): void {
+    $payload = (new ResultPayloadFactory)->forSize(
+        new NormalizedResult(
+            tool: 'pest',
+            status: 'failed',
+            summary: [
+                'tests' => 10,
+                'coverage_percent' => 79.5,
+                'coverage_min' => 80.0,
+                'coverage_files_below_min' => 2,
+            ],
+        ),
+        'compact',
+    );
+
+    expect($payload)->toBe([
+        'status' => 'failed',
+        'tests' => 10,
+        'coverage_percent' => 79.5,
+        'coverage_min' => 80.0,
+        'coverage_files_below_min' => 2,
+    ]);
+});
+
 it('builds normal payloads with summary and items', function (): void {
     $payload = (new ResultPayloadFactory)->forSize(
         new NormalizedResult(
