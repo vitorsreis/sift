@@ -26,15 +26,15 @@ Everything else is resolved through the tool registry.
 
 These flags can be used before the command name:
 
-- `--format=json|markdown`: selects the renderer
-- `--size=compact|normal|fuller`: selects payload size
-- `--pretty`: enables pretty output formatting
-- `--no-pretty`: disables pretty output formatting
-- `--raw`: bypasses normalization and returns native tool output directly
+- `--format=json|markdown` or `-f json|markdown`: selects the renderer
+- `--size=compact|normal|fuller` or `-s compact|normal|fuller`: selects payload size
+- `--pretty` or `-p`: enables pretty output formatting
+- `--no-pretty` or `-P`: disables pretty output formatting
+- `--raw` or `-r`: bypasses normalization and returns native tool output directly
 - `--show-process`: shows recent process output while a tool is running
 - `--no-show-process`: suppresses live process output even if config enables it
 - `--no-history`: disables history persistence for the current execution
-- `--config=<path>`: overrides the config path for the current execution
+- `--config=<path>` or `-c <path>`: overrides the config path for the current execution
 
 ## `sift help`
 
@@ -63,9 +63,9 @@ Creates `sift.json` with:
 
 Accepted command-level options:
 
-- `--force`
-- `--config=<path>`
-- output flags such as `--format`, `--size`, and `--pretty`
+- `--force` or `-F`
+- `--config=<path>` or `-c <path>`
+- output flags such as `--format` / `-f`, `--size` / `-s`, and `--pretty` / `-p`
 
 ## `sift add [tool]`
 
@@ -135,10 +135,10 @@ sift view list
 
 Accepted options:
 
-- `--limit=<n>`
-- `--offset=<n>`
-- `--config=<path>`
-- renderer flags such as `--format` and `--pretty`
+- `--limit=<n>` or `-l <n>`
+- `--offset=<n>` or `-o <n>`
+- `--config=<path>` or `-c <path>`
+- renderer flags such as `--format` / `-f` and `--pretty` / `-p`
 
 ### Viewing a Run
 

@@ -39,7 +39,7 @@ it('returns help and version payloads through the application handler', function
     expect($help['status'])->toBe('ok')
         ->and($help['tool'])->toBe('sift')
         ->and($help['commands'])->toContain('view')
-        ->and($help['options'])->toContain('--raw')
+        ->and($help['options'])->toContain('--raw | -r')
         ->and($version)->toBe([
             'status' => 'ok',
             'tool' => 'sift',

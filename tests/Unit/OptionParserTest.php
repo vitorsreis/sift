@@ -30,6 +30,33 @@ it('parses global runtime options before the command', function (): void {
     ]);
 });
 
+it('parses short runtime aliases before the command', function (): void {
+    $parsed = (new OptionParser)->parse([
+        '-r',
+        '-p',
+        '-s',
+        'compact',
+        '-f',
+        'markdown',
+        '-c',
+        'custom.sift.json',
+        'pint',
+        'src',
+    ]);
+
+    expect($parsed)->toBe([
+        'command' => 'pint',
+        'pretty' => true,
+        'format' => 'markdown',
+        'size' => 'compact',
+        'raw' => true,
+        'show_process' => null,
+        'history' => null,
+        'config' => 'custom.sift.json',
+        'arguments' => ['src'],
+    ]);
+});
+
 it('parses command-level options for init', function (): void {
     $parsed = (new OptionParser)->parseInit([
         '--force',
@@ -45,6 +72,49 @@ it('parses command-level options for init', function (): void {
         'pretty' => true,
         'config' => 'custom.sift.json',
     ]);
+});
+
+it('parses short command-level aliases for init and view', function (): void {
+    $init = (new OptionParser)->parseInit([
+        '-F',
+        '-c',
+        'custom.sift.json',
+        '-f',
+        'markdown',
+        '-s',
+        'compact',
+        '-P',
+    ]);
+    $view = (new OptionParser)->parseView([
+        'list',
+        '-l',
+        '25',
+        '-o',
+        '5',
+        '-c',
+        'custom.sift.json',
+        '-p',
+    ]);
+
+    expect($init)->toBe([
+        'force' => true,
+        'format' => 'markdown',
+        'size' => 'compact',
+        'pretty' => false,
+        'config' => 'custom.sift.json',
+    ])
+        ->and($view)->toBe([
+            'run_id' => null,
+            'scope' => 'runs',
+            'limit' => 25,
+            'offset' => 5,
+            'list' => true,
+            'clear' => false,
+            'format' => null,
+            'size' => null,
+            'pretty' => true,
+            'config' => 'custom.sift.json',
+        ]);
 });
 
 it('parses command-level options for add', function (): void {
@@ -133,6 +203,24 @@ it('rejects unknown validate options', function (): void {
     } catch (UserFacingException $exception) {
         expect($exception->payload()['error']['code'])->toBe('invalid_usage')
             ->and($exception->payload()['error']['message'])->toBe('Unknown validate option: --bogus');
+    }
+});
+
+it('rejects short aliases that require a value when none is provided', function (): void {
+    try {
+        (new OptionParser)->parse(['-f', 'pint']);
+        $this->fail('Expected invalid usage exception.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('invalid_usage')
+            ->and($exception->payload()['error']['message'])->toBe('Unknown format: pint');
+    }
+
+    try {
+        (new OptionParser)->parseView(['-l']);
+        $this->fail('Expected invalid usage exception.');
+    } catch (UserFacingException $exception) {
+        expect($exception->payload()['error']['code'])->toBe('invalid_usage')
+            ->and($exception->payload()['error']['message'])->toBe('The option `-l` requires a value.');
     }
 });
 

@@ -54,7 +54,7 @@ it('builds an executable phar distribution', function (): void {
     expect($help['status'])->toBe('ok')
         ->and($help['tool'])->toBe('sift')
         ->and($help['commands'])->toContain('help', 'view')
-        ->and($help['options'])->toContain('--format=<json|markdown>');
+        ->and($help['options'])->toContain('--format=<json|markdown> | -f <json|markdown>');
 
     removeDirectory($distDirectory);
 });

@@ -23,14 +23,17 @@ final class OptionParser
         $config = null;
         $command = null;
         $toolArguments = [];
+        $count = count($arguments);
 
-        foreach ($arguments as $argument) {
+        for ($index = 0; $index < $count; $index++) {
+            $argument = $arguments[$index];
+
             if ($command === null) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
+                if ($this->parseRuntimeOption($arguments, $index, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
                     continue;
                 }
 
-                if (str_starts_with($argument, '--') && ! in_array($argument, ['--help', '--version'], true)) {
+                if ($this->looksLikeUnknownOption($argument, ['--help', '--version', '-h', '-V'])) {
                     throw UserFacingException::invalidUsage(sprintf('Unknown option: %s', $argument));
                 }
 
@@ -40,7 +43,7 @@ final class OptionParser
             }
 
             if (in_array($command, ['help', 'version', 'list', '--help', '--version', '-h', '-V'], true)) {
-                if ($this->parseRuntimeOption($argument, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
+                if ($this->parseRuntimeOption($arguments, $index, $format, $size, $pretty, $raw, $showProcess, $history, $config)) {
                     continue;
                 }
 
@@ -63,47 +66,6 @@ final class OptionParser
         ];
     }
 
-    private function parseRuntimeOption(
-        string $argument,
-        ?string &$format,
-        ?string &$size,
-        ?bool &$pretty,
-        ?bool &$raw,
-        ?bool &$showProcess,
-        ?bool &$history,
-        ?string &$config,
-    ): bool {
-        if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
-            return true;
-        }
-
-        if ($argument === '--raw') {
-            $raw = true;
-
-            return true;
-        }
-
-        if ($argument === '--show-process') {
-            $showProcess = true;
-
-            return true;
-        }
-
-        if ($argument === '--no-show-process') {
-            $showProcess = false;
-
-            return true;
-        }
-
-        if ($argument === '--no-history') {
-            $history = false;
-
-            return true;
-        }
-
-        return $this->parseConfigOption($argument, $config);
-    }
-
     /**
      * @param  list<string>  $arguments
      * @return array{run_id: ?string, scope: string, limit: int, offset: int, list: bool, clear: bool, format: ?string, size: ?string, pretty: ?bool, config: ?string}
@@ -118,13 +80,16 @@ final class OptionParser
         $pretty = null;
         $clear = false;
         $config = null;
+        $count = count($arguments);
 
-        foreach ($arguments as $argument) {
-            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+        for ($index = 0; $index < $count; $index++) {
+            $argument = $arguments[$index];
+
+            if ($this->parseOutputOption($arguments, $index, $format, $size, $pretty)) {
                 continue;
             }
 
-            if ($this->parseConfigOption($argument, $config)) {
+            if ($this->parseConfigOption($arguments, $index, $config)) {
                 continue;
             }
 
@@ -134,14 +99,14 @@ final class OptionParser
                 continue;
             }
 
-            if (str_starts_with($argument, '--limit=')) {
-                $limit = max(1, (int) substr($argument, 8));
+            if (($value = $this->parseIntegerOption($arguments, $index, '--limit', '-l')) !== null) {
+                $limit = max(1, $value);
 
                 continue;
             }
 
-            if (str_starts_with($argument, '--offset=')) {
-                $offset = max(0, (int) substr($argument, 9));
+            if (($value = $this->parseIntegerOption($arguments, $index, '--offset', '-o')) !== null) {
+                $offset = max(0, $value);
 
                 continue;
             }
@@ -208,17 +173,20 @@ final class OptionParser
         $size = null;
         $pretty = null;
         $config = null;
+        $count = count($arguments);
 
-        foreach ($arguments as $argument) {
-            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+        for ($index = 0; $index < $count; $index++) {
+            $argument = $arguments[$index];
+
+            if ($this->parseOutputOption($arguments, $index, $format, $size, $pretty)) {
                 continue;
             }
 
-            if ($this->parseConfigOption($argument, $config)) {
+            if ($this->parseConfigOption($arguments, $index, $config)) {
                 continue;
             }
 
-            if ($argument === '--force') {
+            if ($argument === '--force' || $argument === '-F') {
                 $force = true;
 
                 continue;
@@ -246,13 +214,16 @@ final class OptionParser
         $size = null;
         $pretty = null;
         $config = null;
+        $count = count($arguments);
 
-        foreach ($arguments as $argument) {
-            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+        for ($index = 0; $index < $count; $index++) {
+            $argument = $arguments[$index];
+
+            if ($this->parseOutputOption($arguments, $index, $format, $size, $pretty)) {
                 continue;
             }
 
-            if ($this->parseConfigOption($argument, $config)) {
+            if ($this->parseConfigOption($arguments, $index, $config)) {
                 continue;
             }
 
@@ -278,17 +249,20 @@ final class OptionParser
         $size = null;
         $pretty = null;
         $config = null;
+        $count = count($arguments);
 
-        foreach ($arguments as $argument) {
-            if ($this->parseOutputOption($argument, $format, $size, $pretty)) {
+        for ($index = 0; $index < $count; $index++) {
+            $argument = $arguments[$index];
+
+            if ($this->parseOutputOption($arguments, $index, $format, $size, $pretty)) {
                 continue;
             }
 
-            if ($this->parseConfigOption($argument, $config)) {
+            if ($this->parseConfigOption($arguments, $index, $config)) {
                 continue;
             }
 
-            if (str_starts_with($argument, '--')) {
+            if (str_starts_with($argument, '-')) {
                 throw UserFacingException::invalidUsage(sprintf('Unknown add option: %s', $argument));
             }
 
@@ -309,27 +283,79 @@ final class OptionParser
         ];
     }
 
-    private function parseOutputOption(string $argument, ?string &$format, ?string &$size, ?bool &$pretty): bool
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function parseRuntimeOption(
+        array $arguments,
+        int &$index,
+        ?string &$format,
+        ?string &$size,
+        ?bool &$pretty,
+        ?bool &$raw,
+        ?bool &$showProcess,
+        ?bool &$history,
+        ?string &$config,
+    ): bool {
+        if ($this->parseOutputOption($arguments, $index, $format, $size, $pretty)) {
+            return true;
+        }
+
+        $argument = $arguments[$index];
+
+        if ($argument === '--raw' || $argument === '-r') {
+            $raw = true;
+
+            return true;
+        }
+
+        if ($argument === '--show-process') {
+            $showProcess = true;
+
+            return true;
+        }
+
+        if ($argument === '--no-show-process') {
+            $showProcess = false;
+
+            return true;
+        }
+
+        if ($argument === '--no-history') {
+            $history = false;
+
+            return true;
+        }
+
+        return $this->parseConfigOption($arguments, $index, $config);
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function parseOutputOption(array $arguments, int &$index, ?string &$format, ?string &$size, ?bool &$pretty): bool
     {
-        if (str_starts_with($argument, '--format=')) {
-            $format = $this->parseFormat(substr($argument, 9));
+        if (($value = $this->parseStringOption($arguments, $index, '--format', '-f')) !== null) {
+            $format = $this->parseFormat($value);
 
             return true;
         }
 
-        if (str_starts_with($argument, '--size=')) {
-            $size = $this->parseSize(substr($argument, 7));
+        if (($value = $this->parseStringOption($arguments, $index, '--size', '-s')) !== null) {
+            $size = $this->parseSize($value);
 
             return true;
         }
 
-        if ($argument === '--pretty') {
+        $argument = $arguments[$index];
+
+        if ($argument === '--pretty' || $argument === '-p') {
             $pretty = true;
 
             return true;
         }
 
-        if ($argument === '--no-pretty') {
+        if ($argument === '--no-pretty' || $argument === '-P') {
             $pretty = false;
 
             return true;
@@ -354,13 +380,18 @@ final class OptionParser
         };
     }
 
-    private function parseConfigOption(string $argument, ?string &$config): bool
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function parseConfigOption(array $arguments, int &$index, ?string &$config): bool
     {
-        if (! str_starts_with($argument, '--config=')) {
+        $value = $this->parseStringOption($arguments, $index, '--config', '-c');
+
+        if ($value === null) {
             return false;
         }
 
-        $config = $this->parseConfigPath(substr($argument, 9));
+        $config = $this->parseConfigPath($value);
 
         return true;
     }
@@ -374,5 +405,59 @@ final class OptionParser
         }
 
         return $path;
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function parseStringOption(array $arguments, int &$index, string $longOption, ?string $shortOption = null): ?string
+    {
+        $argument = $arguments[$index];
+
+        foreach (array_filter([$longOption, $shortOption]) as $option) {
+            if ($argument === $option) {
+                $value = $arguments[$index + 1] ?? null;
+
+                if (! is_string($value) || $value === '' || str_starts_with($value, '-')) {
+                    throw UserFacingException::invalidUsage(sprintf('The option `%s` requires a value.', $option));
+                }
+
+                $index++;
+
+                return $value;
+            }
+
+            if (str_starts_with($argument, $option.'=')) {
+                return substr($argument, strlen($option) + 1);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    private function parseIntegerOption(array $arguments, int &$index, string $longOption, ?string $shortOption = null): ?int
+    {
+        $value = $this->parseStringOption($arguments, $index, $longOption, $shortOption);
+
+        if ($value === null) {
+            return null;
+        }
+
+        return (int) $value;
+    }
+
+    /**
+     * @param  list<string>  $allowed
+     */
+    private function looksLikeUnknownOption(string $argument, array $allowed): bool
+    {
+        if (! str_starts_with($argument, '-')) {
+            return false;
+        }
+
+        return ! in_array($argument, $allowed, true);
     }
 }

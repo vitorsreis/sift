@@ -10,15 +10,15 @@ it('renders help with the current cli options', function (): void {
     $payload = decodeJsonOutput($process);
 
     expect($payload['commands'])->toContain('add', 'view')
-        ->and($payload['options'])->toContain('--config=<path>', '--no-history', '--show-process | --no-show-process');
+        ->and($payload['options'])->toContain('--config=<path> | -c <path>', '--no-history', '--show-process | --no-show-process');
 });
 
 it('initializes and validates a custom config path after the command name', function (): void {
     $cwd = makeTempDirectory();
 
     try {
-        $init = runSift(['init', '--config=custom.sift.json', '--force', '--format=json', '--pretty'], $cwd);
-        $validate = runSift(['validate', '--config=custom.sift.json', '--format=json', '--pretty'], $cwd);
+        $init = runSift(['init', '-c', 'custom.sift.json', '-F', '-f', 'json', '-p'], $cwd);
+        $validate = runSift(['validate', '-c', 'custom.sift.json', '-f', 'json', '-p'], $cwd);
 
         expect($init->getExitCode())->toBe(0)
             ->and($validate->getExitCode())->toBe(0)
