@@ -62,6 +62,13 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - Forces Composer audit JSON output
 - Normalizes vulnerabilities by package and severity
 
+### `composer`
+
+- Supports only read-only Composer subcommands with structured output
+- Forces JSON output for `audit`, `licenses`, `outdated`, and `show`
+- Rejects unsupported or mutating subcommands before execution, including in `--raw`
+- Normalizes license, package, and advisory data according to the active subcommand
+
 ## Adding a New Adapter
 
 1. Implement `ToolAdapterInterface`

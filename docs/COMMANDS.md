@@ -8,6 +8,7 @@ Sift has two kinds of commands:
 
 - reserved commands: handled directly by Sift
 - wrapped tool commands: forwarded to a supported adapter such as `phpunit`, `pest`, `phpstan`, or `pint`
+- wrapped tool commands: forwarded to a supported adapter such as `phpunit`, `pest`, `phpstan`, `pint`, or `composer`
 
 Reserved commands are:
 
@@ -175,6 +176,8 @@ sift phpstan analyse src
 sift pest --testsuite=Integration
 sift rector process --dry-run src
 sift composer-audit
+sift composer licenses
+sift composer outdated
 ```
 
 At runtime, Sift:
@@ -186,6 +189,27 @@ At runtime, Sift:
 5. runs the tool
 6. parses native output into the normalized Sift shape
 7. persists history unless disabled
+
+## `sift composer <subcommand>`
+
+The generic Composer adapter is intentionally restricted to read-only subcommands with JSON output.
+
+Supported subcommands are:
+
+- `audit`
+- `licenses`
+- `outdated`
+- `show`
+
+Examples:
+
+```bash
+sift composer licenses
+sift composer outdated
+sift composer show
+```
+
+Any mutating subcommand such as `install`, `update`, `require`, or `remove` is rejected before execution, including when `--raw` is used.
 
 ## `--raw`
 

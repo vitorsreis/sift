@@ -49,6 +49,7 @@ Contextual meta fields may appear beyond those:
 - `meta.coverage`
 - `meta.mode`
 - `meta.dry_run`
+- `meta.subcommand`
 
 ## Adapter Matrix
 
@@ -63,6 +64,7 @@ Contextual meta fields may appear beyond those:
 | `psalm` | `issues`, `files` | `type`, `rule`, `message`, `file`, `line`, `column` | não | não | `command` |
 | `rector` | `changed_files`, `errors` | `type`, `file`, `message` | `file`, `diff`, `applied_rectors` | não | `command`, `dry_run` |
 | `composer-audit` | `vulnerabilities`, `packages` | `package`, `severity`, `advisory_id`, `title`, `cve`, `link` | não | não | `command` |
+| `composer` | `dependencies`, `licenses` for `licenses`; `packages`, `outdated`, `abandoned` for `show` and `outdated`; `vulnerabilities`, `packages` for `audit` | `package`, `licenses` for `licenses`; package version fields for `show` and `outdated`; advisory fields for `audit` | não | `root_package` for `licenses` | `command`, `subcommand`, `mode` |
 
 ## Notes
 
