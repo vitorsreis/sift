@@ -54,6 +54,7 @@
     "test": "@sift pest",
     "test:unit": "@sift pest --testsuite=Unit",
     "test:integration": "@sift pest --testsuite=Integration",
+    "test:coverage": "@php bin/coverage",
     "build:phar": [
       "Composer\\Config::disableProcessTimeout",
       "@php -d phar.readonly=0 bin/phar"

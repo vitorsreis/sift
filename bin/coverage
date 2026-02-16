@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Sift\Runtime\CoverageCommandFactory;
+use Symfony\Component\Process\Process;
+
+require __DIR__.'/../vendor/autoload.php';
+
+$projectRoot = dirname(__DIR__);
+$factory = new CoverageCommandFactory(
+    phpBinary: PHP_BINARY,
+    loadedExtensions: get_loaded_extensions(),
+);
+
+try {
+    $command = $factory->build($projectRoot);
+} catch (RuntimeException $exception) {
+    fwrite(STDERR, $exception->getMessage().PHP_EOL);
+
+    exit(1);
+}
+
+$process = new Process(
+    command: $command,
+    cwd: $projectRoot,
+);
+
+$process->run(static function (string $type, string $buffer): void {
+    if ($type === Process::ERR) {
+        fwrite(STDERR, $buffer);
+
+        return;
+    }
+
+    fwrite(STDOUT, $buffer);
+});
+
+exit($process->getExitCode());
