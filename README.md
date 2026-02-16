@@ -42,7 +42,7 @@ composer test
 composer test:coverage
 ```
 
-The repository CI also runs `composer test:coverage` in a dedicated PHP + Xdebug job and publishes `build/coverage/clover.xml` as an artifact.
+`composer test:coverage` expects the active PHP runtime to already load `xdebug`. It enables `xdebug.mode=coverage`, runs Pest through `sift --raw`, and writes `build/coverage/clover.xml`. The repository CI runs the same script in a dedicated PHP + Xdebug job and publishes that Clover file as an artifact.
 
 Inspect a stored run:
 
