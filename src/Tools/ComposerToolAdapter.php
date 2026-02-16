@@ -143,14 +143,23 @@ final readonly class ComposerToolAdapter implements ToolAdapterInterface
                     continue;
                 }
 
-                $items[] = [
+                $item = [
                     'package' => (string) $package,
                     'severity' => (string) ($advisory['severity'] ?? 'unknown'),
-                    'advisory_id' => (string) ($advisory['advisoryId'] ?? ''),
-                    'title' => (string) ($advisory['title'] ?? ''),
-                    'cve' => (string) ($advisory['cve'] ?? ''),
-                    'link' => (string) ($advisory['link'] ?? ''),
                 ];
+
+                foreach ([
+                    'advisory_id' => trim((string) ($advisory['advisoryId'] ?? '')),
+                    'title' => trim((string) ($advisory['title'] ?? '')),
+                    'cve' => trim((string) ($advisory['cve'] ?? '')),
+                    'link' => trim((string) ($advisory['link'] ?? '')),
+                ] as $key => $value) {
+                    if ($value !== '') {
+                        $item[$key] = $value;
+                    }
+                }
+
+                $items[] = $item;
             }
         }
 
@@ -188,6 +197,8 @@ final readonly class ComposerToolAdapter implements ToolAdapterInterface
             $uniqueLicenses[$license] = true;
         }
 
+        $rootPackage = $this->rootPackage($decoded);
+
         return new NormalizedResult(
             tool: $this->name(),
             status: $executionResult->exitCode === 0 ? 'passed' : 'error',
@@ -196,13 +207,7 @@ final readonly class ComposerToolAdapter implements ToolAdapterInterface
                 'licenses' => count($uniqueLicenses),
             ],
             items: $items,
-            extra: [
-                'root_package' => [
-                    'name' => (string) ($decoded['name'] ?? ''),
-                    'version' => (string) ($decoded['version'] ?? ''),
-                    'licenses' => $rootLicenses,
-                ],
-            ],
+            extra: $rootPackage === [] ? [] : ['root_package' => $rootPackage],
             meta: $this->meta($executionResult, $preparedCommand, 'licenses', 'licenses'),
         );
     }
@@ -310,15 +315,30 @@ final readonly class ComposerToolAdapter implements ToolAdapterInterface
             $replacement = (string) $package['replacement'];
         }
 
-        return [
+        $item = [
             'package' => $name,
             'version' => (string) ($package['version'] ?? ''),
-            'latest' => (string) ($package['latest'] ?? ''),
-            'latest_status' => (string) ($package['latest-status'] ?? $package['latest_status'] ?? ''),
-            'description' => (string) ($package['description'] ?? ''),
-            'abandoned' => (bool) $abandoned,
-            'replacement' => $replacement,
         ];
+
+        foreach ([
+            'latest' => trim((string) ($package['latest'] ?? '')),
+            'latest_status' => trim((string) ($package['latest-status'] ?? $package['latest_status'] ?? '')),
+            'description' => trim((string) ($package['description'] ?? '')),
+        ] as $key => $value) {
+            if ($value !== '') {
+                $item[$key] = $value;
+            }
+        }
+
+        if ((bool) $abandoned === true) {
+            $item['abandoned'] = true;
+        }
+
+        if ($replacement !== '') {
+            $item['replacement'] = $replacement;
+        }
+
+        return $item;
     }
 
     /**
@@ -393,6 +413,32 @@ final readonly class ComposerToolAdapter implements ToolAdapterInterface
             ),
             static fn (string $license): bool => $license !== '',
         ));
+    }
+
+    /**
+     * @param  array<string, mixed>  $decoded
+     * @return array<string, mixed>
+     */
+    private function rootPackage(array $decoded): array
+    {
+        $item = [];
+
+        foreach ([
+            'name' => trim((string) ($decoded['name'] ?? '')),
+            'version' => trim((string) ($decoded['version'] ?? '')),
+        ] as $key => $value) {
+            if ($value !== '') {
+                $item[$key] = $value;
+            }
+        }
+
+        $licenses = $this->normalizeLicenses($decoded['license'] ?? $decoded['licenses'] ?? []);
+
+        if ($licenses !== []) {
+            $item['licenses'] = $licenses;
+        }
+
+        return $item;
     }
 
     /**

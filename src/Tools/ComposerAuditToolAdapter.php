@@ -115,14 +115,23 @@ final readonly class ComposerAuditToolAdapter implements ToolAdapterInterface
                     continue;
                 }
 
-                $items[] = [
+                $item = [
                     'package' => (string) $package,
                     'severity' => (string) ($advisory['severity'] ?? 'unknown'),
-                    'advisory_id' => (string) ($advisory['advisoryId'] ?? ''),
-                    'title' => (string) ($advisory['title'] ?? ''),
-                    'cve' => (string) ($advisory['cve'] ?? ''),
-                    'link' => (string) ($advisory['link'] ?? ''),
                 ];
+
+                foreach ([
+                    'advisory_id' => trim((string) ($advisory['advisoryId'] ?? '')),
+                    'title' => trim((string) ($advisory['title'] ?? '')),
+                    'cve' => trim((string) ($advisory['cve'] ?? '')),
+                    'link' => trim((string) ($advisory['link'] ?? '')),
+                ] as $key => $value) {
+                    if ($value !== '') {
+                        $item[$key] = $value;
+                    }
+                }
+
+                $items[] = $item;
             }
         }
 

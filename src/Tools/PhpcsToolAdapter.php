@@ -129,15 +129,33 @@ final readonly class PhpcsToolAdapter implements ToolAdapterInterface
                     continue;
                 }
 
-                $items[] = [
+                $item = [
                     'type' => strtolower((string) ($message['type'] ?? 'error')),
                     'file' => str_replace('\\', '/', (string) $file),
-                    'line' => (int) ($message['line'] ?? 0),
-                    'column' => (int) ($message['column'] ?? 0),
                     'message' => (string) ($message['message'] ?? ''),
-                    'rule' => (string) ($message['source'] ?? ''),
-                    'fixable' => (bool) ($message['fixable'] ?? false),
                 ];
+
+                $line = (int) ($message['line'] ?? 0);
+                $column = (int) ($message['column'] ?? 0);
+                $rule = trim((string) ($message['source'] ?? ''));
+
+                if ($line > 0) {
+                    $item['line'] = $line;
+                }
+
+                if ($column > 0) {
+                    $item['column'] = $column;
+                }
+
+                if ($rule !== '') {
+                    $item['rule'] = $rule;
+                }
+
+                if (($message['fixable'] ?? false) === true) {
+                    $item['fixable'] = true;
+                }
+
+                $items[] = $item;
             }
         }
 

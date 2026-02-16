@@ -137,27 +137,48 @@ final readonly class RectorToolAdapter implements ToolAdapterInterface
             $artifact = [
                 'file' => $this->normalizePath((string) ($fileDiff['file'] ?? '')),
                 'diff' => (string) ($fileDiff['diff'] ?? ''),
-                'applied_rectors' => $appliedRectors,
             ];
 
+            if ($appliedRectors !== []) {
+                $artifact['applied_rectors'] = $appliedRectors;
+            }
+
             $artifacts[] = $artifact;
-            $items[] = [
+            $item = [
                 'type' => 'change',
                 'file' => $artifact['file'],
-                'message' => $dryRun ? 'Rector suggested changes.' : 'Rector changed the file.',
-                'diff' => $artifact['diff'],
-                'applied_rectors' => $artifact['applied_rectors'],
             ];
+
+            if ($appliedRectors !== []) {
+                $item['applied_rectors'] = $appliedRectors;
+            }
+
+            $items[] = $item;
         }
 
         foreach ($errors as $error) {
-            $items[] = [
+            $item = [
                 'type' => 'error',
-                'file' => $this->normalizePath((string) ($error['file'] ?? '')),
                 'message' => (string) ($error['message'] ?? ''),
-                'line' => (int) ($error['line'] ?? 0),
-                'caused_by' => (string) ($error['caused_by'] ?? ''),
             ];
+
+            $file = $this->normalizePath((string) ($error['file'] ?? ''));
+            $line = (int) ($error['line'] ?? 0);
+            $causedBy = trim((string) ($error['caused_by'] ?? ''));
+
+            if ($file !== '') {
+                $item['file'] = $file;
+            }
+
+            if ($line > 0) {
+                $item['line'] = $line;
+            }
+
+            if ($causedBy !== '') {
+                $item['caused_by'] = $causedBy;
+            }
+
+            $items[] = $item;
         }
 
         $totals = is_array($decoded['totals'] ?? null) ? $decoded['totals'] : [];

@@ -51,17 +51,17 @@ trait ParsesJunitOutput
 
             foreach ($testCase->failure as $failure) {
                 $failures++;
-                $items[] = $this->junitItem('failure', $testName, $className, $resolvedFile, $failure, $preparedCommand->cwd);
+                $items[] = $this->junitItem('failure', $testName, $resolvedFile, $failure, $preparedCommand->cwd);
             }
 
             foreach ($testCase->error as $error) {
                 $errors++;
-                $items[] = $this->junitItem('error', $testName, $className, $resolvedFile, $error, $preparedCommand->cwd);
+                $items[] = $this->junitItem('error', $testName, $resolvedFile, $error, $preparedCommand->cwd);
             }
 
             foreach ($testCase->skipped as $skip) {
                 $skipped++;
-                $items[] = $this->junitItem('skipped', $testName, $className, $resolvedFile, $skip, $preparedCommand->cwd);
+                $items[] = $this->junitItem('skipped', $testName, $resolvedFile, $skip, $preparedCommand->cwd);
             }
         }
 
@@ -73,8 +73,6 @@ trait ParsesJunitOutput
             'errors' => $errors,
             'skipped' => $skipped,
         ];
-        $extra = [];
-
         if ($coverage !== null) {
             $summary['coverage_percent'] = $coverage['percent'];
 
@@ -84,14 +82,8 @@ trait ParsesJunitOutput
             }
 
             if ($coverage['files_below_min'] !== []) {
-                $items = [...$items, ...$this->coverageItems($coverage['files_below_min'], $coverage['minimum'])];
+                $items = [...$items, ...$this->coverageItems($coverage['files_below_min'])];
             }
-
-            $extra['coverage'] = [
-                'percent' => $coverage['percent'],
-                'minimum' => $coverage['minimum'],
-                'files_below_min' => $coverage['files_below_min'],
-            ];
         }
 
         $status = ($failures > 0 || $errors > 0 || ($coverage['threshold_failed'] ?? false) === true || $executionResult->exitCode !== 0)
@@ -103,7 +95,6 @@ trait ParsesJunitOutput
             status: $status,
             summary: $summary,
             items: $items,
-            extra: $extra,
             meta: [
                 'exit_code' => $executionResult->exitCode,
                 'duration' => $executionResult->duration,
@@ -132,7 +123,6 @@ trait ParsesJunitOutput
     private function junitItem(
         string $type,
         string $testName,
-        string $className,
         ?string $resolvedFile,
         SimpleXMLElement $node,
         string $cwd,
@@ -319,7 +309,7 @@ trait ParsesJunitOutput
      * @param  list<array{file: string, percent: float}>  $filesBelowMin
      * @return list<array<string, mixed>>
      */
-    private function coverageItems(array $filesBelowMin, ?float $minimum): array
+    private function coverageItems(array $filesBelowMin): array
     {
         $items = [];
 

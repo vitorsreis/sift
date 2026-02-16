@@ -123,14 +123,32 @@ final readonly class PsalmToolAdapter implements ToolAdapterInterface
                 $files[$file] = true;
             }
 
-            $items[] = [
+            $item = [
                 'type' => strtolower((string) ($issue['severity'] ?? 'error')),
-                'rule' => (string) ($issue['type'] ?? ''),
                 'message' => (string) ($issue['message'] ?? ''),
-                'file' => $file,
-                'line' => (int) ($issue['line_from'] ?? 0),
-                'column' => (int) ($issue['column_from'] ?? 0),
             ];
+
+            $rule = trim((string) ($issue['type'] ?? ''));
+            $line = (int) ($issue['line_from'] ?? 0);
+            $column = (int) ($issue['column_from'] ?? 0);
+
+            if ($rule !== '') {
+                $item['rule'] = $rule;
+            }
+
+            if ($file !== '') {
+                $item['file'] = $file;
+            }
+
+            if ($line > 0) {
+                $item['line'] = $line;
+            }
+
+            if ($column > 0) {
+                $item['column'] = $column;
+            }
+
+            $items[] = $item;
         }
 
         return new NormalizedResult(
