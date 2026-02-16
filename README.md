@@ -35,6 +35,13 @@ Run a tool through Sift:
 vendor/bin/sift phpstan analyse src
 ```
 
+Run the test suite and coverage helpers routed through Sift:
+
+```bash
+composer test
+composer test:coverage
+```
+
 Inspect a stored run:
 
 ```bash

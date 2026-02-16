@@ -4,6 +4,10 @@ This folder is the full reference for Sift.
 
 If the repository root README is the project presentation, this folder is where the behavior, commands, config, output model, adapter contract, and release flow are explained in detail.
 
+Coverage note:
+
+- `composer test:coverage` is available, but it requires `xdebug` or `pcov` in the active PHP runtime.
+
 ## Start Here
 
 - [COMMANDS.md](COMMANDS.md): what every command does, when to use it, reserved commands, interactive `add`, `view`, and runtime flags
