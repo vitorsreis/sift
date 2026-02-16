@@ -7,6 +7,7 @@ If the repository root README is the project presentation, this folder is where 
 Coverage note:
 
 - `composer test:coverage` is available, but it requires `xdebug` or `pcov` in the active PHP runtime.
+- the GitHub Actions CI includes a dedicated `php-coverage` job with `xdebug`
 
 ## Start Here
 

@@ -42,6 +42,8 @@ composer test
 composer test:coverage
 ```
 
+The repository CI also runs `composer test:coverage` in a dedicated PHP + Xdebug job.
+
 Inspect a stored run:
 
 ```bash
