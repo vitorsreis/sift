@@ -120,6 +120,7 @@ it('fails early when a configured tool binary does not exist', function (): void
 
         expect($payload['error']['code'])->toBe('tool_not_installed')
             ->and($payload['error']['tool'])->toBe('pint')
+            ->and($payload['error']['hint'])->toContain('run `sift add pint` to register the project binary.')
             ->and($payload['error']['suggestions'])->toContain('If `pint` is already installed, run `sift add pint` to register the project binary.');
     } finally {
         removeDirectory($cwd);

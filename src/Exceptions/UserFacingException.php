@@ -57,16 +57,18 @@ final class UserFacingException extends RuntimeException
 
     public static function toolNotInstalled(string $tool, string $hint): self
     {
+        $registerHint = sprintf('If `%s` is already installed, run `sift add %s` to register the project binary.', $tool, $tool);
+
         return new self([
             'status' => 'error',
             'error' => [
                 'code' => 'tool_not_installed',
                 'message' => sprintf('The tool `%s` is not installed in this project.', $tool),
                 'tool' => $tool,
-                'hint' => $hint,
+                'hint' => sprintf('%s %s', $hint, $registerHint),
                 'suggestions' => [
                     $hint,
-                    sprintf('If `%s` is already installed, run `sift add %s` to register the project binary.', $tool, $tool),
+                    $registerHint,
                 ],
             ],
         ]);

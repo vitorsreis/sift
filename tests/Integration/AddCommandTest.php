@@ -122,6 +122,7 @@ it('reports when adding a tool that is not detected in the project', function ()
         expect($payload['status'])->toBe('error')
             ->and($payload['error']['code'])->toBe('tool_not_installed')
             ->and($payload['error']['tool'])->toBe('phpunit')
+            ->and($payload['error']['hint'])->toContain('run `sift add phpunit` to register the project binary.')
             ->and($payload['error']['suggestions'])->toContain('If `phpunit` is already installed, run `sift add phpunit` to register the project binary.');
     } finally {
         removeDirectory($cwd);
