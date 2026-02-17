@@ -1,10 +1,32 @@
-# Sift
+<p align="center">
+    <img src="resources/logo.svg" alt="Sift" width="128">
+</p>
 
-Sift is a PHP CLI wrapper that turns tool output into compact, agent-friendly payloads.
+<p align="center">
+    <strong>AI-optimized PHP tool wrapper with intelligent output control.</strong>
+</p>
 
-It sits in front of tools such as `phpunit`, `pest`, `paratest`, `phpstan`, `phpcs`, `pint`, `psalm`, `rector`, and `composer-audit`, then normalizes their output into a stable shape that is easier to consume from terminals, agents, and automation.
+<p align="center">
+    <a href="https://packagist.org/packages/vitorsreis/sift"><img alt="PHP Version" src="https://img.shields.io/packagist/php-v/vitorsreis/sift?color=777bb4"></a>
+    <a href="https://packagist.org/packages/vitorsreis/sift"><img alt="Packagist Downloads" src="https://img.shields.io/packagist/dt/vitorsreis/sift?color=2563eb"></a>
+    <a href="https://github.com/vitorsreis/sift/actions/workflows/tests.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/vitorsreis/sift/tests.yml?branch=main&label=tests"></a>
+    <a href="https://github.com/vitorsreis/sift/blob/main/LICENSE.md"><img alt="License" src="https://img.shields.io/github/license/vitorsreis/sift?color=16a34a"></a>
+</p>
 
 ![Sift preview](resources/preview.svg)
+
+---
+
+Sift is a complete PHP CLI wrapper that provides controlled execution of PHP tools with structured, token-optimized output designed specifically for AI agents and automated workflows.
+
+## Why Sift
+
+- **Token Reduction**: Dramatically reduce token consumption with intelligent output sizing
+- **Complete Control**: Only pre-mapped commands and arguments are allowed
+- **Smart Rendering**: Three output modes tuned for different needs (compact/normal/full)
+- **Standardized Output**: Unified structure across all tools
+- **Process Visibility**: Optional real-time progress display that doesn't affect final output
+
 
 ## Installation
 
@@ -14,12 +36,7 @@ Install Sift as a development dependency:
 composer require --dev vitorsreis/sift
 ```
 
-Or build a local PHAR:
-
-```bash
-composer build:phar
-php dist/sift.phar help
-```
+Or download the [latest PHAR release](https://github.com/vitorsreis/sift/releases).
 
 ## Quick Start
 
@@ -35,22 +52,22 @@ Run a tool through Sift:
 vendor/bin/sift phpstan analyse src
 ```
 
-Run the test suite and coverage helpers routed through Sift:
+## Supported Tools
 
-```bash
-composer test
-composer test:coverage
-```
-
-`composer test:coverage` expects the active PHP runtime to already load `xdebug`. It disables outer step debugging, forces `XDEBUG_MODE=coverage` for the nested Pest process, runs Pest through `sift --raw`, and writes `build/coverage/clover.xml`. The repository CI runs the same script in a dedicated PHP + Xdebug job and publishes that Clover file as an artifact.
-
-Inspect a stored run:
-
-```bash
-vendor/bin/sift view list
-vendor/bin/sift view <run_id> summary
-```
+- `phpunit` - PHPUnit test runner
+- `pest` - Pest PHP testing framework
+- `paratest` - Parallel testing
+- `phpstan` - Static analysis
+- `phpcs` / `phpcbf` - Code standards checking
+- `psalm` - Static analysis tool
+- `rector` - Automated refactoring
+- `pint` - Laravel Pint code formatter
+- `composer` - Composer package manager `audit`, `licenses`, `outdated`, and `show` subcommands
 
 ## Documentation
 
-Full documentation lives in [docs/README.md](docs/README.md).
+**[Full Documentation](docs/README.md)**
+
+## License
+
+Released under the [MIT license](LICENSE.md).

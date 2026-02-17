@@ -1,8 +1,8 @@
-# Adapters
+# Tools
 
 ## Contract
 
-Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible for:
+Each tool implementation uses `Sift\Contracts\ToolAdapterInterface` and is responsible for:
 
 - exposing a stable tool name
 - resolving an installation hint
@@ -10,7 +10,7 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - preparing a native command with structured output flags
 - parsing native output into the Sift payload shape
 
-## Current Adapters
+## Current Tools
 
 ### `phpunit`
 
@@ -69,10 +69,10 @@ Each adapter implements `Sift\Contracts\ToolAdapterInterface` and is responsible
 - Rejects unsupported or mutating subcommands before execution, including in `--raw`
 - Normalizes license, package, and advisory data according to the active subcommand
 
-## Adding a New Adapter
+## Adding a New Tool
 
 1. Implement `ToolAdapterInterface`
-2. Register the adapter in `Application::registry()`
+2. Register the tool in `Application::registry()`
 3. Add unit tests for parsing and context handling
 4. Add at least one integration test through `bin/sift`
 5. Document install hints and supported contexts here

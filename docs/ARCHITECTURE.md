@@ -34,11 +34,11 @@ CLI
 - `FileRunStore` persists full payloads under the configured history path and rotates old files according to `history.max_files`
 - `ViewService` slices stored payloads for `sift view`
 
-### Registry and Adapters
+### Registry and Tools
 
-- `ToolRegistry` maps the command name to an adapter
-- Each adapter implements `ToolAdapterInterface`
-- Adapters detect execution context, inject structured flags when possible, and parse native output into the shared payload shape
+- `ToolRegistry` maps the command name to a tool implementation
+- Each tool implementation uses `ToolAdapterInterface`
+- Tools detect execution context, inject structured flags when possible, and parse native output into the shared payload shape
 
 ## Payload Shape
 

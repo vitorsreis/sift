@@ -7,8 +7,8 @@ This document explains what each Sift command does and how runtime flags change 
 Sift has two kinds of commands:
 
 - reserved commands: handled directly by Sift
-- wrapped tool commands: forwarded to a supported adapter such as `phpunit`, `pest`, `phpstan`, or `pint`
-- wrapped tool commands: forwarded to a supported adapter such as `phpunit`, `pest`, `phpstan`, `pint`, or `composer`
+- wrapped tool commands: forwarded to a supported tool such as `phpunit`, `pest`, `phpstan`, or `pint`
+- wrapped tool commands: forwarded to a supported tool such as `phpunit`, `pest`, `phpstan`, `pint`, or `composer`
 
 Reserved commands are:
 
@@ -72,7 +72,7 @@ Accepted command-level options:
 Registers a supported tool in the config and persists:
 
 - `enabled`
-- adapter `defaultArgs`
+- tool `defaultArgs`
 - detected `toolBinary`
 
 ### Explicit Mode
@@ -185,14 +185,14 @@ At runtime, Sift:
 1. resolves config and runtime overrides
 2. merges `defaultArgs` when no CLI args were supplied
 3. runs policies such as disabled-tool and blocked-argument checks
-4. prepares a native command through the selected adapter
+4. prepares a native command through the selected tool
 5. runs the tool
 6. parses native output into the normalized Sift shape
 7. persists history unless disabled
 
 ## `sift composer <subcommand>`
 
-The generic Composer adapter is intentionally restricted to read-only subcommands with JSON output.
+The generic Composer tool is intentionally restricted to read-only subcommands with JSON output.
 
 Supported subcommands are:
 
@@ -217,7 +217,7 @@ Any mutating subcommand such as `install`, `update`, `require`, or `remove` is r
 
 Instead of returning normalized output, Sift:
 
-- skips adapter parsing
+- skips tool parsing
 - skips payload rendering
 - skips history storage
 - preserves the native process exit code

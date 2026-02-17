@@ -1,5 +1,5 @@
 name: Bug report
-description: Report incorrect behavior in the CLI, adapters, payloads, or release flow.
+description: Report incorrect behavior in the CLI, tools, payloads, or release flow.
 title: "[Bug]: "
 labels:
   - bug

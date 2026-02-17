@@ -2,21 +2,21 @@
 
 This folder is the full reference for Sift.
 
-If the repository root README is the project presentation, this folder is where the behavior, commands, config, output model, adapter contract, and release flow are explained in detail.
+If the repository root README is the project presentation, this folder is where the behavior, commands, config, output model, tool contract, and release flow are explained in detail.
 
 Coverage note:
 
 - `composer test:coverage` expects `xdebug` in the active PHP runtime, disables outer step debugging, and forces `XDEBUG_MODE=coverage`
 - the GitHub Actions CI includes a dedicated `php-coverage` job with `xdebug`
-- that coverage job uploads `build/coverage/clover.xml` as an artifact
+- that coverage job passes `--coverage-clover=build/coverage/clover.xml` and uploads that file as an artifact
 
 ## Start Here
 
 - [COMMANDS.md](COMMANDS.md): what every command does, when to use it, reserved commands, interactive `add`, `view`, and runtime flags
 - [OUTPUTS.md](OUTPUTS.md): `json` vs `markdown`, `compact` / `normal` / `fuller`, `--raw`, view scopes, and how results are rendered
 - [CONFIGURATION.md](CONFIGURATION.md): full `sift.json` reference, defaults, schema, overrides, and config-writing commands
-- [ADAPTERS.md](ADAPTERS.md): current supported tools, adapter responsibilities, and how new adapters are added
-- [PAYLOADS.md](PAYLOADS.md): normalized result contract, common guarantees, and the per-adapter field matrix
+- [TOOLS.md](TOOLS.md): current supported tools, tool responsibilities, and how new tools are added
+- [PAYLOADS.md](PAYLOADS.md): normalized result contract, common guarantees, and the per-tool field matrix
 - [ARCHITECTURE.md](ARCHITECTURE.md): runtime flow, policies, history persistence, and payload lifecycle
 - [RELEASE.md](RELEASE.md): PHAR build, Box packaging, checksums, and release flow
 
@@ -52,12 +52,12 @@ Use [CONFIGURATION.md](CONFIGURATION.md) if you need to understand:
 
 ### Tool Support
 
-Use [ADAPTERS.md](ADAPTERS.md) if you need to understand:
+Use [TOOLS.md](TOOLS.md) if you need to understand:
 
 - which tools are supported today
-- how each adapter normalizes native output
+- how each tool normalizes native output
 - where write restrictions exist, such as `rector process --dry-run`
-- how to add a new adapter safely
+- how to add a new tool safely
 
 ### Internals and Release
 
@@ -89,7 +89,7 @@ If you are new to the project, the shortest useful path is:
 1. [COMMANDS.md](COMMANDS.md)
 2. [OUTPUTS.md](OUTPUTS.md)
 3. [CONFIGURATION.md](CONFIGURATION.md)
-4. [ADAPTERS.md](ADAPTERS.md)
+4. [TOOLS.md](TOOLS.md)
 
 If you are changing internals or release automation, continue with:
 

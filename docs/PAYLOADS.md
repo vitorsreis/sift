@@ -7,11 +7,11 @@ Use this file for:
 - the shared top-level shape
 - which fields are guaranteed
 - common meta guarantees
-- the per-adapter matrix of required fields
+- the per-tool matrix of required fields
 
 If you need to understand rendering, `compact` / `normal` / `fuller`, `markdown` vs `json`, or `--raw`, use [OUTPUTS.md](OUTPUTS.md).
 
-`sift` normalizes all adapters to the same base shape:
+`sift` normalizes all tools to the same base shape:
 
 ```json
 {
@@ -36,7 +36,7 @@ If you need to understand rendering, `compact` / `normal` / `fuller`, `markdown`
 
 ## Common Meta Guarantees
 
-Fields guaranteed for every adapter after `ResultMetaStamper`:
+Fields guaranteed for every tool after `ResultMetaStamper`:
 
 - `meta.exit_code`
 - `meta.duration`
@@ -51,9 +51,9 @@ Contextual meta fields may appear beyond those:
 - `meta.dry_run`
 - `meta.subcommand`
 
-## Adapter Matrix
+## Tool Matrix
 
-| Adapter | `summary` obrigatório | `items` obrigatório | `artifacts` | `extra` | Meta contextual |
+| Tool | `summary` obrigatório | `items` obrigatório | `artifacts` | `extra` | Meta contextual |
 | --- | --- | --- | --- | --- | --- |
 | `phpunit` | `tests`, `passed`, `failures`, `errors`, `skipped` | `type`, `test`, `file`; `line` when available | não | não | `command`, `filter`, `coverage`, `coverage_min` |
 | `pest` | `tests`, `passed`, `failures`, `errors`, `skipped` | `type`, `test`, `file`; `line` when available | não | não | `command`, `filter`, `coverage`, `coverage_min` |
@@ -68,7 +68,7 @@ Contextual meta fields may appear beyond those:
 
 ## Notes
 
-- Fields listed as required are guaranteed when the adapter parse succeeds.
-- Empty strings, `false` flags, and other default-value noise are omitted from adapter payloads when possible.
+- Fields listed as required are guaranteed when the tool parse succeeds.
+- Empty strings, `false` flags, and other default-value noise are omitted from tool payloads when possible.
 - Extra fields inside `items`, `artifacts`, `extra`, or `meta` may appear without breaking the contract.
 - Smaller rendered outputs may omit parts of this structure, but the internal normalized result still converges to the contract above.

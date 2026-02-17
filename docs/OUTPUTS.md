@@ -77,7 +77,7 @@ Typical characteristics:
 - `extra`
 - `meta`
 
-Useful when you need to preserve diffs, contextual metadata, or adapter-specific detail.
+Useful when you need to preserve diffs, contextual metadata, or tool-specific detail.
 
 ## Stored Runs and `view`
 
@@ -100,7 +100,7 @@ This is why Sift can render smaller execution payloads while still preserving th
 
 It does not change:
 
-- adapter behavior
+- tool behavior
 - stored history payloads
 - the underlying normalized result
 

@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a new command, adapter, policy, payload field, or release improvement.
+description: Propose a new command, tool, policy, payload field, or release improvement.
 title: "[Feature]: "
 labels:
   - enhancement
