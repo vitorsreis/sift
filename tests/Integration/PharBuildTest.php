@@ -6,11 +6,11 @@ use Symfony\Component\Process\Process;
 
 it('builds an executable phar distribution', function (): void {
     $root = siftRoot();
-    $distDirectory = $root.DIRECTORY_SEPARATOR.'dist';
-    $pharPath = $distDirectory.DIRECTORY_SEPARATOR.'sift.phar';
+    $buildDirectory = $root.DIRECTORY_SEPARATOR.'build'.DIRECTORY_SEPARATOR.'phar';
+    $pharPath = $buildDirectory.DIRECTORY_SEPARATOR.'sift.phar';
     $checksumPath = $pharPath.'.sha256';
 
-    removeDirectory($distDirectory);
+    removeDirectory($buildDirectory);
 
     $build = new Process(
         command: [PHP_BINARY, '-d', 'phar.readonly=0', $root.DIRECTORY_SEPARATOR.'bin'.DIRECTORY_SEPARATOR.'phar'],
@@ -41,7 +41,7 @@ it('builds an executable phar distribution', function (): void {
 
     $process = new Process(
         command: [PHP_BINARY, $pharPath, 'help', '--format=json'],
-        cwd: $distDirectory,
+        cwd: $root,
         env: siftTestEnvironment(),
     );
 
@@ -56,5 +56,5 @@ it('builds an executable phar distribution', function (): void {
         ->and($help['commands'])->toContain('help', 'view')
         ->and($help['options'])->toContain('--format=<json|markdown> | -f <json|markdown>');
 
-    removeDirectory($distDirectory);
+    removeDirectory($buildDirectory);
 });

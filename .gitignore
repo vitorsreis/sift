@@ -2,7 +2,7 @@
 /.idea
 /.phpunit.cache
 /.sift
-/dist
+/build
 /vendor
 /composer.lock
 /sift.json

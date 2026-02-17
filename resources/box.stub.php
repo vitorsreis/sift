@@ -33,8 +33,10 @@ $workingDirectory = getcwd() ?: $pharDirectory;
 $autoloadCandidates = [
     $pharDirectory.'/vendor/autoload.php',
     dirname($pharDirectory).'/vendor/autoload.php',
+    dirname(dirname($pharDirectory)).'/vendor/autoload.php',
     $workingDirectory.'/vendor/autoload.php',
     dirname($workingDirectory).'/vendor/autoload.php',
+    dirname(dirname($workingDirectory)).'/vendor/autoload.php',
 ];
 
 $autoloadLoaded = false;
@@ -51,7 +53,7 @@ foreach ($autoloadCandidates as $autoloadPath) {
 }
 
 if (! $autoloadLoaded) {
-    fwrite(STDERR, "Unable to locate vendor/autoload.php next to sift.phar or in its parent directory.\n");
+    fwrite(STDERR, "Unable to locate vendor/autoload.php next to sift.phar or within its parent directories.\n");
 
     exit(1);
 }

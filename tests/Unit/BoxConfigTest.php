@@ -8,11 +8,11 @@ it('ships a box config aligned with the thin phar distribution', function (): vo
 
     expect($box)->toMatchArray([
         'main' => 'resources/box.stub.php',
-        'output' => 'dist/sift.phar',
+        'output' => 'build/phar/sift.phar',
         'alias' => 'sift.phar',
         'stub' => true,
         'compression' => 'NONE',
     ])->and($box['directories'])->toContain('src', 'resources')
         ->and($box['files'])->toContain('composer.json', 'README.md', 'LICENSE.md')
-        ->and($box['exclude'])->toContain('vendor', 'tests', 'dist');
+        ->and($box['exclude'])->toContain('vendor', 'tests', 'build');
 });

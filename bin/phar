@@ -6,8 +6,8 @@ declare(strict_types=1);
 require __DIR__.'/../vendor/autoload.php';
 
 $root = dirname(__DIR__);
-$distDirectory = $root.DIRECTORY_SEPARATOR.'dist';
-$pharPath = $distDirectory.DIRECTORY_SEPARATOR.'sift.phar';
+$buildDirectory = $root.DIRECTORY_SEPARATOR.'build'.DIRECTORY_SEPARATOR.'phar';
+$pharPath = $buildDirectory.DIRECTORY_SEPARATOR.'sift.phar';
 $checksumPath = $pharPath.'.sha256';
 $alias = 'sift.phar';
 
@@ -17,7 +17,7 @@ if ((bool) ini_get('phar.readonly')) {
     exit(1);
 }
 
-prepareDistDirectory($distDirectory);
+prepareDistDirectory($buildDirectory);
 
 @unlink($pharPath);
 @unlink($checksumPath);

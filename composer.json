@@ -55,9 +55,6 @@
     "test:unit": "@test --testsuite=Unit",
     "test:integration": "@test --testsuite=Integration",
     "test:coverage": "@php -dxdebug.mode=coverage bin/sift --pretty pest --parallel --coverage --min=80",
-    "build:phar": [
-      "Composer\\Config::disableProcessTimeout",
-      "@php -d phar.readonly=0 bin/phar"
-    ]
+    "build:phar": "@php -d phar.readonly=0 bin/phar"
   }
 }

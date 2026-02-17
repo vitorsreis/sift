@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.5"
+          php-version: "8.3"
           coverage: none
 
       - name: Install dependencies
@@ -32,5 +32,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/sift.phar
-            dist/sift.phar.sha256
+            build/phar/sift.phar
+            build/phar/sift.phar.sha256

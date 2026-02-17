@@ -49,7 +49,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.5"
+          php-version: "8.3"
           coverage: xdebug
 
       - name: Validate composer.json
@@ -59,10 +59,10 @@ jobs:
         run: composer install --prefer-dist --no-interaction
 
       - name: Coverage
-        run: composer test:coverage
+        run: composer test:coverage -- --coverage-clover=build/coverage/clover.xml
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: clover-coverage
-          path: .coverage/clover.xml
+          path: build/coverage/clover.xml
