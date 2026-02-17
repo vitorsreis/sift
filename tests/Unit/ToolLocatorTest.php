@@ -45,3 +45,27 @@ it('keeps batch tools directly executable', function (): void {
         removeDirectory($cwd);
     }
 });
+
+it('resolves PATH commands without wrapping them in php', function (): void {
+    $locator = new ToolLocator('D:\\php\\php.exe');
+    $command = PHP_OS_FAMILY === 'Windows' ? 'where' : 'which';
+
+    $resolved = $locator->locate(sys_get_temp_dir(), [$command]);
+
+    expect($resolved)->not->toBeNull()
+        ->and($resolved['candidate'] ?? null)->toBe($command)
+        ->and($resolved['command_prefix'] ?? null)->toBe([$command])
+        ->and($resolved['path'] ?? null)->toBe($command);
+});
+
+it('returns null when no candidate can be resolved', function (): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        $resolved = (new ToolLocator)->locate($cwd, ['vendor/bin/missing-tool', 'definitely-missing-command']);
+
+        expect($resolved)->toBeNull();
+    } finally {
+        removeDirectory($cwd);
+    }
+});
