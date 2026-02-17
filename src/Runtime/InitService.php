@@ -50,16 +50,7 @@ final readonly class InitService
         ksort($tools);
 
         $document = [
-            'history' => [
-                'enabled' => true,
-                'max_files' => 50,
-                'path' => '.sift/history',
-            ],
-            'output' => [
-                'format' => 'json',
-                'size' => 'normal',
-                'show_process' => false,
-            ],
+            ...ConfigDefaults::document(),
             'tools' => (object) $tools,
         ];
 

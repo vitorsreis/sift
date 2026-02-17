@@ -11,6 +11,7 @@ use Sift\Registry\ToolRegistry;
 use Sift\Renderers\JsonRenderer;
 use Sift\Renderers\MarkdownRenderer;
 use Sift\Runtime\AddService;
+use Sift\Runtime\ConfigDefaults;
 use Sift\Runtime\ConfigLoader;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\InitService;
@@ -661,11 +662,7 @@ final class Application
         try {
             return $this->configLoader->load($cwd, $configPath);
         } catch (UserFacingException) {
-            return [
-                'history' => ['enabled' => true, 'max_files' => 50, 'path' => '.sift/history'],
-                'output' => ['format' => 'json', 'size' => 'normal', 'pretty' => false, 'show_process' => false],
-                'tools' => [],
-            ];
+            return ConfigDefaults::runtime();
         }
     }
 }

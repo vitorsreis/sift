@@ -43,7 +43,7 @@ it('reuses explicit junit paths without duplicating them for phpunit and parates
 
         expect(array_count_values($prepared->command)['--log-junit'] ?? 0)->toBe(1)
             ->and($prepared->metadata['junit'])->toBe($junitPath)
-            ->and($prepared->metadata['temp_files'])->toBe([$junitPath]);
+            ->and($prepared->metadata['temp_files'])->toBe([]);
     } finally {
         removeDirectory($cwd);
     }

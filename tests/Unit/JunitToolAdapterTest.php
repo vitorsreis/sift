@@ -37,6 +37,25 @@ it('injects junit logging for junit based adapters', function (string $adapterCl
     }
 })->with('junit_tool_adapters');
 
+it('preserves user supplied junit report paths for junit based adapters', function (string $adapterClass, string $binary): void {
+    $cwd = makeTempDirectory();
+
+    try {
+        createProjectTool($cwd, basename($binary), "<?php\n");
+        $adapter = new $adapterClass(new ToolLocator(PHP_BINARY));
+        $prepared = $adapter->prepare($cwd, ['--log-junit', 'build/custom-report.xml'], [
+            'tool_binary' => $binary,
+            'has_filter' => false,
+            'has_coverage' => false,
+        ]);
+
+        expect($prepared->metadata['junit'] ?? null)->toBe('build/custom-report.xml')
+            ->and($prepared->metadata['temp_files'] ?? [])->toBe([]);
+    } finally {
+        removeDirectory($cwd);
+    }
+})->with('junit_tool_adapters');
+
 it('injects clover logging for pest when coverage minimum is requested', function (): void {
     $cwd = makeTempDirectory('sift-pest-prepare-');
 

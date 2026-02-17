@@ -29,6 +29,7 @@ use Sift\Runtime\ToolLocator;
 use Sift\Runtime\ValidateService;
 use Sift\Runtime\ViewService;
 use Sift\Sift;
+use Symfony\Component\Process\Process;
 use Tests\Support\DummyExecutableToolAdapter;
 use Tests\Support\FakeToolAdapter;
 
@@ -509,6 +510,7 @@ function makeTestApplication(ToolRegistry $registry): Application
 
 /**
  * @template T
+ *
  * @param  callable(): T  $callback
  * @return T
  */
@@ -558,8 +560,7 @@ function getApplicationProperty(Application $application, string $property): mix
     return $closure();
 }
 
-
-function runApplicationEntryPoint(array $argv, ?string $cwd = null, ?string $input = null): Symfony\Component\Process\Process
+function runApplicationEntryPoint(array $argv, ?string $cwd = null, ?string $input = null): Process
 {
     $scriptPath = tempnam(sys_get_temp_dir(), 'sift-application-run-');
 
@@ -583,7 +584,7 @@ chdir($cwdExport);
 exit(Sift\\Console\\Application::run($argvExport));
 PHP);
 
-    $process = new Symfony\Component\Process\Process([PHP_BINARY, $scriptPath], env: siftTestEnvironment());
+    $process = new Process([PHP_BINARY, $scriptPath], env: siftTestEnvironment());
     $process->setInput($input);
     $process->run();
     @unlink($scriptPath);

@@ -11,12 +11,14 @@ use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\ToolLocator;
 use Sift\Tools\Concerns\DetectsCliOptions;
+use Sift\Tools\Concerns\EnsuresCommandOptionValues;
 use Sift\Tools\Concerns\ParsesJunitOutput;
 use Sift\Tools\Concerns\ResolvesToolCandidates;
 
 final readonly class PhpunitToolAdapter implements ToolAdapterInterface
 {
     use DetectsCliOptions;
+    use EnsuresCommandOptionValues;
     use ParsesJunitOutput;
     use ResolvesToolCandidates;
 
@@ -81,7 +83,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
             throw UserFacingException::toolNotInstalled($this->name(), $this->installHint());
         }
 
-        [$arguments, $junitPath] = $this->ensureOptionValue(
+        [$arguments, $junitPath, $createdJunit] = $this->ensureOptionValue(
             $arguments,
             '--log-junit',
             $this->tempFile('sift-phpunit-', '.xml'),
@@ -93,7 +95,7 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
             metadata: [
                 ...$context,
                 'junit' => $junitPath,
-                'temp_files' => [$junitPath],
+                'temp_files' => $createdJunit ? [$junitPath] : [],
             ],
         );
     }
@@ -107,41 +109,5 @@ final readonly class PhpunitToolAdapter implements ToolAdapterInterface
         array $context,
     ): NormalizedResult {
         return $this->parseJunitOutput($executionResult, $preparedCommand, $context);
-    }
-
-    /**
-     * @param  list<string>  $arguments
-     * @return array{0: list<string>, 1: string}
-     */
-    private function ensureOptionValue(array $arguments, string $option, string $defaultValue): array
-    {
-        foreach ($arguments as $index => $argument) {
-            if ($argument === $option && isset($arguments[$index + 1])) {
-                return [$arguments, $arguments[$index + 1]];
-            }
-
-            if (str_starts_with($argument, $option.'=')) {
-                return [$arguments, substr($argument, strlen($option) + 1)];
-            }
-        }
-
-        $arguments[] = $option;
-        $arguments[] = $defaultValue;
-
-        return [$arguments, $defaultValue];
-    }
-
-    private function tempFile(string $prefix, string $extension): string
-    {
-        $path = tempnam(sys_get_temp_dir(), $prefix);
-
-        if ($path === false) {
-            throw UserFacingException::parseFailure($this->name(), 'Unable to allocate temporary file.');
-        }
-
-        $target = $path.$extension;
-        @rename($path, $target);
-
-        return $target;
     }
 }

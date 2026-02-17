@@ -167,7 +167,7 @@ final class FileRunStore
             ? trim((string) $historyConfig['path'])
             : '.sift/history';
 
-        if ($this->isAbsolutePath($path)) {
+        if (PathHelper::isAbsolute($path)) {
             return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
         }
 
@@ -230,12 +230,5 @@ final class FileRunStore
         foreach (array_slice($items, 0, max(0, count($items) - $maxFiles)) as $item) {
             @unlink((string) $item['path']);
         }
-    }
-
-    private function isAbsolutePath(string $path): bool
-    {
-        return str_starts_with($path, DIRECTORY_SEPARATOR)
-            || str_starts_with($path, '\\\\')
-            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
     }
 }

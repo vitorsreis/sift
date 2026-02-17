@@ -149,7 +149,7 @@ final class ConfigLoader
             return $cwd.DIRECTORY_SEPARATOR.'sift.json';
         }
 
-        if ($this->isAbsolutePath($configPath)) {
+        if (PathHelper::isAbsolute($configPath)) {
             return $configPath;
         }
 
@@ -200,26 +200,6 @@ final class ConfigLoader
      */
     private function defaults(): array
     {
-        return [
-            'history' => [
-                'enabled' => true,
-                'max_files' => 50,
-                'path' => '.sift/history',
-            ],
-            'output' => [
-                'format' => 'json',
-                'size' => 'normal',
-                'pretty' => false,
-                'show_process' => false,
-            ],
-            'tools' => [],
-        ];
-    }
-
-    private function isAbsolutePath(string $path): bool
-    {
-        return str_starts_with($path, DIRECTORY_SEPARATOR)
-            || str_starts_with($path, '\\\\')
-            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
+        return ConfigDefaults::runtime();
     }
 }

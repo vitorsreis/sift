@@ -77,20 +77,7 @@ final readonly class ConfigDocumentManager
      */
     private function defaults(): array
     {
-        return [
-            '$schema' => './resources/schema/config.schema.json',
-            'history' => [
-                'enabled' => true,
-                'max_files' => 50,
-                'path' => '.sift/history',
-            ],
-            'output' => [
-                'format' => 'json',
-                'size' => 'normal',
-                'show_process' => false,
-            ],
-            'tools' => [],
-        ];
+        return ConfigDefaults::document();
     }
 
     /**

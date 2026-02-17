@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Sift\Core\NormalizedResult;
+use Sift\Exceptions\UserFacingException;
 use Sift\Runtime\FileRunStore;
 use Sift\Runtime\ViewService;
 
@@ -100,7 +101,7 @@ it('exposes fuller scopes and reports missing runs', function (): void {
             ]);
 
         expect(fn () => $service->view($cwd, 'missing-run', 'summary', 10, 0))
-            ->toThrow(\Sift\Exceptions\UserFacingException::class);
+            ->toThrow(UserFacingException::class);
     } finally {
         removeDirectory($cwd);
     }
