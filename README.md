@@ -9,8 +9,8 @@
 <p align="center">
     <a href="https://packagist.org/packages/vitorsreis/sift"><img alt="PHP Version" src="https://img.shields.io/packagist/php-v/vitorsreis/sift?color=777bb4"></a>
     <a href="https://packagist.org/packages/vitorsreis/sift"><img alt="Packagist Downloads" src="https://img.shields.io/packagist/dt/vitorsreis/sift?color=2563eb"></a>
-    <a href="https://github.com/vitorsreis/sift/actions/workflows/tests.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/vitorsreis/sift/tests.yml?branch=main&label=tests"></a>
-    <a href="https://github.com/vitorsreis/sift/blob/main/LICENSE.md"><img alt="License" src="https://img.shields.io/github/license/vitorsreis/sift?color=16a34a"></a>
+    <a href="https://github.com/vitorsreis/sift/actions/workflows/ci.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/vitorsreis/sift/ci.yml?branch=master&label=tests"></a>
+    <a href="https://github.com/vitorsreis/sift/blob/master/LICENSE.md"><img alt="License" src="https://img.shields.io/github/license/vitorsreis/sift?color=16a34a"></a>
 </p>
 
 ![Sift preview](resources/preview.svg)
