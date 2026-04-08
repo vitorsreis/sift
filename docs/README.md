@@ -4,12 +4,6 @@ This folder is the full reference for Sift.
 
 If the repository root README is the project presentation, this folder is where the behavior, commands, config, output model, tool contract, and release flow are explained in detail.
 
-Coverage note:
-
-- `composer test:coverage` expects `xdebug` in the active PHP runtime, disables outer step debugging, and forces `XDEBUG_MODE=coverage`
-- the GitHub Actions CI includes a dedicated `php-coverage` job with `xdebug`
-- that coverage job passes `--coverage-clover=build/coverage/clover.xml` and uploads that file as an artifact
-
 ## Start Here
 
 - [COMMANDS.md](COMMANDS.md): what every command does, when to use it, reserved commands, interactive `add`, `view`, and runtime flags
