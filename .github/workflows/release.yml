@@ -28,9 +28,16 @@ jobs:
       - name: Build PHAR
         run: composer build:phar
 
+      - name: Build release notes
+        run: |
+          cat <<EOF > release-notes.md
+          See [CHANGELOG.md](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for the full list of changes.
+          EOF
+
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
+          body_path: release-notes.md
           files: |
             build/phar/sift.phar
             build/phar/sift.phar.sha256
