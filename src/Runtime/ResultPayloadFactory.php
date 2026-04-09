@@ -68,7 +68,7 @@ final class ResultPayloadFactory
         return [
             'status' => $result->status,
             'summary' => $result->summary,
-            'items' => $result->items,
+            'items' => $this->normalItems($result->items),
         ];
     }
 
@@ -78,5 +78,21 @@ final class ResultPayloadFactory
     private function fuller(NormalizedResult $result): array
     {
         return $result->toArray();
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function normalItems(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $item) {
+            unset($item['test']);
+            $normalized[] = $item;
+        }
+
+        return $normalized;
     }
 }

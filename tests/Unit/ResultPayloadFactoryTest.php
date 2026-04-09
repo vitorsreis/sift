@@ -66,6 +66,33 @@ it('builds normal payloads with summary and items', function (): void {
     ]);
 });
 
+it('omits testcase names from normal payload items while keeping fuller payloads intact', function (): void {
+    $result = new NormalizedResult(
+        tool: 'pest',
+        status: 'failed',
+        summary: ['tests' => 1, 'failures' => 1],
+        items: [[
+            'type' => 'failure',
+            'test' => 'it fails',
+            'file' => 'tests/FailingTest.php',
+            'line' => 6,
+            'message' => 'Failed asserting that false is true.',
+        ]],
+    );
+
+    $normal = (new ResultPayloadFactory)->forSize($result, 'normal');
+    $fuller = (new ResultPayloadFactory)->forSize($result, 'fuller');
+
+    expect($normal['items'][0])->not->toHaveKey('test')
+        ->and($normal['items'][0])->toMatchArray([
+            'type' => 'failure',
+            'file' => 'tests/FailingTest.php',
+            'line' => 6,
+            'message' => 'Failed asserting that false is true.',
+        ])
+        ->and($fuller['items'][0]['test'])->toBe('it fails');
+});
+
 it('builds fuller payloads with the full normalized shape', function (): void {
     $payload = (new ResultPayloadFactory)->forSize(
         new NormalizedResult(

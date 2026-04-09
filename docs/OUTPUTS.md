@@ -61,6 +61,7 @@ Typical characteristics:
 - `run_id`
 - `summary`
 - `items`
+- slimmer testcase items for test tools, keeping `message`, `file`, and `line` while reserving `test` for `fuller`
 
 This is the most balanced mode for terminals and agents.
 
@@ -76,6 +77,7 @@ Typical characteristics:
 - `artifacts`
 - `extra`
 - `meta`
+- full testcase detail, including fields such as `test` when the tool exposes them
 
 Useful when you need to preserve diffs, contextual metadata, or tool-specific detail.
 

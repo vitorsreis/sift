@@ -131,12 +131,17 @@ trait ParsesJunitOutput
         $details = trim((string) $node);
         $combined = $this->combineJunitMessage($message, $details);
         [$reportedFile, $reportedLine] = $this->extractJunitLocation($combined, $cwd);
+        $sanitizedMessage = $this->sanitizeJunitMessage($combined);
 
         $item = [
             'type' => $type,
             'test' => $testName,
             'file' => $reportedFile ?? $resolvedFile,
         ];
+
+        if ($sanitizedMessage !== '') {
+            $item['message'] = $sanitizedMessage;
+        }
 
         if ($reportedLine !== null) {
             $item['line'] = $reportedLine;
@@ -160,6 +165,33 @@ trait ParsesJunitOutput
         }
 
         return $message."\n".$details;
+    }
+
+    private function sanitizeJunitMessage(string $message): string
+    {
+        if ($message === '') {
+            return '';
+        }
+
+        $normalized = preg_replace('~\r\n?~', "\n", $message);
+
+        if (! is_string($normalized)) {
+            return '';
+        }
+
+        $normalized = preg_replace('~^at\s+.+?\.php:\d+\s*$~mi', '', $normalized);
+
+        if (! is_string($normalized)) {
+            return '';
+        }
+
+        $normalized = preg_replace("~\n{3,}~", "\n\n", $normalized);
+
+        if (! is_string($normalized)) {
+            return '';
+        }
+
+        return trim($normalized);
     }
 
     /**
