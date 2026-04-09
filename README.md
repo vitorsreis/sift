@@ -52,6 +52,16 @@ Run a tool through Sift:
 vendor/bin/sift phpstan analyse src
 ```
 
+## AI Setup
+
+If you use coding agents, you can reference [AI_INSTRUCTIONS.md](docs/AI_INSTRUCTIONS.md) from your project's AI instructions so the agent learns to use Sift in a token-efficient way.
+
+Example note in `AGENTS.md`:
+
+```md
+Use the [Sift Instructions](vendor/vitorsreis/sift/docs/AI_INSTRUCTIONS.md) before running tests, linters, static analysis, and other supported PHP tools.
+```
+
 ## Supported Tools
 
 - `phpunit` - PHPUnit test runner
