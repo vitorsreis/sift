@@ -1,14 +1,12 @@
 {
   "name": "vitorsreis/sift",
-  "description": "Agent-optimized output for PHP tooling",
+  "description": "AI-optimized PHP tool wrapper with intelligent output control.",
   "keywords": [
     "php",
     "agent",
     "ai",
     "cli",
-    "tooling",
-    "phpunit",
-    "phpstan"
+    "tooling"
   ],
   "license": "MIT",
   "type": "library",
