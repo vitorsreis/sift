@@ -44,6 +44,24 @@ it('prepares pest with junit and clover output for coverage runs', function (): 
     ]);
 });
 
+it('detects pest filter and coverage output switches', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PestToolAdapter(commandFactory: pestAdapterCommandFactory($project));
+
+    $context = $adapter->context(new CliArguments('pest', [
+        '--filter=CheckoutTest',
+        '--coverage-text',
+        '--coverage-clover=build/clover.xml',
+        '--coverage-html=build/coverage',
+        '--min',
+        '85',
+    ]), $project->root());
+
+    expect($context->filter())->toBe('CheckoutTest');
+    expect($context->coverage())->toBeTrue();
+    expect($context->coverageMin())->toBe(85.0);
+});
+
 it('parses pest junit and clover results', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');

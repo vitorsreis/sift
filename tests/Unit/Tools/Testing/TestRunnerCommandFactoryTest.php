@@ -47,6 +47,23 @@ it('respects explicit junit output paths', function (): void {
     expect($command->temporaryFiles())->toBe([]);
 });
 
+it('respects inline junit output paths', function (): void {
+    $project = FixtureProject::create();
+    $factory = testRunnerFactory($project);
+
+    $command = $factory->prepare(
+        toolName: 'phpunit',
+        tool: testRunnerLocatedTool($project),
+        context: new ToolContext('phpunit', cwd: $project->root()),
+        config: new ToolConfig('phpunit', true, null, [], 120),
+        arguments: ['--log-junit=build/junit.xml'],
+    );
+
+    expect($command->arguments())->toBe(['--log-junit=build/junit.xml']);
+    expect($command->artifacts())->toBe(['junit' => $project->path('build/junit.xml')]);
+    expect($command->temporaryFiles())->toBe([]);
+});
+
 it('injects clover output when coverage is requested', function (): void {
     $project = FixtureProject::create();
     $factory = testRunnerFactory($project);

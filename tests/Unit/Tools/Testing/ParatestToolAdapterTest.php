@@ -40,6 +40,22 @@ it('prepares paratest with junit output', function (): void {
     expect($command->artifacts())->toHaveKey('junit');
 });
 
+it('prepares paratest with clover output for coverage runs', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ParatestToolAdapter(commandFactory: paratestAdapterCommandFactory($project));
+    $context = $adapter->context(new CliArguments('paratest', ['--coverage', '--min=75']), $project->root());
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('paratest', $project->path('vendor/bin/paratest'), 'vendor/bin/paratest', 'relative'),
+        context: $context,
+        config: new ToolConfig('paratest', true, null, [], 120),
+    );
+
+    expect($context->coverage())->toBeTrue();
+    expect($context->coverageMin())->toBe(75.0);
+    expect($command->artifacts())->toHaveKeys(['junit', 'coverage_clover']);
+});
+
 it('parses paratest junit results', function (): void {
     $project = FixtureProject::create();
     $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');

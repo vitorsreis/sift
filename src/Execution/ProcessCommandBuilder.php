@@ -21,9 +21,8 @@ final readonly class ProcessCommandBuilder
             return [
                 'cmd.exe',
                 '/d',
-                '/s',
                 '/c',
-                $this->windowsBatchCommandLine($command->argv()),
+                ...$command->argv(),
             ];
         }
 
@@ -37,16 +36,4 @@ final readonly class ProcessCommandBuilder
         return $extension === 'bat' || $extension === 'cmd';
     }
 
-    /**
-     * @param non-empty-list<string> $argv
-     */
-    private function windowsBatchCommandLine(array $argv): string
-    {
-        return implode(' ', array_map($this->quoteWindowsArgument(...), $argv));
-    }
-
-    private function quoteWindowsArgument(string $argument): string
-    {
-        return '"' . str_replace('"', '\\"', $argument) . '"';
-    }
 }

@@ -45,13 +45,14 @@ it('wraps windows batch commands through cmd exe', function (): void {
     expect($argv)->toBe([
         'cmd.exe',
         '/d',
-        '/s',
         '/c',
-        '"vendor\\bin\\pint.bat" "--repair" "app\\Models\\User.php"',
+        'vendor\\bin\\pint.bat',
+        '--repair',
+        'app\\Models\\User.php',
     ]);
 });
 
-it('escapes windows batch arguments centrally', function (): void {
+it('keeps windows batch arguments separated for proc open', function (): void {
     $command = new PreparedCommand(
         tool: 'tool',
         binary: 'vendor\\bin\\tool.cmd',
@@ -61,5 +62,13 @@ it('escapes windows batch arguments centrally', function (): void {
 
     $argv = (new ProcessCommandBuilder(new Platform('Windows')))->argv($command);
 
-    expect($argv[4])->toBe('"vendor\\bin\\tool.cmd" "A&B" "has \\"quote\\"" ""');
+    expect($argv)->toBe([
+        'cmd.exe',
+        '/d',
+        '/c',
+        'vendor\\bin\\tool.cmd',
+        'A&B',
+        'has "quote"',
+        '',
+    ]);
 });

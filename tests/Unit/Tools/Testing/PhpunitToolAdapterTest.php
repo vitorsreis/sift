@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Sift\Config\ToolConfig;
 use Sift\Core\ExecutionResult;
 use Sift\Core\RunStatus;
+use Sift\Exceptions\UserFacingException;
 use Sift\Execution\LocatedTool;
 use Sift\Filesystem\TempFileFactory;
 use Sift\Tools\CliArguments;
@@ -83,6 +84,26 @@ XML,
         'skipped' => 0,
     ]);
     expect($payload['items'][0]['file'])->toBe('tests/Feature/CheckoutTest.php');
+    expect(is_file($command->artifacts()['junit']))->toBeFalse();
+});
+
+it('removes temporary reports when phpunit parsing fails', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpunitToolAdapter(commandFactory: phpunitAdapterCommandFactory($project));
+    $context = $adapter->context(new CliArguments('phpunit'), $project->root());
+    $command = $adapter->prepare(
+        tool: new LocatedTool('phpunit', $project->path('vendor/bin/phpunit'), 'vendor/bin/phpunit', 'relative'),
+        context: $context,
+        config: new ToolConfig('phpunit', true, null, [], 120),
+    );
+
+    file_put_contents($command->artifacts()['junit'], 'not xml');
+
+    expect(fn(): mixed => $adapter->parse(
+        execution: ExecutionResult::completed(1, '', '', 0.12),
+        context: $context,
+        command: $command,
+    ))->toThrow(UserFacingException::class);
     expect(is_file($command->artifacts()['junit']))->toBeFalse();
 });
 
