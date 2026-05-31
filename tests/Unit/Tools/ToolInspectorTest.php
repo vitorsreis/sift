@@ -8,6 +8,7 @@ use Sift\Config\SiftConfig;
 use Sift\Config\ToolConfig;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
+use Sift\Core\PreparedCommand;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\AbstractCliToolAdapter;
 use Sift\Tools\ToolContext;
@@ -137,7 +138,7 @@ function toolInspectorAdapter(string $name, array $candidates, array $versionCom
             return 'inspect';
         }
 
-        public function parse(ExecutionResult $execution, ToolContext $context): NormalizedResult
+        public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
             return NormalizedResult::passed($context->toolName());
         }

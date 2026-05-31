@@ -18,5 +18,5 @@ interface ToolAdapter
 
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand;
 
-    public function parse(ExecutionResult $execution, ToolContext $context): NormalizedResult;
+    public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult;
 }

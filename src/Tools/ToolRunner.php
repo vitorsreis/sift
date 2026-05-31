@@ -58,7 +58,7 @@ final readonly class ToolRunner
         }
 
         $execution = $this->processRunner->run($command);
-        $parsed = $adapter->parse($execution, $context);
+        $parsed = $adapter->parse($execution, $context, $command);
 
         return $this->resultBuilder->build($parsed, $execution, $command, $context);
     }

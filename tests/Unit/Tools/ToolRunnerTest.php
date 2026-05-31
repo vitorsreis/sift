@@ -44,6 +44,7 @@ it('runs a normalized tool through registry, policies, process and parser', func
     expect($payload['summary'])->toBe([
         'stdout' => 'normalized-out',
         'stderr' => 'normalized-err',
+        'parsed_command' => [PHP_BINARY, '-r', $code, 'user-arg'],
     ]);
     expect($payload['meta']['exit_code'])->toBe(0);
     expect($payload['meta']['command'])->toBe([PHP_BINARY, '-r', $code, 'user-arg']);
@@ -136,11 +137,12 @@ function toolRunnerAdapter(string $name, array $aliases, array $defaultArguments
             return $this->defaultArguments;
         }
 
-        public function parse(ExecutionResult $execution, ToolContext $context): NormalizedResult
+        public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
             return NormalizedResult::passed($context->toolName(), [
                 'stdout' => $execution->stdout(),
                 'stderr' => $execution->stderr(),
+                'parsed_command' => $command->argv(),
             ]);
         }
     };

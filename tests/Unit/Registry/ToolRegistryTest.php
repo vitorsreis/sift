@@ -96,7 +96,7 @@ function testRegistryAdapter(ToolDefinition $definition): ToolAdapter
             return new PreparedCommand($tool->tool(), $tool->binary(), timeout: $config->timeout());
         }
 
-        public function parse(ExecutionResult $execution, ToolContext $context): NormalizedResult
+        public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
             return NormalizedResult::passed($context->toolName());
         }

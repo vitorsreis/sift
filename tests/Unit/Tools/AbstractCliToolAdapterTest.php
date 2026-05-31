@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Sift\Config\ToolConfig;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
+use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Tools\AbstractCliToolAdapter;
 use Sift\Tools\CliArguments;
@@ -161,7 +162,7 @@ function testCliAdapter(
             return $this->defaultArguments;
         }
 
-        public function parse(ExecutionResult $execution, ToolContext $context): NormalizedResult
+        public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
             return NormalizedResult::passed($context->toolName());
         }
