@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Config\ConfigValidationException;
 use Sift\Console\Commands\HelpCommand;
+use Sift\Console\Commands\InitCommand;
+use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
 use Sift\Output\JsonRenderer;
 
@@ -27,11 +30,17 @@ final readonly class Application
             return $this->renderUsageError($invalidUsageException);
         }
 
-        return match ($route->handler()) {
-            'help' => $this->renderPassed((new HelpCommand())->handle()),
-            'version' => $this->renderPassed((new VersionCommand())->handle()),
-            default => $this->renderNotImplemented($route),
-        };
+        try {
+            return match ($route->handler()) {
+                'help' => $this->renderPassed((new HelpCommand())->handle($route, $this->cwd())),
+                'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd())),
+                'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd())),
+                'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd())),
+                default => $this->renderNotImplemented($route),
+            };
+        } catch (ConfigValidationException $configValidationException) {
+            return $this->renderConfigError($configValidationException);
+        }
     }
 
     private function parser(): CliParser
@@ -42,6 +51,13 @@ final readonly class Application
     private function router(): CommandRouter
     {
         return $this->router ?? CommandRouter::forSift();
+    }
+
+    private function cwd(): string
+    {
+        $cwd = getcwd();
+
+        return is_string($cwd) ? $cwd : '.';
     }
 
     /**
@@ -62,6 +78,20 @@ final readonly class Application
                 'code' => 'invalid_usage',
                 'message' => $exception->getMessage(),
                 'hint' => 'Run "sift help" to list available commands.',
+            ],
+        ]));
+
+        return 3;
+    }
+
+    private function renderConfigError(ConfigValidationException $exception): int
+    {
+        fwrite(STDERR, $this->renderer->render([
+            'status' => 'error',
+            'error' => [
+                'code' => $exception->errorCode(),
+                'message' => $exception->getMessage(),
+                'path' => $exception->path(),
             ],
         ]));
 

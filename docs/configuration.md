@@ -12,7 +12,7 @@ Sift uses `$schema` as the config contract identifier. `init` writes a schema UR
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json",
+  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
   "output": {
     "size": "compact",
     "pretty": true,

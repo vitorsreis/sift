@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sift\Config;
+
+use RuntimeException;
+
+final class ConfigValidationException extends RuntimeException
+{
+    private function __construct(
+        private readonly string $errorCode,
+        private readonly ?string $path,
+        string $message,
+    ) {
+        parent::__construct($message);
+    }
+
+    public static function invalidConfig(?string $path, string $message): self
+    {
+        return new self('invalid_config', $path, $message);
+    }
+
+    public static function schemaUnsupported(?string $path, string $message): self
+    {
+        return new self('config_schema_unsupported', $path, $message);
+    }
+
+    public function errorCode(): string
+    {
+        return $this->errorCode;
+    }
+
+    public function path(): ?string
+    {
+        return $this->path;
+    }
+}

@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sift\Config;
+
+final readonly class OutputConfig
+{
+    public function __construct(
+        private string $size,
+        private bool $pretty,
+        private bool $showProcess,
+    ) {}
+
+    public function size(): string
+    {
+        return $this->size;
+    }
+
+    public function pretty(): bool
+    {
+        return $this->pretty;
+    }
+
+    public function showProcess(): bool
+    {
+        return $this->showProcess;
+    }
+}
