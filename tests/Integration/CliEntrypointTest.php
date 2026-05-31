@@ -155,3 +155,14 @@ it('renders invalid usage errors as JSON on stderr', function (): void {
     expect($error['code'] ?? null)->toBe('invalid_usage');
     expect($error['message'] ?? null)->toBe('Unknown command "tools add".');
 });
+
+it('respects pretty and no-pretty output flags', function (): void {
+    $pretty = runSift(['--pretty', 'help']);
+    $compact = runSift(['--no-pretty', 'help']);
+
+    expect($pretty['exit_code'])->toBe(0);
+    expect($compact['exit_code'])->toBe(0);
+    expect($pretty['stdout'])->toContain("\n" . '    "tool": "sift"');
+    expect($compact['stdout'])->not->toContain("\n    ");
+    expect(substr_count($compact['stdout'], "\n"))->toBe(1);
+});

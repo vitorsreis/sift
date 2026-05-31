@@ -19,6 +19,7 @@ final readonly class Application
         private JsonRenderer $renderer = new JsonRenderer(),
         private ?CliParser $parser = null,
         private ?CommandRouter $router = null,
+        private ?OutputPreferencesResolver $outputPreferencesResolver = null,
     ) {}
 
     /**
@@ -28,20 +29,21 @@ final readonly class Application
     {
         try {
             $route = $this->router()->route($this->parser()->parse(array_slice($argv, 1)));
+            $preferences = $this->outputPreferencesResolver()->resolve($route);
         } catch (InvalidUsageException $invalidUsageException) {
-            return $this->renderUsageError($invalidUsageException);
+            return $this->renderUsageError($invalidUsageException, $this->outputPreferencesResolver()->defaults());
         }
 
         try {
             return match ($route->handler()) {
-                'help' => $this->renderPassed((new HelpCommand())->handle($route, $this->cwd())),
-                'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd())),
-                'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd())),
-                'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd())),
-                default => $this->renderNotImplemented($route),
+                'help' => $this->renderPassed((new HelpCommand())->handle($route, $this->cwd()), $preferences),
+                'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd()), $preferences),
+                'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
+                'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
+                default => $this->renderNotImplemented($route, $preferences),
             };
         } catch (ConfigValidationException $configValidationException) {
-            return $this->renderConfigError($configValidationException);
+            return $this->renderConfigError($configValidationException, $preferences);
         }
     }
 
@@ -55,6 +57,11 @@ final readonly class Application
         return $this->router ?? CommandRouter::forSift();
     }
 
+    private function outputPreferencesResolver(): OutputPreferencesResolver
+    {
+        return $this->outputPreferencesResolver ?? OutputPreferencesResolver::fromEnvironment();
+    }
+
     private function cwd(): string
     {
         $cwd = getcwd();
@@ -65,14 +72,14 @@ final readonly class Application
     /**
      * @param array<string, mixed> $payload
      */
-    private function renderPassed(array $payload): int
+    private function renderPassed(array $payload, OutputPreferences $preferences): int
     {
-        fwrite(STDOUT, $this->renderer->render($payload));
+        fwrite(STDOUT, $this->renderer->render($payload, $preferences));
 
         return ExitCode::Success->value;
     }
 
-    private function renderUsageError(InvalidUsageException $exception): int
+    private function renderUsageError(InvalidUsageException $exception, OutputPreferences $preferences): int
     {
         fwrite(STDERR, $this->renderer->render([
             'status' => RunStatus::Error->value,
@@ -81,12 +88,12 @@ final readonly class Application
                 'message' => $exception->getMessage(),
                 'hint' => 'Run "sift help" to list available commands.',
             ],
-        ]));
+        ], $preferences));
 
         return ExitCode::UserError->value;
     }
 
-    private function renderConfigError(ConfigValidationException $exception): int
+    private function renderConfigError(ConfigValidationException $exception, OutputPreferences $preferences): int
     {
         fwrite(STDERR, $this->renderer->render([
             'status' => RunStatus::Error->value,
@@ -95,12 +102,12 @@ final readonly class Application
                 'message' => $exception->getMessage(),
                 'path' => $exception->path(),
             ],
-        ]));
+        ], $preferences));
 
         return ExitCode::UserError->value;
     }
 
-    private function renderNotImplemented(CommandRoute $route): int
+    private function renderNotImplemented(CommandRoute $route, OutputPreferences $preferences): int
     {
         fwrite(STDERR, $this->renderer->render([
             'status' => RunStatus::Error->value,
@@ -109,7 +116,7 @@ final readonly class Application
                 'message' => sprintf('Command "%s" is not implemented yet.', $route->handler()),
                 'hint' => 'Run "sift help" to list available commands.',
             ],
-        ]));
+        ], $preferences));
 
         return ExitCode::UserError->value;
     }
