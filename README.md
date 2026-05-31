@@ -70,20 +70,11 @@ composer sift history view <run_id> meta
 
 ## Agent Skills
 
-Install the bundled Sift skill:
-
 ```bash
-composer skills add vitorsreis/sift --skill sift
-composer skills list
-```
-
-Preview external skills before installing:
-
-```bash
-composer skills add owner/repo --list
-composer skills add owner/repo --skill review --agent=codex --yes
-composer skills update review --yes
-composer skills remove review --yes
+composer skills add <source> --list
+composer skills add <source> --skill <skill>
+composer skills update <skill> --yes
+composer skills remove <skill> --yes
 ```
 
 Accepted sources:
