@@ -66,6 +66,22 @@ final readonly class NormalizedResult
     }
 
     /**
+     * @param array<string, mixed> $meta
+     */
+    public function withMeta(array $meta): self
+    {
+        return new self(
+            tool: $this->tool,
+            status: $this->status,
+            summary: $this->summary,
+            items: $this->items,
+            artifacts: $this->artifacts,
+            extra: $this->extra,
+            meta: array_replace($this->meta, $meta),
+        );
+    }
+
+    /**
      * @param list<array<string, mixed>> $items
      */
     private function validateItemTypes(array $items): void
