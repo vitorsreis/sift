@@ -9,6 +9,9 @@ use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\CliArguments;
+use Sift\Tools\Testing\ParatestToolAdapter;
+use Sift\Tools\Testing\PestToolAdapter;
+use Sift\Tools\Testing\PhpunitToolAdapter;
 use Sift\Tools\ToolAdapter;
 use Sift\Tools\ToolContext;
 use Sift\Tools\ToolDefinition;
@@ -50,6 +53,17 @@ it('keeps adapters in registration order', function (): void {
     ));
 
     expect((new ToolRegistry($pest, $phpstan))->all())->toBe([$pest, $phpstan]);
+});
+
+it('registers built-in adapters without external discovery', function (): void {
+    $registry = ToolRegistry::builtIns();
+
+    expect($registry->all())->toHaveCount(3);
+    expect($registry->find('pest'))->toBeInstanceOf(PestToolAdapter::class);
+    expect($registry->find('test'))->toBeInstanceOf(PestToolAdapter::class);
+    expect($registry->find('phpunit'))->toBeInstanceOf(PhpunitToolAdapter::class);
+    expect($registry->find('paratest'))->toBeInstanceOf(ParatestToolAdapter::class);
+    expect($registry->find('vendor/package-tool'))->toBeNull();
 });
 
 it('rejects duplicate adapter names and aliases', function (): void {

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\Testing\ParatestToolAdapter;
+use Sift\Tools\Testing\PestToolAdapter;
+use Sift\Tools\Testing\PhpunitToolAdapter;
 use Sift\Tools\ToolAdapter;
 
 final readonly class ToolRegistry implements ToolRegistryInterface
@@ -40,6 +43,15 @@ final readonly class ToolRegistry implements ToolRegistryInterface
         }
 
         $this->adaptersByName = $adaptersByName;
+    }
+
+    public static function builtIns(): self
+    {
+        return new self(
+            new PestToolAdapter(),
+            new PhpunitToolAdapter(),
+            new ParatestToolAdapter(),
+        );
     }
 
     public function find(string $name): ?ToolAdapter
