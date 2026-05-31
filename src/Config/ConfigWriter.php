@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Sift\Config;
 
-use RuntimeException;
+use Sift\Filesystem\JsonFile;
 
 /**
  * @phpstan-type JsonObject array<string, mixed>
  */
-final class ConfigWriter
+final readonly class ConfigWriter
 {
+    public function __construct(
+        private JsonFile $jsonFile = new JsonFile(),
+    ) {}
+
     /**
      * @param JsonObject|null $existing
      */
@@ -48,28 +52,7 @@ final class ConfigWriter
      */
     public function write(string $path, array $document): void
     {
-        $directory = dirname($path);
-
-        if (! is_dir($directory) && ! mkdir($directory, 0777, true) && ! is_dir($directory)) {
-            throw new RuntimeException(sprintf('Could not create config directory "%s".', $directory));
-        }
-
-        $encoded = json_encode($document, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
-        $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(8));
-
-        if (file_put_contents($temporaryPath, $encoded) === false) {
-            throw new RuntimeException(sprintf('Could not write temporary config "%s".', $temporaryPath));
-        }
-
-        if (PHP_OS_FAMILY === 'Windows' && is_file($path) && ! unlink($path)) {
-            throw new RuntimeException(sprintf('Could not replace config "%s".', $path));
-        }
-
-        if (! rename($temporaryPath, $path)) {
-            @unlink($temporaryPath);
-
-            throw new RuntimeException(sprintf('Could not move config into place "%s".', $path));
-        }
+        $this->jsonFile->writeObject($path, $document);
     }
 
     /**

@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Sift\Config;
 
-use JsonException;
+use Sift\Filesystem\FilesystemException;
+use Sift\Filesystem\JsonFile;
 use Sift\Filesystem\Path;
 use Sift\Workspace\Workspace;
 
 /**
  * @phpstan-type JsonObject array<string, mixed>
  */
-final class ConfigLoader
+final readonly class ConfigLoader
 {
+    public function __construct(
+        private JsonFile $jsonFile = new JsonFile(),
+    ) {}
+
     public function load(Workspace $workspace): SiftConfig
     {
         $configPath = $workspace->configPath();
@@ -43,23 +48,11 @@ final class ConfigLoader
      */
     public function readDocument(string $path): array
     {
-        $contents = file_get_contents($path);
-
-        if (! is_string($contents) || trim($contents) === '') {
-            throw ConfigValidationException::invalidConfig($path, 'The config file is empty.');
-        }
-
         try {
-            $document = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $jsonException) {
-            throw ConfigValidationException::invalidConfig($path, $jsonException->getMessage());
+            return $this->jsonFile->readObject($path);
+        } catch (FilesystemException $filesystemException) {
+            throw ConfigValidationException::invalidConfig($path, $filesystemException->getMessage());
         }
-
-        if (! is_array($document) || array_is_list($document)) {
-            throw ConfigValidationException::invalidConfig($path, 'The config root must be a JSON object.');
-        }
-
-        return $this->stringKeyedObject($document, $path, 'config');
     }
 
     /**

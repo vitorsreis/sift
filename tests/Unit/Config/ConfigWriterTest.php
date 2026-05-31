@@ -31,6 +31,7 @@ it('writes the minimal default config document', function (): void {
         ],
         'tools' => [],
     ]);
+    expect(glob($project->path('sift.json.tmp.*')))->toBe([]);
 });
 
 it('preserves known overrides when rewriting defaults', function (): void {
