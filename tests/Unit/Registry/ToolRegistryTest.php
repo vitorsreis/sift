@@ -9,6 +9,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\CliArguments;
+use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
@@ -68,7 +69,7 @@ it('keeps adapters in registration order', function (): void {
 it('registers built-in adapters without external discovery', function (): void {
     $registry = ToolRegistry::builtIns();
 
-    expect($registry->all())->toHaveCount(13);
+    expect($registry->all())->toHaveCount(14);
     expect($registry->find('pest'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('test'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('phpunit'))->toBeInstanceOf(PhpunitToolAdapter::class);
@@ -83,6 +84,7 @@ it('registers built-in adapters without external discovery', function (): void {
     expect($registry->find('deptrac'))->toBeInstanceOf(DeptracToolAdapter::class);
     expect($registry->find('php-cs-fixer'))->toBeInstanceOf(PhpCsFixerToolAdapter::class);
     expect($registry->find('phpmd'))->toBeInstanceOf(PhpmdToolAdapter::class);
+    expect($registry->find('composer-unused'))->toBeInstanceOf(ComposerUnusedToolAdapter::class);
     expect($registry->find('vendor/package-tool'))->toBeNull();
 });
 
