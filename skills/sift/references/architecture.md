@@ -1,6 +1,8 @@
 # Architecture
 
-## Flow
+Use this file only when changing Sift internals or reasoning about payload contracts.
+
+## Runtime Flow
 
 ```text
 Entrypoint
@@ -21,20 +23,29 @@ Entrypoint
 
 ## Modules
 
-- `Console`: parsing, routing, handlers, preferences.
-- `Workspace`: project root, config file, global home, scope.
-- `Config`: schema, typed config, writer.
-- `Execution`: binary location, process command building, supervision, raw streaming.
-- `Safety`: pre-process policies.
-- `Tools`: adapters, parsers, status, inspection.
-- `History`: JSON run files, retention, redaction.
-- `Skills`: source policy, discovery, target writes, inventory.
-- `Composer`: command bridge only.
+- `Console`: parser, router, command handlers.
+- `Workspace`: `cwd`, project root, config path, global root.
+- `Config`: schema URL, typed config, writer, semantic validation.
+- `Tools`: supported tool definitions, adapters, parsing, status mapping.
+- `Safety`: policies that run before any process.
+- `Execution`: tool location, process supervision, raw streaming.
+- `History`: JSON run files, redaction, retention.
+- `Skills`: source policy, discovery, targets, managed metadata.
+- `Composer`: Composer command bridge only.
 - `PHAR`: standalone bootstrap and bundled resources.
 
-## Payload
+## Config Contract
 
-Normal output is JSON:
+- v2 only.
+- `$schema` is the config contract version.
+- `init` writes `https://raw.githubusercontent.com/vitorsreis/sift/v{Sift::VERSION}/resources/schema.json`.
+- Missing config is valid and uses defaults.
+- Config without `$schema` fails with `config_schema_unsupported`.
+- Schema, runtime loader, and docs must describe the same fields.
+
+## Payload Contract
+
+Normal output:
 
 ```json
 {
@@ -48,7 +59,7 @@ Normal output is JSON:
 }
 ```
 
-Errors use:
+Error output:
 
 ```json
 {
@@ -60,3 +71,5 @@ Errors use:
   }
 }
 ```
+
+JSON is the only normalized output format. Native output belongs to `--raw`.

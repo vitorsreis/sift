@@ -1,13 +1,14 @@
 # Commands
 
-## Project
+Use this file for exact syntax. Keep workflow decisions in `workflows.md`.
+
+## Entrypoints
 
 ```bash
-composer sift help
-composer sift version
-composer sift init
-composer sift validate
-composer sift tools list
+composer sift <command>
+composer skills <command>
+php vendor/bin/sift <command>
+php sift.phar <command>
 ```
 
 ## Global Options
@@ -15,55 +16,63 @@ composer sift tools list
 ```text
 --compact
 --full
---pretty / --no-pretty
+--pretty | --no-pretty
 --raw
---show-process / --no-show-process
+--show-process | --no-show-process
 --debug
---history / --no-history
+--history | --no-history
 --config=<path>
+```
+
+## Sift Commands
+
+```bash
+composer sift help
+composer sift version
+composer sift init [--force] [--yes] [--skill|--no-skill] [--config=<path>]
+composer sift validate [--config=<path>]
+composer sift tools list [--config=<path>]
 ```
 
 ## Tool Runs
 
+Pattern:
+
 ```bash
-composer sift --compact --pretty pest
-composer sift --compact phpunit --filter=Name
-composer sift --compact paratest
-composer sift --compact phpstan analyse src
-composer sift --compact psalm
-composer sift --compact phpcs
-composer sift --compact rector process --dry-run src
-composer sift --compact pint
-composer sift --compact mago lint
-composer sift --compact mago analyze src
-composer sift --compact mago format --check src
-composer sift --compact composer audit
-composer sift --compact composer licenses
-composer sift --compact composer outdated
-composer sift --compact composer show
+composer sift --compact <tool> [tool-args]
+composer sift run <tool> [tool-args]
 ```
 
-## History
+Supported tool names:
+
+- `pest`, `phpunit`, `paratest`
+- `phpstan`, `psalm`, `phpcs`, `parallel-lint`
+- `pint`, `php-cs-fixer`, `rector`, `mago`
+- `infection`, `deptrac`, `phpmd`
+- `composer-unused`, `composer-require-checker`
+- `composer audit`, `composer licenses`, `composer outdated`, `composer show`
+
+## History Commands
 
 ```bash
-composer sift history list
-composer sift history view <run_id>
-composer sift history view <run_id> summary
-composer sift history view <run_id> items
-composer sift history view <run_id> meta
-composer sift history remove <run_id>
+composer sift history list [--limit=<n>] [--offset=<n>]
+composer sift history view <run_id> [summary|items|meta|artifacts|extra]
+composer sift history <run_id>
+composer sift history remove <run_id>...
 composer sift history clear
 ```
 
-## Skills
+`history <run_id>` only aliases `history view` when the token matches `run_` plus 32 lowercase hex characters.
+
+## Skill Commands
 
 ```bash
 composer skills list
 composer skills add vitorsreis/sift --skill sift
 composer skills add owner/repo --list
-composer skills add owner/repo --skill review --agent=generic --yes
-composer skills find review
-composer skills init my-skill
-composer skills update my-skill --yes
-composer skills remove my-skill --yes
+composer skills add owner/repo --skill <name> --agent=<target> --yes
+composer skills find <query>
+composer skills init [name] [--yes]
+composer skills update <name> --yes
+composer skills remove <name> --yes
 ```
