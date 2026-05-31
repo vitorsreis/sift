@@ -50,9 +50,9 @@ function runSift(array $arguments): array
  * @return array{
  *     tool: string,
  *     status: string,
- *     summary: array{command: string},
+ *     summary: array<string, mixed>,
  *     items: array<int, mixed>,
- *     meta: array{subcommand: string}
+ *     meta: array<string, mixed>
  * }
  */
 function decodeSiftPayload(string $json): array
@@ -66,13 +66,9 @@ function decodeSiftPayload(string $json): array
     return [
         'tool' => stringField($payload, 'tool'),
         'status' => stringField($payload, 'status'),
-        'summary' => [
-            'command' => stringField(arrayField($payload, 'summary'), 'command'),
-        ],
-        'items' => listField($payload, 'items'),
-        'meta' => [
-            'subcommand' => stringField(arrayField($payload, 'meta'), 'subcommand'),
-        ],
+        'summary' => array_key_exists('summary', $payload) ? objectField($payload, 'summary') : [],
+        'items' => array_key_exists('items', $payload) ? listField($payload, 'items') : [],
+        'meta' => array_key_exists('meta', $payload) ? objectField($payload, 'meta') : [],
     ];
 }
 
@@ -93,17 +89,27 @@ function stringField(array $payload, string $key): string
 /**
  * @param array<mixed> $payload
  *
- * @return array<mixed>
+ * @return array<string, mixed>
  */
-function arrayField(array $payload, string $key): array
+function objectField(array $payload, string $key): array
 {
     $value = $payload[$key] ?? null;
 
-    if (! is_array($value)) {
-        throw new RuntimeException(sprintf('Expected array field "%s".', $key));
+    if (! is_array($value) || array_is_list($value)) {
+        throw new RuntimeException(sprintf('Expected object field "%s".', $key));
     }
 
-    return $value;
+    $normalized = [];
+
+    foreach ($value as $field => $fieldValue) {
+        if (! is_string($field)) {
+            throw new RuntimeException(sprintf('Expected string keys in "%s".', $key));
+        }
+
+        $normalized[$field] = $fieldValue;
+    }
+
+    return $normalized;
 }
 
 /**
@@ -113,9 +119,9 @@ function arrayField(array $payload, string $key): array
  */
 function listField(array $payload, string $key): array
 {
-    $value = arrayField($payload, $key);
+    $value = $payload[$key] ?? null;
 
-    if (! array_is_list($value)) {
+    if (! is_array($value) || ! array_is_list($value)) {
         throw new RuntimeException(sprintf('Expected list field "%s".', $key));
     }
 
@@ -125,14 +131,34 @@ function listField(array $payload, string $key): array
 it('renders help as a normalized JSON payload', function (): void {
     $result = runSift(['help']);
     $payload = decodeSiftPayload($result['stdout']);
+    $rawPayload = json_decode($result['stdout'], true, 512, JSON_THROW_ON_ERROR);
+
+    if (! is_array($rawPayload)) {
+        throw new RuntimeException('Sift payload must be an object.');
+    }
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
     expect($payload['tool'])->toBe('sift');
     expect($payload['status'])->toBe('passed');
-    expect($payload['summary']['command'])->toBe('help');
+    expect($rawPayload['command'] ?? null)->toBe('help');
+    expect(array_key_exists('summary', $rawPayload))->toBeFalse();
+    expect($payload['summary'])->toBe([]);
+    expect($payload['items'])->toBe([]);
+    expect($payload['meta'])->toBe([]);
+});
+
+it('renders full output when requested', function (): void {
+    $result = runSift(['--full', 'help']);
+    $payload = decodeSiftPayload($result['stdout']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($payload['tool'])->toBe('sift');
+    expect($payload['status'])->toBe('passed');
+    expect($payload['summary']['command'] ?? null)->toBe('help');
     expect($payload['items'])->toBeArray();
-    expect($payload['meta']['subcommand'])->toBe('help');
+    expect($payload['meta']['subcommand'] ?? null)->toBe('help');
 });
 
 it('renders invalid usage errors as JSON on stderr', function (): void {

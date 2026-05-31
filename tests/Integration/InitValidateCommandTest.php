@@ -35,7 +35,7 @@ function initValidateObject(array $payload, string $key): array
 it('validates defaults when config is absent', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['validate'], $project->root());
+    $result = CliRunner::run(['--full', 'validate'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $summary = initValidateObject($payload, 'summary');
     $meta = initValidateObject($payload, 'meta');
@@ -56,11 +56,11 @@ it('validates defaults when config is absent', function (): void {
 it('initializes a minimal config and validates it', function (): void {
     $project = FixtureProject::create();
 
-    $init = CliRunner::run(['init', '--no-skill'], $project->root());
+    $init = CliRunner::run(['--full', 'init', '--no-skill'], $project->root());
     $initPayload = CliRunner::decode($init['stdout']);
     $initSummary = initValidateObject($initPayload, 'summary');
     $document = $project->readJson('sift.json');
-    $validate = CliRunner::run(['validate'], $project->root());
+    $validate = CliRunner::run(['--full', 'validate'], $project->root());
     $validatePayload = CliRunner::decode($validate['stdout']);
     $validateSummary = initValidateObject($validatePayload, 'summary');
 
@@ -79,7 +79,7 @@ it('keeps init idempotent without force', function (): void {
     $project = FixtureProject::create();
 
     CliRunner::run(['init', '--no-skill'], $project->root());
-    $again = CliRunner::run(['init', '--no-skill'], $project->root());
+    $again = CliRunner::run(['--full', 'init', '--no-skill'], $project->root());
     $payload = CliRunner::decode($again['stdout']);
     $summary = initValidateObject($payload, 'summary');
 
@@ -90,8 +90,8 @@ it('keeps init idempotent without force', function (): void {
 it('supports command-level custom config path', function (): void {
     $project = FixtureProject::create();
 
-    $init = CliRunner::run(['init', '--no-skill', '--config=custom/sift.json'], $project->root());
-    $validate = CliRunner::run(['validate', '--config=custom/sift.json'], $project->root());
+    $init = CliRunner::run(['--full', 'init', '--no-skill', '--config=custom/sift.json'], $project->root());
+    $validate = CliRunner::run(['--full', 'validate', '--config=custom/sift.json'], $project->root());
     $payload = CliRunner::decode($validate['stdout']);
     $summary = initValidateObject($payload, 'summary');
 

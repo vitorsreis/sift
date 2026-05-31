@@ -14,6 +14,12 @@ Full normalized payload:
 }
 ```
 
+Output sizes:
+
+- `compact`: renders `tool`, `status`, and flattened `summary` fields.
+- `normal`: renders `tool`, `status`, `summary`, non-verbose `items`, and `meta`.
+- `full`: renders the complete normalized payload.
+
 Statuses:
 
 - `passed`
