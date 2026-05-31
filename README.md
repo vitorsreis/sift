@@ -19,8 +19,6 @@
 
 Sift is a command layer for PHP projects that lets coding agents run tools, inspect structured results, and install reusable agent instructions without drowning the conversation in raw terminal output.
 
-Sift v2 is a clean rebuild: config schema, CLI parser, normalized payloads, history, skills, adapters, Composer bridge, and PHAR packaging are versioned contracts with no v1 compatibility layer.
-
 ## What Sift Does
 
 - **Runs PHP tools through one interface**: Pest, PHPUnit, Paratest, PHPStan, Psalm, PHPCS, Pint, Rector, Mago, Composer checks, and dependency tools.
@@ -55,7 +53,7 @@ composer sift tools list
 Run common checks:
 
 ```bash
-composer sift --compact pest
+composer sift --compact --pretty pest
 composer sift --compact phpstan analyse src
 composer sift --compact pint
 composer sift --compact rector process --dry-run src
@@ -75,8 +73,7 @@ composer sift history view <run_id> meta
 Install the bundled Sift skill:
 
 ```bash
-composer skills add sift --agent=codex --yes
-composer skills add sift --agent=generic --yes
+composer skills add vitorsreis/sift --skill sift
 composer skills list
 ```
 

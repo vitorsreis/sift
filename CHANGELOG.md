@@ -8,7 +8,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ### Added
 
-- Clean-slate Sift v2 repository baseline.
+- Clean-slate repository baseline.
 - Versioned GitHub-hosted config schema.
 - Baseline Composer scripts for Pest, PHPStan, Pint, Rector, and quality.
 - Initial CLI bootstrap with JSON `help` and `version` payloads.

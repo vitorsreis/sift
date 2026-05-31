@@ -1,6 +1,6 @@
 # Documentation
 
-Sift v2 is a clean rebuild of the PHP agent tooling layer.
+This directory contains Sift's documentation.
 
 ## Start Here
 

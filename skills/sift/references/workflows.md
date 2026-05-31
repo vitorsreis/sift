@@ -5,14 +5,14 @@
 ```bash
 composer sift init
 composer sift validate
-composer skills add sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift
 composer sift tools list
 ```
 
 ## Failing Test Investigation
 
 ```bash
-composer sift --compact pest --filter=CheckoutTest
+composer sift --compact --pretty pest --filter=CheckoutTest
 composer sift history list
 composer sift history view <run_id> items
 composer sift history view <run_id> meta

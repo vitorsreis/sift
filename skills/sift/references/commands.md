@@ -26,7 +26,7 @@ composer sift tools list
 ## Tool Runs
 
 ```bash
-composer sift --compact pest
+composer sift --compact --pretty pest
 composer sift --compact phpunit --filter=Name
 composer sift --compact paratest
 composer sift --compact phpstan analyse src
@@ -59,7 +59,7 @@ composer sift history clear
 
 ```bash
 composer skills list
-composer skills add sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift
 composer skills add owner/repo --list
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills find review

@@ -8,7 +8,7 @@ sift.json
 
 ## Schema
 
-Sift v2 uses `$schema` as the config contract identifier. `init` writes a schema URL pinned to the installed Sift version:
+Sift uses `$schema` as the config contract identifier. `init` writes a schema URL pinned to the installed Sift version:
 
 ```json
 {

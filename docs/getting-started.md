@@ -18,7 +18,7 @@ composer sift init -y
 ## Run Tools
 
 ```bash
-composer sift --compact pest
+composer sift --compact --pretty pest
 composer sift --compact phpstan analyse src
 composer sift --compact pint
 composer sift --compact composer audit
@@ -39,7 +39,7 @@ History is disabled in `--raw` mode.
 ## Install Agent Instructions
 
 ```bash
-composer skills add sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift
 composer skills list
 ```
 

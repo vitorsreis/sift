@@ -58,7 +58,7 @@ native tool
 ## Tool Commands
 
 ```bash
-composer sift --compact pest
+composer sift --compact --pretty pest
 composer sift --compact phpunit --filter=CheckoutTest
 composer sift --compact paratest
 composer sift --compact phpstan analyse src
@@ -102,7 +102,7 @@ Use `composer skills` for agent instruction management:
 
 ```bash
 composer skills list
-composer skills add sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift
 composer skills add owner/repo --list
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills find review

@@ -23,7 +23,7 @@ Preview discovers skills and returns JSON without writing targets.
 ## Install
 
 ```bash
-composer skills add sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills add owner/repo --all
 ```
