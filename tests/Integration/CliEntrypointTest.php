@@ -134,3 +134,24 @@ it('renders help as a normalized JSON payload', function (): void {
     expect($payload['items'])->toBeArray();
     expect($payload['meta']['subcommand'])->toBe('help');
 });
+
+it('renders invalid usage errors as JSON on stderr', function (): void {
+    $result = runSift(['tools', 'add']);
+    $payload = json_decode($result['stderr'], true, 512, JSON_THROW_ON_ERROR);
+
+    if (! is_array($payload)) {
+        throw new RuntimeException('Sift error payload must be an object.');
+    }
+
+    $error = $payload['error'] ?? null;
+
+    if (! is_array($error)) {
+        throw new RuntimeException('Sift error payload must include an error object.');
+    }
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($payload['status'] ?? null)->toBe('error');
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+    expect($error['message'] ?? null)->toBe('Unknown command "tools add".');
+});

@@ -12,6 +12,8 @@ final readonly class Application
 {
     public function __construct(
         private JsonRenderer $renderer = new JsonRenderer(),
+        private ?CliParser $parser = null,
+        private ?CommandRouter $router = null,
     ) {}
 
     /**
@@ -19,13 +21,27 @@ final readonly class Application
      */
     public function run(array $argv): int
     {
-        $command = $argv[1] ?? 'help';
+        try {
+            $route = $this->router()->route($this->parser()->parse(array_slice($argv, 1)));
+        } catch (InvalidUsageException $invalidUsageException) {
+            return $this->renderUsageError($invalidUsageException);
+        }
 
-        return match ($command) {
-            'help', '--help', '-h' => $this->renderPassed((new HelpCommand())->handle()),
-            'version', '--version', '-V' => $this->renderPassed((new VersionCommand())->handle()),
-            default => $this->renderError($command),
+        return match ($route->handler()) {
+            'help' => $this->renderPassed((new HelpCommand())->handle()),
+            'version' => $this->renderPassed((new VersionCommand())->handle()),
+            default => $this->renderNotImplemented($route),
         };
+    }
+
+    private function parser(): CliParser
+    {
+        return $this->parser ?? CliParser::forSift();
+    }
+
+    private function router(): CommandRouter
+    {
+        return $this->router ?? CommandRouter::forSift();
     }
 
     /**
@@ -38,13 +54,27 @@ final readonly class Application
         return 0;
     }
 
-    private function renderError(string $command): int
+    private function renderUsageError(InvalidUsageException $exception): int
     {
         fwrite(STDERR, $this->renderer->render([
             'status' => 'error',
             'error' => [
                 'code' => 'invalid_usage',
-                'message' => sprintf('Unknown command "%s".', $command),
+                'message' => $exception->getMessage(),
+                'hint' => 'Run "sift help" to list available commands.',
+            ],
+        ]));
+
+        return 3;
+    }
+
+    private function renderNotImplemented(CommandRoute $route): int
+    {
+        fwrite(STDERR, $this->renderer->render([
+            'status' => 'error',
+            'error' => [
+                'code' => 'invalid_usage',
+                'message' => sprintf('Command "%s" is not implemented yet.', $route->handler()),
                 'hint' => 'Run "sift help" to list available commands.',
             ],
         ]));

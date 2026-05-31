@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Console\Commands;
 
-final class HelpCommand
+final class HelpCommand implements CommandHandler
 {
     /**
      * @return array<string, mixed>

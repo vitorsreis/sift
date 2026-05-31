@@ -6,7 +6,7 @@ namespace Sift\Console\Commands;
 
 use Sift\Sift;
 
-final class VersionCommand
+final class VersionCommand implements CommandHandler
 {
     /**
      * @return array<string, mixed>
