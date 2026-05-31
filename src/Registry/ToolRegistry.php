@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\ComposerRequireChecker\ComposerRequireCheckerToolAdapter;
 use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
@@ -73,6 +74,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PhpCsFixerToolAdapter(),
             new PhpmdToolAdapter(),
             new ComposerUnusedToolAdapter(),
+            new ComposerRequireCheckerToolAdapter(),
         );
     }
 
