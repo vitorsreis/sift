@@ -9,6 +9,7 @@ use Sift\Tools\Deptrac\DeptracToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
+use Sift\Tools\PhpCsFixer\PhpCsFixerToolAdapter;
 use Sift\Tools\PhpStan\PhpstanToolAdapter;
 use Sift\Tools\Pint\PintToolAdapter;
 use Sift\Tools\Psalm\PsalmToolAdapter;
@@ -67,6 +68,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new MagoToolAdapter(),
             new InfectionToolAdapter(),
             new DeptracToolAdapter(),
+            new PhpCsFixerToolAdapter(),
         );
     }
 
