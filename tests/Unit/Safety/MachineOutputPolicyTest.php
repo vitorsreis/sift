@@ -37,6 +37,7 @@ it('blocks native non-json output formats outside raw mode', function (string $t
     'psalm output format' => ['psalm', '--output-format=text', '--output-format=text'],
     'mago reporting format' => ['mago', '--reporting-format=plain', 'lint', '--reporting-format=plain'],
     'pint format' => ['pint', '--format=txt', '--format=txt'],
+    'deptrac formatter' => ['deptrac', '--formatter=table', '--formatter=table'],
 ]);
 
 it('allows json machine output formats', function (string $tool, string ...$arguments): void {
@@ -47,6 +48,7 @@ it('allows json machine output formats', function (string $tool, string ...$argu
     'psalm' => ['psalm', '--output-format=json'],
     'mago' => ['mago', 'lint', '--reporting-format=json'],
     'pint' => ['pint', '--format=json'],
+    'deptrac' => ['deptrac', '--formatter=json'],
     'composer' => ['composer', 'audit', '--format=json'],
     'no output option' => ['pest', '--filter', 'CheckoutTest'],
 ]);

@@ -6,6 +6,7 @@
 /build
 /dist
 /vendor
+/.deptrac.cache
 /composer.lock
 /sift.json
 /.phpunit.result.cache

@@ -20,6 +20,7 @@ final readonly class MachineOutputPolicy implements Policy
         '--output-format',
         '--reporting-format',
         '--format',
+        '--formatter',
     ];
 
     public function violations(PreparedCommand $command, ToolContext $context, ToolConfig $config): array
