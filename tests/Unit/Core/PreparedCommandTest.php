@@ -23,6 +23,23 @@ it('carries the resolved command passed to policies and process runners', functi
     expect($command->timeout())->toBe(120);
 });
 
+it('carries generated files, display command and native output mode', function (): void {
+    $command = new PreparedCommand(
+        tool: 'pest',
+        binary: 'vendor/bin/pest',
+        arguments: ['--log-junit', 'build/junit.xml'],
+        temporaryFiles: ['C:/tmp/sift-junit.xml'],
+        artifacts: ['junit' => 'C:/tmp/sift-junit.xml'],
+        displayCommand: ['vendor/bin/pest', '--log-junit', '<temp>'],
+        nativeOutputMode: 'inherit',
+    );
+
+    expect($command->temporaryFiles())->toBe(['C:/tmp/sift-junit.xml']);
+    expect($command->artifacts())->toBe(['junit' => 'C:/tmp/sift-junit.xml']);
+    expect($command->displayCommand())->toBe(['vendor/bin/pest', '--log-junit', '<temp>']);
+    expect($command->nativeOutputMode())->toBe('inherit');
+});
+
 it('rejects an empty resolved binary', function (): void {
     expect(fn(): PreparedCommand => new PreparedCommand(
         tool: 'pest',
