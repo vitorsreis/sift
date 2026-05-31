@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpStan\PhpstanToolAdapter;
@@ -63,6 +64,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new RectorToolAdapter(),
             new PintToolAdapter(),
             new MagoToolAdapter(),
+            new InfectionToolAdapter(),
         );
     }
 
