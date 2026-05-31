@@ -10,6 +10,7 @@ use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
+use Sift\Tools\ParallelLint\ParallelLintToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpCsFixer\PhpCsFixerToolAdapter;
 use Sift\Tools\PhpMd\PhpmdToolAdapter;
@@ -75,6 +76,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PhpmdToolAdapter(),
             new ComposerUnusedToolAdapter(),
             new ComposerRequireCheckerToolAdapter(),
+            new ParallelLintToolAdapter(),
         );
     }
 
