@@ -7,6 +7,7 @@ namespace Sift\Console;
 use Sift\Config\ConfigValidationException;
 use Sift\Console\Commands\HelpCommand;
 use Sift\Console\Commands\InitCommand;
+use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
 use Sift\Core\ErrorCode;
@@ -43,6 +44,7 @@ final readonly class Application
                 'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd()), $preferences),
                 'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
                 'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
+                'tools.list' => $this->renderPassed((new ToolsListCommand())->handle($route, $this->cwd()), $preferences),
                 default => $this->renderNotImplemented($route, $preferences),
             };
         } catch (ConfigValidationException $configValidationException) {

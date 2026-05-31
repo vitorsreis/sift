@@ -161,6 +161,25 @@ it('renders full output when requested', function (): void {
     expect($payload['meta']['subcommand'] ?? null)->toBe('help');
 });
 
+it('renders tools list from the cli', function (): void {
+    $result = runSift(['--full', '--no-pretty', 'tools', 'list']);
+    $payload = decodeSiftPayload($result['stdout']);
+    $tools = array_map(
+        static fn(mixed $item): mixed => is_array($item) ? ($item['tool'] ?? null) : null,
+        $payload['items'],
+    );
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($payload['tool'])->toBe('sift');
+    expect($payload['status'])->toBe('passed');
+    expect($payload['summary']['supported'] ?? null)->toBeGreaterThanOrEqual(3);
+    expect($tools)->toContain('pest');
+    expect($tools)->toContain('phpunit');
+    expect($tools)->toContain('paratest');
+    expect($payload['meta']['subcommand'] ?? null)->toBe('tools list');
+});
+
 it('renders invalid usage errors as JSON on stderr', function (): void {
     $result = runSift(['tools', 'add']);
     $payload = json_decode($result['stderr'], true, 512, JSON_THROW_ON_ERROR);
