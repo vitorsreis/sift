@@ -8,6 +8,7 @@ use Rector\Set\ValueObject\LevelSetList;
 return RectorConfig::configure()
     ->withParallel()
     ->withPaths([
+        __DIR__ . '/src',
         __DIR__ . '/tests',
     ])
     ->withFileExtensions(['php'])

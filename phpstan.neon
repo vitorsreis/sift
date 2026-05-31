@@ -1,4 +1,9 @@
 parameters:
-  level: 8
+  level: max
   paths:
+    - src
     - tests
+    - bin/phar
+  tmpDir: .phpstan.cache
+  reportUnmatchedIgnoredErrors: true
+  treatPhpDocTypesAsCertain: true

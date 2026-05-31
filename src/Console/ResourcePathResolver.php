@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
-final class ResourcePathResolver
+final readonly class ResourcePathResolver
 {
     private function __construct(
-        private readonly string $projectRoot,
+        private string $projectRoot,
     ) {}
 
     public static function fromProjectRoot(string $projectRoot): self

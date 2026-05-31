@@ -69,11 +69,14 @@
     }
   },
   "scripts": {
-    "test": "pest --colors=never",
-    "analyse": "phpstan analyse --memory-limit=1G",
-    "format": "pint --test",
-    "rector": "rector process --dry-run --no-progress-bar",
+    "check:composer": "composer validate --strict",
+    "test": "pest --configuration=phpunit.xml --colors=never",
+    "test:coverage": "pest --configuration=phpunit.xml --coverage --min=80 --colors=never",
+    "analyse": "phpstan analyse --configuration=phpstan.neon --memory-limit=1G",
+    "format": "pint --config=pint.json --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
+    "rector": "rector process --config=rector.php --dry-run --no-progress-bar",
     "quality": [
+      "@check:composer",
       "@test",
       "@analyse",
       "@format",

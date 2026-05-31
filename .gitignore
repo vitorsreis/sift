@@ -1,5 +1,6 @@
 /.coverage
 /.idea
+/.phpstan.cache
 /.phpunit.cache
 /.sift
 /build

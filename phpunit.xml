@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="vendor/autoload.php" cacheDirectory=".phpunit.cache" colors="true">
+<phpunit bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true"
+         columns="max"
+         failOnAllIssues="true"
+         failOnEmptyTestSuite="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutChangesToGlobalState="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         displayDetailsOnAllIssues="true"
+         executionOrder="depends,defects"
+         resolveDependencies="true">
   <testsuites>
     <testsuite name="Unit">
       <directory>tests/Unit</directory>
@@ -16,4 +29,5 @@
       <directory>src</directory>
     </include>
   </source>
+  <coverage includeUncoveredFiles="true"/>
 </phpunit>

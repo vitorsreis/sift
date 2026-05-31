@@ -104,6 +104,10 @@ function listDirectoryFiles(string $directory): iterable
     );
 
     foreach ($iterator as $item) {
+        if (! $item instanceof SplFileInfo) {
+            continue;
+        }
+
         if (! $item->isFile()) {
             continue;
         }

@@ -46,9 +46,85 @@ function runSift(array $arguments): array
     ];
 }
 
+/**
+ * @return array{
+ *     tool: string,
+ *     status: string,
+ *     summary: array{command: string},
+ *     items: array<int, mixed>,
+ *     meta: array{subcommand: string}
+ * }
+ */
+function decodeSiftPayload(string $json): array
+{
+    $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+    if (! is_array($payload)) {
+        throw new RuntimeException('Sift payload must be an object.');
+    }
+
+    return [
+        'tool' => stringField($payload, 'tool'),
+        'status' => stringField($payload, 'status'),
+        'summary' => [
+            'command' => stringField(arrayField($payload, 'summary'), 'command'),
+        ],
+        'items' => listField($payload, 'items'),
+        'meta' => [
+            'subcommand' => stringField(arrayField($payload, 'meta'), 'subcommand'),
+        ],
+    ];
+}
+
+/**
+ * @param array<mixed> $payload
+ */
+function stringField(array $payload, string $key): string
+{
+    $value = $payload[$key] ?? null;
+
+    if (! is_string($value)) {
+        throw new RuntimeException(sprintf('Expected string field "%s".', $key));
+    }
+
+    return $value;
+}
+
+/**
+ * @param array<mixed> $payload
+ *
+ * @return array<mixed>
+ */
+function arrayField(array $payload, string $key): array
+{
+    $value = $payload[$key] ?? null;
+
+    if (! is_array($value)) {
+        throw new RuntimeException(sprintf('Expected array field "%s".', $key));
+    }
+
+    return $value;
+}
+
+/**
+ * @param array<mixed> $payload
+ *
+ * @return array<int, mixed>
+ */
+function listField(array $payload, string $key): array
+{
+    $value = arrayField($payload, $key);
+
+    if (! array_is_list($value)) {
+        throw new RuntimeException(sprintf('Expected list field "%s".', $key));
+    }
+
+    return $value;
+}
+
 it('renders help as a normalized JSON payload', function (): void {
     $result = runSift(['help']);
-    $payload = json_decode((string) $result['stdout'], true, 512, JSON_THROW_ON_ERROR);
+    $payload = decodeSiftPayload($result['stdout']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');

@@ -8,10 +8,10 @@ use Sift\Console\Commands\HelpCommand;
 use Sift\Console\Commands\VersionCommand;
 use Sift\Output\JsonRenderer;
 
-final class Application
+final readonly class Application
 {
     public function __construct(
-        private readonly JsonRenderer $renderer = new JsonRenderer(),
+        private JsonRenderer $renderer = new JsonRenderer(),
     ) {}
 
     /**
