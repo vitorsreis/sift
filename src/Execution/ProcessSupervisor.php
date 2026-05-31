@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Execution;
 
+use InvalidArgumentException;
 use Sift\Core\Clock;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
@@ -102,6 +103,95 @@ final readonly class ProcessSupervisor
 
             $this->removeFile($stdoutPath);
             $this->removeFile($stderrPath);
+
+            foreach ($cleanupCallbacks as $cleanupCallback) {
+                $cleanupCallback();
+            }
+        }
+    }
+
+    /**
+     * @param list<callable(): void> $cleanupCallbacks
+     */
+    public function runStreaming(
+        PreparedCommand $command,
+        float $timeoutSeconds,
+        mixed $stdout,
+        mixed $stderr,
+        array $cleanupCallbacks = [],
+    ): ExecutionResult {
+        if (! is_resource($stdout) || ! is_resource($stderr)) {
+            throw new InvalidArgumentException('Raw process streams must be resources.');
+        }
+
+        $startedAt = $this->clock->monotonicSeconds();
+        $pipes = [];
+        $closed = false;
+        $process = @proc_open(
+            $this->commandBuilder->argv($command),
+            [
+                0 => ['pipe', 'r'],
+                1 => $stdout,
+                2 => $stderr,
+            ],
+            $pipes,
+            $command->cwd(),
+            $command->environment() === [] ? null : $command->environment(),
+        );
+
+        if (! is_resource($process)) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::ProcessFailed,
+                message: sprintf('Could not start process for tool "%s".', $command->tool()),
+                context: ['tool' => $command->tool(), 'command' => $command->argv()],
+            );
+        }
+
+        try {
+            $this->closePipe($pipes[0] ?? null);
+            $exitCode = null;
+
+            while (true) {
+                $status = proc_get_status($process);
+
+                if ($status['running'] && $timeoutSeconds > 0 && ($this->clock->monotonicSeconds() - $startedAt) >= $timeoutSeconds) {
+                    proc_terminate($process);
+                    proc_close($process);
+                    $closed = true;
+
+                    return ExecutionResult::timeout(
+                        stdout: '',
+                        stderr: '',
+                        durationSeconds: $this->clock->monotonicSeconds() - $startedAt,
+                    );
+                }
+
+                if (! $status['running']) {
+                    $exitCode = $status['exitcode'] >= 0
+                        ? $status['exitcode']
+                        : null;
+
+                    break;
+                }
+
+                usleep(10_000);
+            }
+
+            $closedExitCode = proc_close($process);
+            $closed = true;
+
+            return ExecutionResult::completed(
+                exitCode: $exitCode ?? $closedExitCode,
+                stdout: '',
+                stderr: '',
+                durationSeconds: $this->clock->monotonicSeconds() - $startedAt,
+            );
+        } finally {
+            $this->closePipe($pipes[0] ?? null);
+
+            if (! $closed) {
+                proc_close($process);
+            }
 
             foreach ($cleanupCallbacks as $cleanupCallback) {
                 $cleanupCallback();
