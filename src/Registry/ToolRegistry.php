@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\PhpStan\PhpstanToolAdapter;
 use Sift\Tools\Testing\ParatestToolAdapter;
 use Sift\Tools\Testing\PestToolAdapter;
 use Sift\Tools\Testing\PhpunitToolAdapter;
@@ -51,6 +52,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PestToolAdapter(),
             new PhpunitToolAdapter(),
             new ParatestToolAdapter(),
+            new PhpstanToolAdapter(),
         );
     }
 

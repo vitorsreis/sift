@@ -9,6 +9,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\CliArguments;
+use Sift\Tools\PhpStan\PhpstanToolAdapter;
 use Sift\Tools\Testing\ParatestToolAdapter;
 use Sift\Tools\Testing\PestToolAdapter;
 use Sift\Tools\Testing\PhpunitToolAdapter;
@@ -58,11 +59,12 @@ it('keeps adapters in registration order', function (): void {
 it('registers built-in adapters without external discovery', function (): void {
     $registry = ToolRegistry::builtIns();
 
-    expect($registry->all())->toHaveCount(3);
+    expect($registry->all())->toHaveCount(4);
     expect($registry->find('pest'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('test'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('phpunit'))->toBeInstanceOf(PhpunitToolAdapter::class);
     expect($registry->find('paratest'))->toBeInstanceOf(ParatestToolAdapter::class);
+    expect($registry->find('phpstan'))->toBeInstanceOf(PhpstanToolAdapter::class);
     expect($registry->find('vendor/package-tool'))->toBeNull();
 });
 
