@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpStan\PhpstanToolAdapter;
 use Sift\Tools\Psalm\PsalmToolAdapter;
+use Sift\Tools\Rector\RectorToolAdapter;
 use Sift\Tools\Testing\ParatestToolAdapter;
 use Sift\Tools\Testing\PestToolAdapter;
 use Sift\Tools\Testing\PhpunitToolAdapter;
@@ -57,6 +58,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PhpstanToolAdapter(),
             new PsalmToolAdapter(),
             new PhpcsToolAdapter(),
+            new RectorToolAdapter(),
         );
     }
 
