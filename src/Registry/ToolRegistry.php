@@ -1,0 +1,70 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Sift\Registry;
+
+use InvalidArgumentException;
+use Sift\Tools\ToolAdapter;
+
+final readonly class ToolRegistry implements ToolRegistryInterface
+{
+    /**
+     * @var array<string, ToolAdapter>
+     */
+    private array $adaptersByName;
+
+    /**
+     * @var list<ToolAdapter>
+     */
+    private array $adapters;
+
+    public function __construct(ToolAdapter ...$adapters)
+    {
+        $this->adapters = array_values($adapters);
+
+        $adaptersByName = [];
+
+        foreach ($adapters as $adapter) {
+            $definition = $adapter->definition();
+
+            foreach ([$definition->name(), ...$definition->aliases()] as $name) {
+                $normalizedName = $this->normalizeName($name);
+
+                if (isset($adaptersByName[$normalizedName])) {
+                    throw new InvalidArgumentException(sprintf('Tool registry name "%s" is already registered.', $normalizedName));
+                }
+
+                $adaptersByName[$normalizedName] = $adapter;
+            }
+        }
+
+        $this->adaptersByName = $adaptersByName;
+    }
+
+    public function find(string $name): ?ToolAdapter
+    {
+        $normalizedName = $this->normalizeName($name);
+
+        return $this->adaptersByName[$normalizedName] ?? null;
+    }
+
+    /**
+     * @return list<ToolAdapter>
+     */
+    public function all(): array
+    {
+        return $this->adapters;
+    }
+
+    private function normalizeName(string $name): string
+    {
+        $normalizedName = strtolower(trim($name));
+
+        if ($normalizedName === '') {
+            throw new InvalidArgumentException('Tool registry name cannot be empty.');
+        }
+
+        return $normalizedName;
+    }
+}
