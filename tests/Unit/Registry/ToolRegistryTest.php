@@ -9,6 +9,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\CliArguments;
+use Sift\Tools\Mago\MagoToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpStan\PhpstanToolAdapter;
 use Sift\Tools\Pint\PintToolAdapter;
@@ -63,7 +64,7 @@ it('keeps adapters in registration order', function (): void {
 it('registers built-in adapters without external discovery', function (): void {
     $registry = ToolRegistry::builtIns();
 
-    expect($registry->all())->toHaveCount(8);
+    expect($registry->all())->toHaveCount(9);
     expect($registry->find('pest'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('test'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('phpunit'))->toBeInstanceOf(PhpunitToolAdapter::class);
@@ -73,6 +74,7 @@ it('registers built-in adapters without external discovery', function (): void {
     expect($registry->find('phpcs'))->toBeInstanceOf(PhpcsToolAdapter::class);
     expect($registry->find('rector'))->toBeInstanceOf(RectorToolAdapter::class);
     expect($registry->find('pint'))->toBeInstanceOf(PintToolAdapter::class);
+    expect($registry->find('mago'))->toBeInstanceOf(MagoToolAdapter::class);
     expect($registry->find('vendor/package-tool'))->toBeNull();
 });
 
