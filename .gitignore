@@ -1,0 +1,12 @@
+/.coverage
+/.idea
+/.phpunit.cache
+/.sift
+/build
+/dist
+/vendor
+/composer.lock
+/sift.json
+/.phpunit.result.cache
+/.rector.cache
+/coverage

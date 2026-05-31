@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
+  "title": "Sift v2 Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "max_files": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_age_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_bytes_per_run": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "redact_secrets": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "size": {
+          "type": "string",
+          "enum": [
+            "compact",
+            "normal",
+            "full"
+          ]
+        },
+        "pretty": {
+          "type": "boolean"
+        },
+        "show_process": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "properties": {
+        "*": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "timeout": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "binary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blocked_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

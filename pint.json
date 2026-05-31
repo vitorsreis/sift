@@ -1,0 +1,12 @@
+{
+  "preset": "per",
+  "exclude": [
+    "@old-version",
+    "vendor",
+    "build"
+  ],
+  "rules": {
+    "declare_strict_types": true,
+    "final_class": false
+  }
+}

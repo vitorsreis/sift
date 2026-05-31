@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.phar binary
+
+/.github export-ignore
+/tests export-ignore
+/.editorconfig export-ignore
+/phpunit.xml export-ignore
+/phpstan.neon export-ignore
+/rector.php export-ignore
+/pint.json export-ignore
+/box.json export-ignore
