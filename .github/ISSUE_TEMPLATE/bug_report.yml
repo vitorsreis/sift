@@ -1,5 +1,5 @@
 name: Bug report
-description: Report incorrect behavior in the CLI, tools, payloads, or release flow.
+description: Report incorrect Sift behavior.
 title: "[Bug]: "
 labels:
   - bug
@@ -7,24 +7,59 @@ body:
   - type: textarea
     id: summary
     attributes:
-      label: What happened?
+      label: Summary
+      description: What happened, and what should have happened instead?
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: reproduction
     attributes:
       label: Reproduction
-      description: Include the Sift command, config snippet, and the observed output.
+      description: Include the exact command, config snippet, relevant files, and output.
+      placeholder: |
+        composer sift --compact pest
+        sift.json:
+        { ... }
     validations:
       required: true
-  - type: textarea
-    id: expected
+  - type: dropdown
+    id: area
     attributes:
-      label: Expected behavior
+      label: Area
+      options:
+        - CLI/parser
+        - config/schema
+        - tool adapter
+        - history
+        - skills
+        - Composer plugin
+        - PHAR
+        - documentation
+        - other
     validations:
       required: true
   - type: input
-    id: php
+    id: sift-version
+    attributes:
+      label: Sift version or commit
+      placeholder: 2.0.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: php-version
     attributes:
       label: PHP version
       placeholder: 8.3.x
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true

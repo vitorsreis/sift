@@ -1,6 +1,6 @@
 # Payloads
 
-Full normalized result:
+Full normalized payload:
 
 ```json
 {
@@ -21,7 +21,7 @@ Statuses:
 - `changed`
 - `error`
 
-Error shape:
+## Errors
 
 ```json
 {
@@ -34,7 +34,11 @@ Error shape:
 }
 ```
 
-Core item fields:
+Context fields such as `tool`, `path`, `run_id`, `argument`, or `suggestions` may be added inside `error`.
+
+## Items
+
+Common fields:
 
 - `type`
 - `severity`
@@ -44,16 +48,8 @@ Core item fields:
 - `line`
 - `column`
 
-Common meta fields:
+Item types are centralized. Adapters should not invent new item types without adding catalog coverage.
 
-- `exit_code`
-- `duration`
-- `created_at`
-- `command`
-- `filter`
-- `coverage`
-- `coverage_min`
-- `mode`
-- `dry_run`
-- `subcommand`
-- `warnings`
+## History
+
+History stores the full normalized payload after secret redaction. Immediate terminal output is not redacted unless the adapter output itself is redacted.

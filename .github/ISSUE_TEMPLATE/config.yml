@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/vitorsreis/sift/security/advisories/new
+    about: Report vulnerabilities privately.

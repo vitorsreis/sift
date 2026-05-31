@@ -11,6 +11,12 @@
     "skills",
     "resources"
   ],
+  "finder": [
+    {
+      "name": "*.php",
+      "in": "src"
+    }
+  ],
   "files": [
     "composer.json",
     "README.md",

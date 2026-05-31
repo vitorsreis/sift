@@ -1,4 +1,4 @@
-# Commands
+# CLI Reference
 
 ## Entrypoints
 
@@ -9,7 +9,7 @@ php vendor/bin/sift <command>
 php sift.phar <command>
 ```
 
-All entrypoints render the same JSON payload for the same arguments.
+All entrypoints call the same application core and should return the same payload for the same arguments.
 
 ## Global Options
 
@@ -25,41 +25,46 @@ All entrypoints render the same JSON payload for the same arguments.
 - `--no-history`
 - `--config=<path>`, `-c <path>`
 
-Precedence is:
+Precedence:
 
 ```text
 command option > global option > config > default
 ```
 
-## Built-ins
+## Commands
 
 - `help`, `--help`, `-h`
 - `version`, `--version`, `-V`
 - `init`
 - `validate`
 - `tools list`, `tools ls`
-- `run <tool> [args]`
-- `<tool> [args]`
-
-## Skills
-
 - `skills list`, `skills ls`
 - `skills add <source>`
-- `skills add <source> --list`
 - `skills find [query]`
 - `skills init [name]`
 - `skills remove <skill>`, `skills rm <skill>`
 - `skills update [skill ...]`
-
-`composer skills <args>` is the same command family without the `skills` prefix.
-
-## History
-
 - `history list`, `history ls`
 - `history view <run_id>`
 - `history <run_id>`
 - `history view <run_id> summary|items|meta|artifacts|extra`
 - `history remove <run_id ...>`, `history rm <run_id ...>`
 - `history clear`
+- `run <tool> [args]`
+- `<tool> [args]`
 
-`--limit` and `--offset` are strict integers.
+## Streams
+
+- Normalized result payloads go to `STDOUT`.
+- Sift errors go to `STDERR`.
+- `--show-process` writes only to `STDERR`.
+- `--debug` writes diagnostics to `STDERR` and keeps `STDOUT` unchanged.
+- `--raw` passes through native stdout, stderr, and exit code.
+
+## Exit Codes
+
+- `0`: passed
+- `1`: findings, failures, diffs, or expected changes
+- `2`: operational error
+- `3`: usage, config, or policy error before execution
+- `130`: detected interruption

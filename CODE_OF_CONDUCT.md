@@ -1,18 +1,34 @@
 # Code of Conduct
 
-## Expectations
+## Standard
 
-Participants are expected to:
+This project expects direct, respectful, technical collaboration.
 
-- be direct and respectful
-- focus on technical substance
-- assume good intent while challenging weak arguments
-- avoid harassment, insults, and discriminatory behavior
+Participants should:
 
-## Reporting
+- focus criticism on code, design, documentation, and behavior
+- explain tradeoffs clearly
+- assume good intent while still challenging weak arguments
+- make room for different levels of experience
+- keep discussions relevant to the project
 
-If you experience or witness unacceptable behavior, report it privately to the maintainer through GitHub.
+Unacceptable behavior includes:
+
+- harassment, threats, or personal attacks
+- discriminatory language or behavior
+- sexualized comments or imagery
+- publishing private information without permission
+- sustained disruption of issue, pull request, or release discussions
+- bad-faith security reports or exploit demonstrations against other users
 
 ## Enforcement
 
-The maintainer may remove comments, close discussions, or block participation when behavior harms the project or its contributors.
+Maintainers may edit or remove comments, close issues, lock discussions, reject contributions, or block participation when behavior harms the project or its contributors.
+
+Enforcement decisions should be based on impact, pattern, severity, and project safety.
+
+## Reporting
+
+Report conduct concerns privately through the maintainer's GitHub profile. Include links, screenshots, dates, and any relevant context.
+
+Reports will be handled with as much confidentiality as the situation allows.

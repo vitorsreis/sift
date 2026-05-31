@@ -1,6 +1,9 @@
 name: sift
-description: Use Sift as the project quality, tooling, and skills command layer for PHP repositories.
+description: Use Sift as the project quality, tooling, history, and skills command layer for PHP repositories.
 instructions:
-  - Prefer `composer sift <command>` or `php vendor/bin/sift <command>` when the project has Sift installed.
-  - Use compact output first, then inspect history for details instead of rerunning noisy tools.
-  - Do not bypass Sift safety policies for mutating tools unless the user explicitly asks for repair mode.
+  - Prefer `composer sift --compact <tool>` for supported PHP tools.
+  - Use `composer skills <command>` for skill installation, preview, update, and removal.
+  - Inspect `composer sift history view <run_id> <section>` before rerunning noisy tools.
+  - Keep Composer commands read-only through Sift: audit, licenses, outdated, show.
+  - Keep refactor and formatter tools in dry-run or check mode unless the user explicitly asks for repair.
+  - Use `--raw` only when native output is necessary; policies still apply.

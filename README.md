@@ -38,17 +38,12 @@ composer config allow-plugins.vitorsreis/sift true
 
 PHAR releases are available from the [GitHub releases page](https://github.com/vitorsreis/sift/releases).
 
-```bash
-php sift.phar help
-```
-
 ## Quick Start
 
 Initialize Sift:
 
 ```bash
 composer sift init
-composer sift validate
 ```
 
 Inspect supported tools:
@@ -105,15 +100,9 @@ Accepted sources:
 
 `sift.json` uses `$schema` as the config contract version. `init` writes a schema URL pinned to the installed Sift version:
 
-```php
-"https://raw.githubusercontent.com/vitorsreis/sift/v" . Sift::VERSION . "/resources/schema.json"
-```
-
-Example:
-
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
+  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json",
   "output": {
     "size": "compact",
     "pretty": true,
@@ -167,13 +156,15 @@ php sift.phar <command>
 
 ## Documentation
 
-- [Commands](docs/COMMANDS.md)
-- [Configuration](docs/CONFIGURATION.md)
-- [Outputs](docs/OUTPUTS.md)
-- [Payloads](docs/PAYLOADS.md)
-- [Tools](docs/TOOLS.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Release](docs/RELEASE.md)
+- [Getting started](docs/getting-started.md)
+- [CLI reference](docs/cli.md)
+- [Configuration](docs/configuration.md)
+- [Tools](docs/tools.md)
+- [Skills](docs/skills.md)
+- [Payloads](docs/payloads.md)
+- [Architecture](docs/architecture.md)
+- [PHAR](docs/phar.md)
+- [Contributing](docs/contributing.md)
 
 ## License
 

@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
-  "title": "Sift v2 Config",
+  "title": "Sift Config Schema",
+  "description": "Schema for Sift configuration file.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,13 +19,13 @@
         "enabled": {
           "type": "boolean"
         },
-        "max_files": {
-          "type": "integer",
-          "minimum": 1
-        },
         "path": {
           "type": "string",
           "minLength": 1
+        },
+        "max_files": {
+          "type": "integer",
+          "minimum": 1
         },
         "max_age_days": {
           "type": "integer",
@@ -87,15 +88,15 @@
             "type": "string",
             "minLength": 1
           },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0
+          },
           "blocked_args": {
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "timeout": {
-            "type": "integer",
-            "minimum": 0
           }
         }
       }

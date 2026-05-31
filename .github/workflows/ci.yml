@@ -37,3 +37,9 @@ jobs:
 
       - name: Quality
         run: composer quality
+
+      - name: Build PHAR
+        run: composer build:phar
+
+      - name: Smoke test PHAR
+        run: php build/phar/sift.phar help

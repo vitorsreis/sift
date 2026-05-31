@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a new command, tool, policy, payload field, or release improvement.
+description: Propose a Sift command, adapter, policy, payload, skill, or packaging change.
 title: "[Feature]: "
 labels:
   - enhancement
@@ -8,17 +8,39 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What gap are you trying to solve?
+      description: What workflow is blocked or inefficient today?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposed solution
+      description: Describe command syntax, config shape, payload fields, or adapter behavior.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI/parser
+        - config/schema
+        - tool adapter
+        - history
+        - skills
+        - Composer plugin
+        - PHAR/release
+        - documentation
+        - other
     validations:
       required: true
   - type: textarea
     id: examples
     attributes:
-      label: Command or payload examples
-      description: Add sample commands or normalized output if relevant.
+      label: Examples
+      description: Add sample commands, config snippets, normalized payloads, or prior art.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention native tools or simpler approaches if relevant.

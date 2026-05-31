@@ -1,0 +1,113 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$rootPath = dirname(__DIR__);
+$buildDirectory = $rootPath . DIRECTORY_SEPARATOR . 'build' . DIRECTORY_SEPARATOR . 'phar';
+$pharPath = $buildDirectory . DIRECTORY_SEPARATOR . 'sift.phar';
+$checksumPath = $pharPath . '.sha256';
+$alias = 'sift.phar';
+
+if ((bool) ini_get('phar.readonly')) {
+    fwrite(STDERR, "phar.readonly must be disabled to build the PHAR.\n");
+
+    exit(1);
+}
+
+if (! is_dir($buildDirectory) && ! mkdir($buildDirectory, 0777, true) && ! is_dir($buildDirectory)) {
+    fwrite(STDERR, sprintf("Unable to create build directory: %s\n", $buildDirectory));
+
+    exit(1);
+}
+
+@unlink($pharPath);
+@unlink($checksumPath);
+
+$phar = new Phar($pharPath, 0, $alias);
+$phar->startBuffering();
+
+foreach (packageFiles($rootPath) as $localPath => $sourcePath) {
+    $phar->addFile($sourcePath, $localPath);
+}
+
+$phar->setStub(buildStub($alias));
+$phar->setSignatureAlgorithm(Phar::SHA512);
+$phar->stopBuffering();
+
+@chmod($pharPath, 0755);
+
+$checksum = hash_file('sha256', $pharPath);
+
+if ($checksum === false) {
+    fwrite(STDERR, "Unable to calculate PHAR checksum.\n");
+
+    exit(1);
+}
+
+file_put_contents($checksumPath, $checksum . '  sift.phar' . PHP_EOL);
+
+fwrite(STDOUT, json_encode([
+    'status' => 'built',
+    'phar' => $pharPath,
+    'sha256' => $checksumPath,
+], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+
+/**
+ * @return iterable<string, string>
+ */
+function packageFiles(string $root): iterable
+{
+    foreach (['composer.json', 'README.md', 'LICENSE.md'] as $relativePath) {
+        $filePath = $root . DIRECTORY_SEPARATOR . $relativePath;
+
+        if (is_file($filePath)) {
+            yield $relativePath => $filePath;
+        }
+    }
+
+    foreach (['src', 'resources', 'skills'] as $relativePath) {
+        $directory = $root . DIRECTORY_SEPARATOR . $relativePath;
+
+        if (! is_dir($directory)) {
+            continue;
+        }
+
+        foreach (listDirectoryFiles($directory) as $filePath) {
+            yield str_replace('\\', '/', substr($filePath, strlen($root) + 1)) => $filePath;
+        }
+    }
+}
+
+function buildStub(string $alias): string
+{
+    return <<<PHP
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+Phar::mapPhar('$alias');
+require 'phar://$alias/resources/box.stub.php';
+
+__HALT_COMPILER();
+PHP;
+}
+
+/**
+ * @return iterable<string>
+ */
+function listDirectoryFiles(string $directory): iterable
+{
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
+    );
+
+    foreach ($iterator as $item) {
+        if (! $item->isFile()) {
+            continue;
+        }
+
+        yield $item->getPathname();
+    }
+}
