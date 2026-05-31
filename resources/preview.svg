@@ -1,39 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" role="img" aria-labelledby="title desc">
-  <title id="title">Sift v2 preview</title>
-  <desc id="desc">Sift v2 terminal and payload preview showing compact commands, versioned schema, history, and skill targets.</desc>
-  <rect width="1040" height="560" fill="#f8fafc"/>
-  <rect x="32" y="32" width="976" height="496" rx="18" fill="#0b1020"/>
-  <rect x="32" y="32" width="976" height="52" rx="18" fill="#111827"/>
-  <circle cx="62" cy="58" r="7" fill="#ef4444"/>
-  <circle cx="86" cy="58" r="7" fill="#f59e0b"/>
-  <circle cx="110" cy="58" r="7" fill="#22c55e"/>
-  <text x="138" y="64" fill="#e5e7eb" font-family="Arial, sans-serif" font-size="16" font-weight="700">Sift v2 - PHP tooling filtered for agents</text>
-
-  <rect x="64" y="116" width="432" height="164" rx="10" fill="#111827" stroke="#334155"/>
-  <text x="88" y="148" fill="#93c5fd" font-family="Consolas, monospace" font-size="15">$ composer sift --compact pest</text>
-  <text x="88" y="184" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">{ "tool": "pest",</text>
-  <text x="88" y="210" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">  "status": "failed",</text>
-  <text x="88" y="236" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">  "summary": { "tests": 184, "failures": 1 },</text>
-  <text x="88" y="262" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">  "meta": { "run_id": "run_9f..." } }</text>
-
-  <rect x="544" y="116" width="432" height="164" rx="10" fill="#111827" stroke="#334155"/>
-  <text x="568" y="148" fill="#86efac" font-family="Consolas, monospace" font-size="15">$ composer sift history view run_9f... items</text>
-  <text x="568" y="184" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">{ "items": [</text>
-  <text x="568" y="210" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">  { "type": "test_failure",</text>
-  <text x="568" y="236" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">    "file": "tests/Feature/CheckoutTest.php",</text>
-  <text x="568" y="262" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">    "line": 42 } ] }</text>
-
-  <rect x="64" y="320" width="432" height="136" rx="10" fill="#111827" stroke="#334155"/>
-  <text x="88" y="352" fill="#fbbf24" font-family="Consolas, monospace" font-size="15">"$schema"</text>
-  <text x="88" y="382" fill="#e5e7eb" font-family="Consolas, monospace" font-size="13">https://raw.githubusercontent.com/vitorsreis/sift/</text>
-  <text x="88" y="408" fill="#e5e7eb" font-family="Consolas, monospace" font-size="13">v2.0.0/resources/schema.json</text>
-  <text x="88" y="434" fill="#94a3b8" font-family="Arial, sans-serif" font-size="14">Config is pinned to the installed release.</text>
-
-  <rect x="544" y="320" width="432" height="136" rx="10" fill="#111827" stroke="#334155"/>
-  <text x="568" y="352" fill="#c4b5fd" font-family="Consolas, monospace" font-size="15">$ composer skills add sift --agent=codex --yes</text>
-  <text x="568" y="388" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">Targets: codex, cursor, claude-code, copilot,</text>
-  <text x="568" y="414" fill="#e5e7eb" font-family="Consolas, monospace" font-size="14">gemini, generic, vscode</text>
-  <text x="568" y="440" fill="#94a3b8" font-family="Arial, sans-serif" font-size="14">Managed blocks preserve manual instructions.</text>
-
-  <text x="64" y="500" fill="#94a3b8" font-family="Arial, sans-serif" font-size="15">Policies run before native tools, including raw mode. Output stays JSON unless passthrough is explicit.</text>
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 412" role="img" aria-labelledby="title desc">
+    <title id="title">Sift terminal preview</title>
+    <desc id="desc">Dark terminal preview showing the Sift skill install command and compact pretty Pest output.</desc>
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="920" y2="520" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1, 0, 0, 0.792585, 0, 0)">
+            <stop offset="0" stop-color="#08111f"/>
+            <stop offset="1" stop-color="#111b30"/>
+        </linearGradient>
+        <linearGradient id="panel" x1="24" y1="24" x2="896" y2="496" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1, 0, 0, 0.780798, 0, 5.260838)">
+            <stop offset="0" stop-color="#0f172a"/>
+            <stop offset="1" stop-color="#111c31"/>
+        </linearGradient>
+    </defs>
+    <rect width="920" height="412.144" fill="url(#bg)" style=""/>
+    <rect x="24" y="24" width="872" height="368.537" rx="18" fill="url(#panel)" stroke="#243247" stroke-width="2" style=""/>
+    <rect x="24" y="24" width="872" height="44" rx="18" fill="#121c31"/>
+    <rect x="24" y="50" width="872" height="18" fill="#121c31"/>
+    <circle cx="52" cy="46" r="6" fill="#f87171"/>
+    <circle cx="70" cy="46" r="6" fill="#fbbf24"/>
+    <circle cx="88" cy="46" r="6" fill="#34d399"/>
+    <text x="114" y="51" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="14" font-weight="700" style="white-space: pre;">sift preview</text>
+    <text x="44" y="93" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15" style="white-space: pre; font-size: 15px;">$ composer skills add vitorsreis/sift --skill sift</text>
+    <line x1="40" y1="112" x2="880" y2="112" stroke="#23324c" stroke-width="1"/>
+    <text x="44" y="140" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15" style="white-space: pre; font-size: 15px;">$ composer sift --compact --pretty pest</text>
+    <rect x="40" y="160" width="840" height="215.699" rx="10" fill="#0b1325" stroke="#23324c" style=""/>
+    <text x="56" y="188" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">{</text>
+    <text x="72" y="207" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tool"</text>
+    <text x="120" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="132" y="207" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"pest"</text>
+    <text x="178" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="226" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"status"</text>
+    <text x="136" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="226" fill="#fca5a5" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failed"</text>
+    <text x="210" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="245" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tests"</text>
+    <text x="128" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="140" y="245" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">25</text>
+    <text x="156" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="264" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"passed"</text>
+    <text x="136" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="264" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">24</text>
+    <text x="164" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="283" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failures"</text>
+    <text x="152" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="164" y="283" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">1</text>
+    <text x="172" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="302" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"errors"</text>
+    <text x="136" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="302" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
+    <text x="156" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="321" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"skipped"</text>
+    <text x="144" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="156" y="321" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
+    <text x="164" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="340" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"run_id"</text>
+    <text x="136" y="340" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="340" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"run_aa30a4ab9e1c4b2f8d7e6c5a3b9f0d12"</text>
+    <text x="56" y="357" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">}</text>
 </svg>
