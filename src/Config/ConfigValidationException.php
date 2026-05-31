@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Sift\Config;
 
 use RuntimeException;
+use Sift\Core\ErrorCode;
 
 final class ConfigValidationException extends RuntimeException
 {
     private function __construct(
-        private readonly string $errorCode,
+        private readonly ErrorCode $errorCode,
         private readonly ?string $path,
         string $message,
     ) {
@@ -18,17 +19,17 @@ final class ConfigValidationException extends RuntimeException
 
     public static function invalidConfig(?string $path, string $message): self
     {
-        return new self('invalid_config', $path, $message);
+        return new self(ErrorCode::InvalidConfig, $path, $message);
     }
 
     public static function schemaUnsupported(?string $path, string $message): self
     {
-        return new self('config_schema_unsupported', $path, $message);
+        return new self(ErrorCode::ConfigSchemaUnsupported, $path, $message);
     }
 
     public function errorCode(): string
     {
-        return $this->errorCode;
+        return $this->errorCode->value;
     }
 
     public function path(): ?string

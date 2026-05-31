@@ -9,6 +9,8 @@ use Sift\Console\Commands\HelpCommand;
 use Sift\Console\Commands\InitCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
+use Sift\Core\ErrorCode;
+use Sift\Core\RunStatus;
 use Sift\Output\JsonRenderer;
 
 final readonly class Application
@@ -67,27 +69,27 @@ final readonly class Application
     {
         fwrite(STDOUT, $this->renderer->render($payload));
 
-        return 0;
+        return ExitCode::Success->value;
     }
 
     private function renderUsageError(InvalidUsageException $exception): int
     {
         fwrite(STDERR, $this->renderer->render([
-            'status' => 'error',
+            'status' => RunStatus::Error->value,
             'error' => [
-                'code' => 'invalid_usage',
+                'code' => ErrorCode::InvalidUsage->value,
                 'message' => $exception->getMessage(),
                 'hint' => 'Run "sift help" to list available commands.',
             ],
         ]));
 
-        return 3;
+        return ExitCode::UserError->value;
     }
 
     private function renderConfigError(ConfigValidationException $exception): int
     {
         fwrite(STDERR, $this->renderer->render([
-            'status' => 'error',
+            'status' => RunStatus::Error->value,
             'error' => [
                 'code' => $exception->errorCode(),
                 'message' => $exception->getMessage(),
@@ -95,20 +97,20 @@ final readonly class Application
             ],
         ]));
 
-        return 3;
+        return ExitCode::UserError->value;
     }
 
     private function renderNotImplemented(CommandRoute $route): int
     {
         fwrite(STDERR, $this->renderer->render([
-            'status' => 'error',
+            'status' => RunStatus::Error->value,
             'error' => [
-                'code' => 'invalid_usage',
+                'code' => ErrorCode::InvalidUsage->value,
                 'message' => sprintf('Command "%s" is not implemented yet.', $route->handler()),
                 'hint' => 'Run "sift help" to list available commands.',
             ],
         ]));
 
-        return 3;
+        return ExitCode::UserError->value;
     }
 }
