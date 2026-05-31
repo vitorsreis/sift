@@ -88,7 +88,10 @@ final readonly class JsonOutputParser
             }
 
             $offset = $lineOffsets[$index] + strlen($line) - strlen($trimmed);
-            $candidate = substr($raw, $offset);
+            $endOffset = $this->jsonEndOffset($raw, $offset);
+            $candidate = $endOffset === null
+                ? substr($raw, $offset)
+                : substr($raw, $offset, $endOffset - $offset);
 
             try {
                 return new JsonOutput(
@@ -101,6 +104,73 @@ final readonly class JsonOutputParser
                 );
             } catch (JsonException) {
                 continue;
+            }
+        }
+
+        return null;
+    }
+
+    private function jsonEndOffset(string $raw, int $offset): ?int
+    {
+        $first = $raw[$offset] ?? null;
+        $expectedClosers = match ($first) {
+            '{' => ['}'],
+            '[' => [']'],
+            default => [],
+        };
+
+        if ($expectedClosers === []) {
+            return null;
+        }
+
+        $inString = false;
+        $escaped = false;
+        $length = strlen($raw);
+
+        for ($index = $offset + 1; $index < $length; ++$index) {
+            $char = $raw[$index];
+
+            if ($inString) {
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+
+                if ($char === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+
+                if ($char === '"') {
+                    $inString = false;
+                }
+
+                continue;
+            }
+
+            if ($char === '"') {
+                $inString = true;
+                continue;
+            }
+
+            if ($char === '{') {
+                $expectedClosers[] = '}';
+                continue;
+            }
+
+            if ($char === '[') {
+                $expectedClosers[] = ']';
+                continue;
+            }
+
+            $expected = end($expectedClosers);
+
+            if (($char === '}' || $char === ']') && $char === $expected) {
+                array_pop($expectedClosers);
+
+                if ($expectedClosers === []) {
+                    return $index + 1;
+                }
             }
         }
 

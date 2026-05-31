@@ -55,6 +55,14 @@ it('parses noisy json arrays', function (): void {
     expect($output->line())->toBe(2);
 });
 
+it('parses noisy json with trailing output', function (): void {
+    $output = (new JsonOutputParser())->parse(stdout: "header\n{\"message\":\"brace } inside string\"}\ntrailing");
+
+    expect($output->decoded())->toBe(['message' => 'brace } inside string']);
+    expect($output->line())->toBe(2);
+    expect($output->clean())->toBeFalse();
+});
+
 it('returns parse failure as a user-facing exception', function (): void {
     try {
         (new JsonOutputParser())->parse(stdout: '[WARNING] no json here', stderr: 'fatal');

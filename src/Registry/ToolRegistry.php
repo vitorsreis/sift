@@ -7,6 +7,7 @@ namespace Sift\Registry;
 use InvalidArgumentException;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpStan\PhpstanToolAdapter;
+use Sift\Tools\Pint\PintToolAdapter;
 use Sift\Tools\Psalm\PsalmToolAdapter;
 use Sift\Tools\Rector\RectorToolAdapter;
 use Sift\Tools\Testing\ParatestToolAdapter;
@@ -59,6 +60,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PsalmToolAdapter(),
             new PhpcsToolAdapter(),
             new RectorToolAdapter(),
+            new PintToolAdapter(),
         );
     }
 
