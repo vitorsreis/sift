@@ -11,6 +11,8 @@ use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
 use Sift\Core\ErrorCode;
 use Sift\Core\RunStatus;
+use Sift\Exceptions\UserFacingException;
+use Sift\Output\ErrorPayload;
 use Sift\Output\JsonRenderer;
 
 final readonly class Application
@@ -20,6 +22,7 @@ final readonly class Application
         private ?CliParser $parser = null,
         private ?CommandRouter $router = null,
         private ?OutputPreferencesResolver $outputPreferencesResolver = null,
+        private ?ExitCodeResolver $exitCodeResolver = null,
     ) {}
 
     /**
@@ -44,6 +47,8 @@ final readonly class Application
             };
         } catch (ConfigValidationException $configValidationException) {
             return $this->renderConfigError($configValidationException, $preferences);
+        } catch (UserFacingException $userFacingException) {
+            return $this->renderUserFacingError($userFacingException, $preferences);
         }
     }
 
@@ -62,6 +67,11 @@ final readonly class Application
         return $this->outputPreferencesResolver ?? OutputPreferencesResolver::fromEnvironment();
     }
 
+    private function exitCodeResolver(): ExitCodeResolver
+    {
+        return $this->exitCodeResolver ?? new ExitCodeResolver();
+    }
+
     private function cwd(): string
     {
         $cwd = getcwd();
@@ -75,49 +85,42 @@ final readonly class Application
     private function renderPassed(array $payload, OutputPreferences $preferences): int
     {
         fwrite(STDOUT, $this->renderer->render($payload, $preferences));
+        $status = $payload['status'] ?? RunStatus::Passed->value;
+        $runStatus = is_string($status) ? RunStatus::tryFrom($status) : null;
 
-        return ExitCode::Success->value;
+        return $this->exitCodeResolver()->resolve($runStatus ?? RunStatus::Passed)->value;
     }
 
     private function renderUsageError(InvalidUsageException $exception, OutputPreferences $preferences): int
     {
-        fwrite(STDERR, $this->renderer->render([
-            'status' => RunStatus::Error->value,
-            'error' => [
-                'code' => ErrorCode::InvalidUsage->value,
-                'message' => $exception->getMessage(),
-                'hint' => 'Run "sift help" to list available commands.',
-            ],
-        ], $preferences));
+        fwrite(STDERR, $this->renderer->render(ErrorPayload::fromInvalidUsage($exception), $preferences));
 
-        return ExitCode::UserError->value;
+        return $this->exitCodeResolver()->resolve(RunStatus::Error, ErrorCode::InvalidUsage)->value;
     }
 
     private function renderConfigError(ConfigValidationException $exception, OutputPreferences $preferences): int
     {
-        fwrite(STDERR, $this->renderer->render([
-            'status' => RunStatus::Error->value,
-            'error' => [
-                'code' => $exception->errorCode(),
-                'message' => $exception->getMessage(),
-                'path' => $exception->path(),
-            ],
-        ], $preferences));
+        fwrite(STDERR, $this->renderer->render(ErrorPayload::fromConfigValidation($exception), $preferences));
+        $errorCode = ErrorCode::tryFrom($exception->errorCode()) ?? ErrorCode::InvalidConfig;
 
-        return ExitCode::UserError->value;
+        return $this->exitCodeResolver()->resolve(RunStatus::Error, $errorCode)->value;
+    }
+
+    private function renderUserFacingError(UserFacingException $exception, OutputPreferences $preferences): int
+    {
+        fwrite(STDERR, $this->renderer->render(ErrorPayload::fromUserFacing($exception), $preferences));
+
+        return $this->exitCodeResolver()->resolve(RunStatus::Error, $exception->errorCode())->value;
     }
 
     private function renderNotImplemented(CommandRoute $route, OutputPreferences $preferences): int
     {
-        fwrite(STDERR, $this->renderer->render([
-            'status' => RunStatus::Error->value,
-            'error' => [
-                'code' => ErrorCode::InvalidUsage->value,
-                'message' => sprintf('Command "%s" is not implemented yet.', $route->handler()),
-                'hint' => 'Run "sift help" to list available commands.',
-            ],
-        ], $preferences));
+        fwrite(STDERR, $this->renderer->render(ErrorPayload::make(
+            errorCode: ErrorCode::InvalidUsage,
+            message: sprintf('Command "%s" is not implemented yet.', $route->handler()),
+            hint: 'Run "sift help" to list available commands.',
+        ), $preferences));
 
-        return ExitCode::UserError->value;
+        return $this->exitCodeResolver()->resolve(RunStatus::Error, ErrorCode::InvalidUsage)->value;
     }
 }
