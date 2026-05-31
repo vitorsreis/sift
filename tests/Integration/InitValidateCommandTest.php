@@ -101,6 +101,82 @@ it('supports command-level custom config path', function (): void {
     expect($summary['config_path'] ?? null)->toBe($project->path('custom/sift.json'));
 });
 
+it('preserves known config overrides when forcing init', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'size' => 'full',
+            'pretty' => false,
+        ],
+        'history' => [
+            'enabled' => false,
+            'path' => 'tmp/history',
+        ],
+        'tools' => [
+            'phpstan' => [
+                'binary' => 'vendor/bin/phpstan',
+                'blocked_args' => ['--xdebug'],
+                'timeout' => 0,
+            ],
+        ],
+    ]);
+
+    $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
+    $document = $project->readJson('sift.json');
+
+    expect($result['exit_code'])->toBe(0);
+    expect($document['output'])->toMatchArray([
+        'size' => 'full',
+        'pretty' => false,
+        'show_process' => true,
+    ]);
+    expect($document['history'])->toMatchArray([
+        'enabled' => false,
+        'path' => 'tmp/history',
+        'max_files' => 50,
+    ]);
+    expect($document['tools'])->toBe([
+        'phpstan' => [
+            'binary' => 'vendor/bin/phpstan',
+            'blocked_args' => ['--xdebug'],
+            'timeout' => 0,
+        ],
+    ]);
+});
+
+it('does not overwrite invalid JSON during init', function (): void {
+    $project = FixtureProject::create();
+    $project->write('sift.json', '{');
+
+    $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = initValidateObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($error['code'] ?? null)->toBe('invalid_config');
+    expect(file_get_contents($project->path('sift.json')))->toBe('{');
+});
+
+it('does not overwrite unsupported schema during init force', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => 'https://example.com/future-schema.json',
+        'tools' => [],
+    ]);
+
+    $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = initValidateObject($payload, 'error');
+    $document = $project->readJson('sift.json');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($error['code'] ?? null)->toBe('config_schema_unsupported');
+    expect($document['$schema'])->toBe('https://example.com/future-schema.json');
+});
+
 it('returns config errors as JSON on stderr', function (): void {
     $project = FixtureProject::create();
     $project->writeJson('sift.json', [
