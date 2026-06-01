@@ -196,9 +196,9 @@ final readonly class SkillsAddCommand implements CommandHandler
             return '*';
         }
 
-        $selector = $route->options()['skill'] ?? null;
+        $selectors = $this->stringOptionValues($route, 'skill');
 
-        return is_string($selector) ? $selector : null;
+        return $selectors === [] ? null : implode(',', $selectors);
     }
 
     /**
@@ -229,5 +229,23 @@ final readonly class SkillsAddCommand implements CommandHandler
         }
 
         return array_values(array_unique($targets));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringOptionValues(CommandRoute $route, string $name): array
+    {
+        $value = $route->options()[$name] ?? null;
+        $values = is_array($value) ? $value : [$value];
+        $strings = [];
+
+        foreach ($values as $item) {
+            if (is_string($item) && trim($item) !== '') {
+                $strings[] = trim($item);
+            }
+        }
+
+        return $strings;
     }
 }

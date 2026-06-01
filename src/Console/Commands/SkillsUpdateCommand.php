@@ -116,9 +116,14 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         }
 
         $skillOption = $route->options()['skill'] ?? null;
+        $skillOptions = is_array($skillOption) ? $skillOption : [$skillOption];
 
-        if (is_string($skillOption)) {
-            foreach (explode(',', $skillOption) as $name) {
+        foreach ($skillOptions as $skillOptionValue) {
+            if (! is_string($skillOptionValue)) {
+                continue;
+            }
+
+            foreach (explode(',', $skillOptionValue) as $name) {
                 if (trim($name) !== '') {
                     $names[] = trim($name);
                 }

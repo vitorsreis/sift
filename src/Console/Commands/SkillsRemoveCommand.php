@@ -63,7 +63,9 @@ final readonly class SkillsRemoveCommand implements CommandHandler
     {
         $argument = $route->arguments()[0] ?? null;
         $option = $route->options()['skill'] ?? null;
-        $name = is_string($argument) ? $argument : $option;
+        $optionValues = is_array($option) ? $option : [$option];
+        $optionName = count($optionValues) === 1 && is_string($optionValues[0]) ? $optionValues[0] : null;
+        $name = is_string($argument) ? $argument : $optionName;
 
         if (! is_string($name) || preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $name) !== 1) {
             throw new InvalidUsageException('skills remove requires a skill name.');

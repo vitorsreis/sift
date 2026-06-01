@@ -7,7 +7,7 @@ use Sift\Console\InvalidUsageException;
 
 /**
  * @param list<string> $tokens
- * @param array<string, bool|int|string> $expectedOptions
+ * @param array<string, bool|int|string|list<bool|int|string>> $expectedOptions
  * @param list<string> $expectedArguments
  */
 function expectParsedCommandOptions(array $tokens, string $command, array $expectedOptions, array $expectedArguments = []): void
@@ -100,9 +100,27 @@ it('parses command options after a declared command', function (): void {
     expect($request->command())->toBe('skills add');
     expect($request->arguments())->toBe(['vitorsreis/sift']);
     expect($request->options())->toBe([
-        'skill' => 'sift',
+        'skill' => ['sift'],
         'agent' => 'codex',
         'yes' => true,
+    ]);
+});
+
+it('parses repeated skill selectors', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'add',
+        'owner/repo',
+        '--skill=php-review',
+        '--skill',
+        'laravel-review',
+        '-s',
+        'security-review',
+    ]);
+
+    expect($request->command())->toBe('skills add');
+    expect($request->options())->toBe([
+        'skill' => ['php-review', 'laravel-review', 'security-review'],
     ]);
 });
 
@@ -120,7 +138,7 @@ it('parses every declared command option set', function (): void {
     expectParsedCommandOptions(['skills', 'add', 'vitorsreis/sift', '-g', '-a', 'codex', '-s', 'sift', '-l', '-y', '--all', '-c', 'sift.json'], 'skills add', [
         'global' => true,
         'agent' => 'codex',
-        'skill' => 'sift',
+        'skill' => ['sift'],
         'list' => true,
         'yes' => true,
         'all' => true,
@@ -129,19 +147,19 @@ it('parses every declared command option set', function (): void {
     expectParsedCommandOptions(['skills', 'list', '-g', '-a', 'codex', '-s', 'sift'], 'skills list', [
         'global' => true,
         'agent' => 'codex',
-        'skill' => 'sift',
+        'skill' => ['sift'],
     ]);
     expectParsedCommandOptions(['skills', 'remove', 'sift', '-g', '-a', 'codex', '-s', 'sift', '-y', '--all'], 'skills remove', [
         'global' => true,
         'agent' => 'codex',
-        'skill' => 'sift',
+        'skill' => ['sift'],
         'yes' => true,
         'all' => true,
     ], ['sift']);
     expectParsedCommandOptions(['skills', 'update', 'sift', '-g', '-a', 'codex', '-s', 'sift', '-y', '--all'], 'skills update', [
         'global' => true,
         'agent' => 'codex',
-        'skill' => 'sift',
+        'skill' => ['sift'],
         'yes' => true,
         'all' => true,
     ], ['sift']);

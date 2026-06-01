@@ -143,6 +143,35 @@ it('installs every discovered skill with the wildcard selector', function (): vo
     expect($agents)->toContain('name: laravel-review');
 });
 
+it('installs repeated skill selectors', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
+    skillsCommandFixture($repository, 'skills/security-review/SKILL.md', 'security-review', 'Use when reviewing security.');
+
+    $result = CliRunner::run([
+        '--full',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--skill=php-review',
+        '--skill',
+        'laravel-review',
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['installed'] ?? null)->toBe(2);
+    expect($agents)->toContain('name: php-review');
+    expect($agents)->toContain('name: laravel-review');
+    expect($agents)->not->toContain('name: security-review');
+});
+
 it('lists installed generic skills from managed blocks only', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');

@@ -44,7 +44,7 @@ final readonly class CliParser
         $skillsScopedOptions = [
             CliOption::boolean('global', 'g'),
             CliOption::string('agent', 'a'),
-            CliOption::string('skill', 's'),
+            CliOption::string('skill', 's', repeatable: true),
         ];
 
         return new self($globalOptions, [

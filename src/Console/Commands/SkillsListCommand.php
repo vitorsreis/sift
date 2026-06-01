@@ -68,17 +68,41 @@ final readonly class SkillsListCommand implements CommandHandler
      */
     private function filterBySkill(array $items, CommandRoute $route): array
     {
-        $selector = $route->options()['skill'] ?? null;
+        $names = $this->selectedNames($route);
 
-        if (! is_string($selector) || trim($selector) === '' || trim($selector) === '*') {
+        if ($names === [] || in_array('*', $names, true)) {
             return $items;
         }
-
-        $names = array_map(trim(...), explode(',', $selector));
 
         return array_values(array_filter(
             $items,
             static fn(SkillManagedMetadata $metadata): bool => in_array($metadata->name(), $names, true),
         ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function selectedNames(CommandRoute $route): array
+    {
+        $value = $route->options()['skill'] ?? null;
+        $values = is_array($value) ? $value : [$value];
+        $names = [];
+
+        foreach ($values as $item) {
+            if (! is_string($item)) {
+                continue;
+            }
+
+            foreach (explode(',', $item) as $name) {
+                $name = trim($name);
+
+                if ($name !== '') {
+                    $names[] = $name;
+                }
+            }
+        }
+
+        return array_values(array_unique($names));
     }
 }
