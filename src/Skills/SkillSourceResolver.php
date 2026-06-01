@@ -28,6 +28,7 @@ final readonly class SkillSourceResolver
         }
 
         $localPath = $this->localPath($source, $cwd);
+        $this->policy->assertLocalPathAllowed($source, $localPath, $cwd);
 
         if (is_file($localPath) && basename($localPath) === 'SKILL.md') {
             return new SkillSource($source, 'local', Path::normalize(dirname($localPath)), warnings: ['local_source']);

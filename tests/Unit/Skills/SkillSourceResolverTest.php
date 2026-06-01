@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Sift\Core\ErrorCode;
+use Sift\Exceptions\UserFacingException;
 use Sift\Skills\SkillSourceResolver;
 use Tests\Support\FixtureProject;
 
@@ -29,4 +31,38 @@ MD);
     expect($github->repositoryUrl())->toBe('https://github.com/owner/repo.git');
     expect($github->warnings())->toBe(['unpinned_source']);
     expect($githubUrl->repositoryUrl())->toBe('https://github.com/owner/repo.git');
+});
+
+it('rejects relative local sources that resolve outside the workspace through symlinks', function (): void {
+    if (PHP_OS_FAMILY === 'Windows') {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    $project = FixtureProject::create();
+    $outside = FixtureProject::create('sift-external-skill-');
+    $project->mkdir('links');
+    $outside->write('php-review/SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP.
+---
+MD);
+
+    if (! @symlink($outside->path('php-review'), $project->path('links/php-review'))) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    try {
+        (new SkillSourceResolver())->resolve('links/php-review', $project->root());
+    } catch (UserFacingException $userFacingException) {
+        expect($userFacingException->errorCode())->toBe(ErrorCode::PolicyBlocked);
+
+        return;
+    }
+
+    throw new RuntimeException('Expected symlinked source to be rejected.');
 });

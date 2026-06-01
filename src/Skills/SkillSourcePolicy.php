@@ -6,6 +6,9 @@ namespace Sift\Skills;
 
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
+use Sift\Filesystem\FilesystemException;
+use Sift\Filesystem\Path;
+use Sift\Filesystem\PathGuard;
 
 final readonly class SkillSourcePolicy
 {
@@ -27,6 +30,21 @@ final readonly class SkillSourcePolicy
 
         if (preg_match('#(^|[\\\\/])\.\.([\\\\/]|$)#', $source) === 1) {
             $this->reject($source, 'Skill sources must not contain path traversal segments.');
+        }
+    }
+
+    public function assertLocalPathAllowed(string $source, string $path, string $cwd): void
+    {
+        $source = trim($source);
+
+        if ($source === '' || Path::isAbsolute($source) || ! file_exists($path)) {
+            return;
+        }
+
+        try {
+            (new PathGuard($cwd))->assertInside($path);
+        } catch (FilesystemException) {
+            $this->reject($source, 'Relative skill sources must not resolve through symlinks outside the workspace.');
         }
     }
 
