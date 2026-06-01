@@ -6,6 +6,10 @@ namespace Sift\Console;
 
 use Sift\Config\ConfigValidationException;
 use Sift\Console\Commands\HelpCommand;
+use Sift\Console\Commands\HistoryClearCommand;
+use Sift\Console\Commands\HistoryListCommand;
+use Sift\Console\Commands\HistoryRemoveCommand;
+use Sift\Console\Commands\HistoryViewCommand;
 use Sift\Console\Commands\InitCommand;
 use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
@@ -45,6 +49,10 @@ final readonly class Application
                 'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
                 'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
                 'tools.list' => $this->renderPassed((new ToolsListCommand())->handle($route, $this->cwd()), $preferences),
+                'history.list' => $this->renderPassed((new HistoryListCommand())->handle($route, $this->cwd()), $preferences),
+                'history.view' => $this->renderPassed((new HistoryViewCommand())->handle($route, $this->cwd()), $preferences),
+                'history.remove' => $this->renderPassed((new HistoryRemoveCommand())->handle($route, $this->cwd()), $preferences),
+                'history.clear' => $this->renderPassed((new HistoryClearCommand())->handle($route, $this->cwd()), $preferences),
                 default => $this->renderNotImplemented($route, $preferences),
             };
         } catch (ConfigValidationException $configValidationException) {
