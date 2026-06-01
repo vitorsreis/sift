@@ -6,7 +6,9 @@ on:
       - "v*"
 
 permissions:
+  attestations: write
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -22,11 +24,25 @@ jobs:
           php-version: "8.3"
           coverage: none
 
+      - name: Validate composer.json
+        run: composer validate --strict
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction
 
       - name: Build PHAR
         run: composer build:phar
+
+      - name: Smoke test PHAR
+        run: php build/phar/sift.phar --no-pretty help
+
+      - name: Verify checksum
+        run: cd build/phar && sha256sum -c sift.phar.sha256
+
+      - name: Generate provenance attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: build/phar/sift.phar
 
       - name: Build release notes
         run: |

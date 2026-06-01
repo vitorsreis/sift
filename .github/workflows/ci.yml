@@ -18,6 +18,7 @@ jobs:
         php:
           - "8.3"
           - "8.4"
+          - "8.5"
 
     steps:
       - name: Checkout
@@ -42,4 +43,4 @@ jobs:
         run: composer build:phar
 
       - name: Smoke test PHAR
-        run: php build/phar/sift.phar help
+        run: php build/phar/sift.phar --no-pretty help
