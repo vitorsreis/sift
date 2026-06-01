@@ -11,14 +11,19 @@ final readonly class InstructionTargetRegistry
 {
     public function resolve(string $target): InstructionTarget
     {
-        return match ($this->normalize($target)) {
-            'generic' => new InstructionFileTarget('generic', 'AGENTS.md'),
-            default => throw UserFacingException::withContext(
-                errorCode: ErrorCode::UnsupportedTarget,
-                message: sprintf('Skill target "%s" is not supported yet.', $target),
-                context: ['target' => $target],
-            ),
-        };
+        $normalized = $this->normalize($target);
+
+        foreach ($this->descriptors() as $descriptor) {
+            if ($descriptor->matches($normalized)) {
+                return new InstructionFileTarget($descriptor->name(), $descriptor->relativePath());
+            }
+        }
+
+        throw UserFacingException::withContext(
+            errorCode: ErrorCode::UnsupportedTarget,
+            message: sprintf('Skill target "%s" is not supported yet.', $target),
+            context: ['target' => $target],
+        );
     }
 
     /**
@@ -26,11 +31,32 @@ final readonly class InstructionTargetRegistry
      */
     public function writeCapableNames(): array
     {
-        return ['generic'];
+        return array_map(
+            static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
+            $this->descriptors(),
+        );
     }
 
     private function normalize(string $target): string
     {
         return strtolower(trim($target));
+    }
+
+    /**
+     * @return list<InstructionTargetDescriptor>
+     */
+    private function descriptors(): array
+    {
+        return [
+            new InstructionTargetDescriptor('generic', 'AGENTS.md'),
+            new InstructionTargetDescriptor('claude-code', 'CLAUDE.md', ['claude']),
+            new InstructionTargetDescriptor('github-copilot', '.github/copilot-instructions.md', [
+                'copilot',
+                'vscode',
+                'vs-code',
+                'visual-studio-code',
+            ]),
+            new InstructionTargetDescriptor('gemini', 'GEMINI.md'),
+        ];
     }
 }
