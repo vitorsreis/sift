@@ -10,9 +10,11 @@ use Sift\Console\CommandRoute;
 use Sift\Console\OutputPreferencesResolver;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
+use Sift\Core\RunStatus;
 use Sift\Exceptions\UserFacingException;
 use Sift\Filesystem\FilesystemException;
 use Sift\History\RunHistoryService;
+use Sift\Output\ErrorPayload;
 use Sift\Registry\ToolRegistry;
 use Sift\Safety\BlockedArgumentsPolicy;
 use Sift\Safety\ComposerReadOnlyPolicy;
@@ -52,18 +54,29 @@ final readonly class RunToolCommand
         $workspace = $this->workspaceResolver->resolve($cwd, $this->configPath($route));
         $config = $this->configLoader->load($workspace);
         $preferences = $this->outputPreferencesResolver->resolve($route, $config);
-        $result = $this->toolRunner->run(
-            arguments: CliArguments::fromRoute($route),
-            config: $config,
-            cwd: $workspace->projectRoot(),
-        );
+        $arguments = CliArguments::fromRoute($route);
+        $historyConfig = $this->historyConfig($route, $config->history());
+
+        try {
+            $result = $this->toolRunner->run(
+                arguments: $arguments,
+                config: $config,
+                cwd: $workspace->projectRoot(),
+            );
+        } catch (UserFacingException $userFacingException) {
+            throw $this->withHistoryRunId($userFacingException, $historyConfig, $arguments->tool());
+        }
 
         if ($result instanceof ExecutionResult) {
             return RunToolCommandResult::raw($result->exitCode(), $preferences);
         }
 
         $payload = $result->toPayload();
-        $this->recordHistory($payload, $this->historyConfig($route, $config->history()));
+        $history = $this->recordHistory($payload, $historyConfig);
+
+        if ($payload['status'] === RunStatus::Error->value) {
+            $payload = $this->withPayloadRunId($payload, $this->runId($history));
+        }
 
         return RunToolCommandResult::normalized($payload, $preferences);
     }
@@ -103,11 +116,13 @@ final readonly class RunToolCommand
 
     /**
      * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>|null
      */
-    private function recordHistory(array $payload, HistoryConfig $config): void
+    private function recordHistory(array $payload, HistoryConfig $config): ?array
     {
         try {
-            $this->historyService->record($payload, $config);
+            return $this->historyService->record($payload, $config);
         } catch (FilesystemException $filesystemException) {
             throw UserFacingException::withContext(
                 errorCode: ErrorCode::HistoryWriteFailed,
@@ -119,5 +134,66 @@ final readonly class RunToolCommand
                 ],
             );
         }
+    }
+
+    private function withHistoryRunId(UserFacingException $exception, HistoryConfig $config, string $tool): UserFacingException
+    {
+        $payload = [
+            'tool' => $tool,
+            ...ErrorPayload::fromUserFacing($exception),
+        ];
+        $history = $this->recordHistory($payload, $config);
+        $runId = $this->runId($history);
+
+        if ($runId === null) {
+            return $exception;
+        }
+
+        return UserFacingException::withContext(
+            errorCode: $exception->errorCode(),
+            message: $exception->getMessage(),
+            hint: $exception->hint(),
+            context: [
+                'tool' => $tool,
+                ...$exception->context(),
+                'run_id' => $runId,
+            ],
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    private function withPayloadRunId(array $payload, ?string $runId): array
+    {
+        if ($runId === null) {
+            return $payload;
+        }
+
+        $meta = $payload['meta'] ?? [];
+
+        if (! is_array($meta) || array_is_list($meta)) {
+            $meta = [];
+        }
+
+        return [
+            ...$payload,
+            'meta' => [
+                ...$meta,
+                'run_id' => $runId,
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed>|null $history
+     */
+    private function runId(?array $history): ?string
+    {
+        $runId = $history['run_id'] ?? null;
+
+        return is_string($runId) && $runId !== '' ? $runId : null;
     }
 }

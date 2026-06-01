@@ -103,6 +103,39 @@ it('applies history overrides with no-history taking precedence', function (): v
     expect(runToolCommandHistoryDocuments($skippingProject))->toBe([]);
 });
 
+it('records tool errors and exposes the run id when history is enabled', function (): void {
+    $project = FixtureProject::create();
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'composer',
+        stdout: 'not-json',
+        stderr: 'native failure',
+        exitCode: 1,
+    );
+    runToolCommandConfig($project, [
+        'history' => ['enabled' => true],
+        'output' => ['size' => 'full', 'pretty' => false, 'show_process' => false],
+        'tools' => ['composer' => ['binary' => $fake->binary()]],
+    ]);
+
+    $result = CliRunner::run(['composer', 'audit'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = runToolCommandObject($payload, 'error');
+    $history = runToolCommandHistoryDocuments($project);
+    $runId = $error['run_id'] ?? null;
+
+    expect($result['exit_code'])->toBe(2);
+    expect($result['stdout'])->toBe('');
+    expect($payload['status'] ?? null)->toBe('error');
+    expect($error['code'] ?? null)->toBe('parse_failure');
+    expect($runId)->toBeString();
+    expect($runId)->toStartWith('run_');
+    expect($history)->toHaveCount(1);
+    expect($history[0]['run_id'] ?? null)->toBe($runId);
+    expect($history[0]['tool'] ?? null)->toBe('composer');
+    expect(runToolCommandObject(runToolCommandObject($history[0], 'payload'), 'error')['code'] ?? null)->toBe('parse_failure');
+});
+
 it('returns a history write error when required history cannot be stored', function (): void {
     $project = FixtureProject::create();
     $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
