@@ -52,3 +52,28 @@ it('reads metadata from managed skill blocks', function (): void {
     expect($metadata[0]->source())->toBe('repo');
     expect($metadata[0]->targets())->toBe(['generic']);
 });
+
+it('removes only the requested managed block', function (): void {
+    $editor = new ManagedBlockEditor();
+    $contents = "Manual header\n\n";
+    $contents = $editor->upsert($contents, 'php-review', [
+        'name' => 'php-review',
+        'source' => 'repo',
+        'source_type' => 'local',
+        'installed_at' => '2026-06-01T00:00:00+00:00',
+        'targets' => ['generic'],
+    ], "PHP body\n");
+    $contents = $editor->upsert($contents, 'laravel-review', [
+        'name' => 'laravel-review',
+        'source' => 'repo',
+        'source_type' => 'local',
+        'installed_at' => '2026-06-01T00:00:00+00:00',
+        'targets' => ['generic'],
+    ], "Laravel body\n");
+
+    $removed = $editor->remove($contents, 'php-review');
+
+    expect($removed)->toContain('Manual header');
+    expect($removed)->not->toContain('sift:skill:php-review:start');
+    expect($removed)->toContain('sift:skill:laravel-review:start');
+});

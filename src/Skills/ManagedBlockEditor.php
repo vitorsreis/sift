@@ -49,6 +49,17 @@ final readonly class ManagedBlockEditor
         return $metadata;
     }
 
+    public function remove(string $contents, string $name): string
+    {
+        $removed = preg_replace($this->pattern($name), '', $contents, 1);
+
+        if (! is_string($removed)) {
+            return $contents;
+        }
+
+        return preg_replace("/\n{3,}/", PHP_EOL . PHP_EOL, $removed) ?? $removed;
+    }
+
     /**
      * @param array<string, mixed> $metadata
      */

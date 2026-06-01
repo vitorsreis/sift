@@ -173,6 +173,44 @@ it('lists installed generic skills from managed blocks only', function (): void 
     expect($items[0]['targets'] ?? null)->toBe(['generic']);
 });
 
+it('removes only managed generic skill blocks', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    $project->write('AGENTS.md', "Manual instructions\n");
+
+    CliRunner::run([
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+
+    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic', '--yes'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+    $list = CliRunner::decode(CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root())['stdout']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(1);
+    expect($agents)->toContain('Manual instructions');
+    expect($agents)->not->toContain('sift:skill:php-review:start');
+    expect(skillsCommandObject($list, 'summary')['total'] ?? null)->toBe(0);
+});
+
+it('requires confirmation before removing skills', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+});
+
 it('requires confirmation before writing skills in non interactive mode', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
