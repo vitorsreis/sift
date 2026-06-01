@@ -40,3 +40,47 @@ MD);
     expect((string) file_get_contents($project->path('.github/copilot-instructions.md')))->toContain('sift:skill:php-review:start');
     expect((string) file_get_contents($project->path('GEMINI.md')))->toContain('sift:skill:php-review:start');
 });
+
+it('copies codex skills with managed metadata', function (): void {
+    $project = FixtureProject::create();
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $source->write('references/checklist.md', "# Checklist\n");
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+    try {
+        (new SkillTargetInstaller())->install(
+            $project->root(),
+            [$skill],
+            ['codex'],
+            new SkillSource('vendor/source', 'local', $source->root()),
+        );
+    } finally {
+        putenv('SIFT_CODEX_HOME');
+    }
+
+    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
+    expect($codexHome->path('skills/php-review/references/checklist.md'))->toBeFile();
+    expect($codexHome->readJson('skills/php-review/.sift-skill.json'))->toMatchArray([
+        'name' => 'php-review',
+        'source' => 'vendor/source',
+        'source_type' => 'local',
+        'targets' => ['codex'],
+    ]);
+});

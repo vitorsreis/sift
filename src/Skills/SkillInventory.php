@@ -7,8 +7,10 @@ namespace Sift\Skills;
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 use Sift\Filesystem\FilesystemException;
+use Sift\Filesystem\JsonFile;
 use Sift\Filesystem\Path;
 use Sift\Filesystem\PathGuard;
+use Sift\Skills\Targets\CodexHomeResolver;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 
 final readonly class SkillInventory
@@ -16,6 +18,8 @@ final readonly class SkillInventory
     public function __construct(
         private ManagedBlockEditor $blockEditor = new ManagedBlockEditor(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
+        private CodexHomeResolver $codexHomeResolver = new CodexHomeResolver(),
+        private JsonFile $jsonFile = new JsonFile(),
     ) {}
 
     /**
@@ -28,14 +32,31 @@ final readonly class SkillInventory
         $items = [];
 
         foreach ($targets as $target) {
-            $this->targetRegistry->resolve($target);
+            $resolvedTarget = $this->targetRegistry->resolve($target);
+            $targetName = $resolvedTarget->name();
 
-            if ($target !== 'generic') {
+            if ($targetName === 'codex') {
+                foreach ($this->codexMetadata() as $metadata) {
+                    if (in_array($targetName, $metadata->targets(), true)) {
+                        $items[$metadata->name()] = $metadata;
+                    }
+                }
+
                 continue;
             }
 
-            foreach ($this->instructionFileMetadata($cwd, 'AGENTS.md') as $metadata) {
-                if (in_array($target, $metadata->targets(), true)) {
+            if ($targetName === 'generic') {
+                foreach ($this->instructionFileMetadata($cwd, 'AGENTS.md') as $metadata) {
+                    if (in_array($targetName, $metadata->targets(), true)) {
+                        $items[$metadata->name()] = $metadata;
+                    }
+                }
+
+                continue;
+            }
+
+            foreach ($this->instructionFileMetadata($cwd, $this->instructionFilePath($targetName)) as $metadata) {
+                if (in_array($targetName, $metadata->targets(), true)) {
                     $items[$metadata->name()] = $metadata;
                 }
             }
@@ -44,6 +65,70 @@ final readonly class SkillInventory
         ksort($items);
 
         return array_values($items);
+    }
+
+    /**
+     * @return list<SkillManagedMetadata>
+     */
+    private function codexMetadata(): array
+    {
+        $skillsDirectory = Path::join($this->codexHomeResolver->resolve(), 'skills');
+
+        if (! is_dir($skillsDirectory)) {
+            return [];
+        }
+
+        $entries = scandir($skillsDirectory);
+
+        if ($entries === false) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($entries as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+
+            if ($entry === '..') {
+                continue;
+            }
+
+            $metadataPath = Path::join($skillsDirectory, $entry, '.sift-skill.json');
+
+            if (! is_file($metadataPath)) {
+                continue;
+            }
+
+            try {
+                $payload = $this->jsonFile->readObject($metadataPath);
+            } catch (FilesystemException $filesystemException) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::FilesystemError,
+                    message: $filesystemException->getMessage(),
+                    context: ['path' => $metadataPath],
+                );
+            }
+
+            $metadata = SkillManagedMetadata::fromPayload($payload, $entry);
+
+            if ($metadata instanceof SkillManagedMetadata) {
+                $items[] = $metadata;
+            }
+        }
+
+        return $items;
+    }
+
+    private function instructionFilePath(string $targetName): string
+    {
+        return match ($targetName) {
+            'claude-code' => 'CLAUDE.md',
+            'github-copilot' => '.github/copilot-instructions.md',
+            'gemini' => 'GEMINI.md',
+            default => 'AGENTS.md',
+        };
     }
 
     /**

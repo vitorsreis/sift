@@ -13,6 +13,10 @@ final readonly class InstructionTargetRegistry
     {
         $normalized = $this->normalize($target);
 
+        if ($normalized === 'codex') {
+            return new CodexSkillTarget();
+        }
+
         foreach ($this->descriptors() as $descriptor) {
             if ($descriptor->matches($normalized)) {
                 return new InstructionFileTarget($descriptor->name(), $descriptor->relativePath());
@@ -31,10 +35,13 @@ final readonly class InstructionTargetRegistry
      */
     public function writeCapableNames(): array
     {
-        return array_map(
-            static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
-            $this->descriptors(),
-        );
+        return [
+            'codex',
+            ...array_map(
+                static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
+                $this->descriptors(),
+            ),
+        ];
     }
 
     private function normalize(string $target): string
