@@ -8,12 +8,14 @@ use Sift\Core\ErrorCode;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Execution\ProcessRunner;
+use Sift\Execution\ToolLocator;
 use Sift\Filesystem\Path;
 
 final readonly class SkillRepositoryCloner
 {
     public function __construct(
         private ProcessRunner $processRunner = new ProcessRunner(),
+        private ToolLocator $toolLocator = new ToolLocator(),
     ) {}
 
     public function clone(SkillSource $source, string $cwd): ClonedSkillSource
@@ -25,9 +27,10 @@ final readonly class SkillRepositoryCloner
         }
 
         $target = Path::join(sys_get_temp_dir(), 'sift-skill-repo-' . bin2hex(random_bytes(8)));
+        $gitBinary = $this->gitBinary($cwd);
         $clone = $this->processRunner->run(new PreparedCommand(
             tool: 'git',
-            binary: 'git',
+            binary: $gitBinary,
             arguments: ['clone', '--depth=1', $repositoryUrl, $target],
             cwd: $cwd,
             timeout: 120,
@@ -46,7 +49,7 @@ final readonly class SkillRepositoryCloner
             );
         }
 
-        $resolvedRef = $this->resolvedRef($target);
+        $resolvedRef = $this->resolvedRef($target, $gitBinary);
 
         return new ClonedSkillSource(
             source: $source->withPath($target, $resolvedRef),
@@ -56,11 +59,32 @@ final readonly class SkillRepositoryCloner
         );
     }
 
-    private function resolvedRef(string $path): ?string
+    private function gitBinary(string $cwd): string
+    {
+        try {
+            return $this->toolLocator->locate('git', 'git', $cwd)->binary();
+        } catch (UserFacingException $userFacingException) {
+            if ($userFacingException->errorCode() !== ErrorCode::ToolNotFound) {
+                throw $userFacingException;
+            }
+
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::ToolNotFound,
+                message: 'Git is required to install skills from GitHub.',
+                hint: 'Install Git or use a local skill source.',
+                context: [
+                    'tool' => 'git',
+                    'source' => 'github_skill_source',
+                ],
+            );
+        }
+    }
+
+    private function resolvedRef(string $path, string $gitBinary): ?string
     {
         $result = $this->processRunner->run(new PreparedCommand(
             tool: 'git',
-            binary: 'git',
+            binary: $gitBinary,
             arguments: ['-C', $path, 'rev-parse', 'HEAD'],
             cwd: $path,
             timeout: 10,
