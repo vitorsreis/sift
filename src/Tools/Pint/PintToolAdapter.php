@@ -79,7 +79,7 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
 
     public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
     {
-        $report = $this->parser->parse($execution->stdout(), $execution->stderr(), $context->cwd());
+        $report = $this->parser->parse($execution->stdout(), $execution->stderr(), $context->cwd(), $context->repair());
 
         return new NormalizedResult(
             tool: $this->name(),

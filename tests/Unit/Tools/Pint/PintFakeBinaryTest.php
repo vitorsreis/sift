@@ -23,7 +23,7 @@ it('runs pint through a fake binary with json output', function (): void {
     $fake = FakeBinary::create(
         project: $project,
         name: 'pint',
-        stdout: pintFakeBinaryJson('fail', $source),
+        stdout: pintFakeBinaryJson($source),
         exitCode: 1,
     );
     $runner = new ToolRunner(
@@ -67,16 +67,19 @@ function pintFakeBinaryConfig(ToolConfig ...$tools): SiftConfig
     );
 }
 
-function pintFakeBinaryJson(string $result, string $source): string
+function pintFakeBinaryJson(string $source): string
 {
     return json_encode([
-        'tool' => 'pint',
-        'result' => $result,
+        'about' => 'PHP CS Fixer 3.75.0',
         'files' => [
             [
                 'path' => $source,
                 'fixers' => ['ordered_imports'],
             ],
         ],
+        'time' => [
+            'total' => 0.123,
+        ],
+        'memory' => 12.345,
     ], JSON_THROW_ON_ERROR);
 }

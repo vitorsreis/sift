@@ -76,7 +76,7 @@ it('parses pint style failures as failed status', function (): void {
     $context = $adapter->context(new CliArguments('pint'), $project->root());
 
     $payload = $adapter->parse(
-        execution: ExecutionResult::completed(1, pintJson('fail', $source), '', 0.12),
+        execution: ExecutionResult::completed(1, pintJson($source), '', 0.12),
         context: $context,
         command: pintPreparedCommand($project),
     )->toPayload();
@@ -93,7 +93,7 @@ it('parses pint repair changes as changed status', function (): void {
     $context = $adapter->context(new CliArguments('pint', ['--repair']), $project->root());
 
     $payload = $adapter->parse(
-        execution: ExecutionResult::completed(1, pintJson('fixed', $source), '', 0.12),
+        execution: ExecutionResult::completed(1, pintJson($source), '', 0.12),
         context: $context,
         command: pintPreparedCommand($project),
     )->toPayload();
@@ -107,7 +107,7 @@ it('treats unexpected non-zero pint exits without files as errors', function ():
     $context = $adapter->context(new CliArguments('pint'), $project->root());
 
     $payload = $adapter->parse(
-        execution: ExecutionResult::completed(1, pintJson('passed', null), '', 0.12),
+        execution: ExecutionResult::completed(1, pintJson(null), '', 0.12),
         context: $context,
         command: pintPreparedCommand($project),
     )->toPayload();
@@ -125,11 +125,15 @@ function pintPreparedCommand(FixtureProject $project): PreparedCommand
     );
 }
 
-function pintJson(string $result, ?string $source): string
+function pintJson(?string $source): string
 {
     $document = [
-        'tool' => 'pint',
-        'result' => $result,
+        'about' => 'PHP CS Fixer 3.75.0',
+        'files' => [],
+        'time' => [
+            'total' => 0.123,
+        ],
+        'memory' => 12.345,
     ];
 
     if ($source !== null) {

@@ -10,8 +10,6 @@ it('normalizes pint noisy json files and fixers', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');
     $json = json_encode([
-        'tool' => 'pint',
-        'result' => 'fail',
         'files' => [
             [
                 'path' => $source,

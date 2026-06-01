@@ -18,7 +18,7 @@ final readonly class PintParser
         private ReportPathNormalizer $pathNormalizer = new ReportPathNormalizer(),
     ) {}
 
-    public function parse(string $stdout, string $stderr, string $cwd): PintReport
+    public function parse(string $stdout, string $stderr, string $cwd, bool $repair = false): PintReport
     {
         try {
             $document = $this->jsonOutputParser->parse($stdout, $stderr)->object();
@@ -26,8 +26,12 @@ final readonly class PintParser
             throw $this->invalidShape($unexpectedValueException->getMessage());
         }
 
-        $result = $this->stringValue($document, 'result');
         $items = $this->fileItems($this->list($document['files'] ?? [], 'files'), $cwd);
+        $result = match (true) {
+            $items === [] => 'passed',
+            $repair => 'fixed',
+            default => 'fail',
+        };
         $fixers = array_sum(array_map(
             static fn(array $item): int => is_array($item['fixers'] ?? null) ? count($item['fixers']) : 0,
             $items,
