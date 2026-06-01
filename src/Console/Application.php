@@ -13,6 +13,7 @@ use Sift\Console\Commands\HistoryViewCommand;
 use Sift\Console\Commands\InitCommand;
 use Sift\Console\Commands\RunToolCommand;
 use Sift\Console\Commands\RunToolCommandResult;
+use Sift\Console\Commands\SkillsAddCommand;
 use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
@@ -51,6 +52,7 @@ final readonly class Application
                 'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
                 'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
                 'tools.list' => $this->renderPassed((new ToolsListCommand())->handle($route, $this->cwd()), $preferences),
+                'skills.add' => $this->renderPassed((new SkillsAddCommand())->handle($route, $this->cwd()), $preferences),
                 'history.list' => $this->renderPassed((new HistoryListCommand())->handle($route, $this->cwd()), $preferences),
                 'history.view' => $this->renderPassed((new HistoryViewCommand())->handle($route, $this->cwd()), $preferences),
                 'history.remove' => $this->renderPassed((new HistoryRemoveCommand())->handle($route, $this->cwd()), $preferences),
@@ -60,6 +62,8 @@ final readonly class Application
             };
         } catch (ConfigValidationException $configValidationException) {
             return $this->renderConfigError($configValidationException, $preferences);
+        } catch (InvalidUsageException $invalidUsageException) {
+            return $this->renderUsageError($invalidUsageException, $preferences);
         } catch (UserFacingException $userFacingException) {
             return $this->renderUserFacingError($userFacingException, $preferences);
         }
