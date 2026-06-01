@@ -211,6 +211,46 @@ it('requires confirmation before removing skills', function (): void {
     expect($error['code'] ?? null)->toBe('invalid_usage');
 });
 
+it('updates an installed generic skill from managed source metadata', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Old guidance');
+    $project->write('AGENTS.md', "Manual instructions\n");
+
+    CliRunner::run([
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Updated guidance');
+
+    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'update', 'php-review', '--agent=generic', '--yes'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['updated'] ?? null)->toBe(1);
+    expect(skillsCommandItems($payload)[0]['action'] ?? null)->toBe('updated');
+    expect($agents)->toContain('Manual instructions');
+    expect($agents)->toContain('Updated guidance');
+    expect($agents)->not->toContain('Old guidance');
+});
+
+it('requires confirmation before updating skills', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--no-pretty', 'skills', 'update', 'php-review', '--agent=generic'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+});
+
 it('requires confirmation before writing skills in non interactive mode', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
@@ -243,6 +283,11 @@ it('does not install ambiguous multi skill sources without an explicit skill sel
 
 function skillsCommandFixture(FixtureProject $project, string $path, string $name, string $description): void
 {
+    skillsCommandFixtureWithBody($project, $path, $name, $description, '');
+}
+
+function skillsCommandFixtureWithBody(FixtureProject $project, string $path, string $name, string $description, string $body): void
+{
     $project->write($path, sprintf(
         <<<'MD'
 ---
@@ -251,10 +296,13 @@ description: %s
 ---
 
 # %s
+
+%s
 MD,
         $name,
         $description,
         $name,
+        $body,
     ));
 }
 

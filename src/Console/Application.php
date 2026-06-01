@@ -16,6 +16,7 @@ use Sift\Console\Commands\RunToolCommandResult;
 use Sift\Console\Commands\SkillsAddCommand;
 use Sift\Console\Commands\SkillsListCommand;
 use Sift\Console\Commands\SkillsRemoveCommand;
+use Sift\Console\Commands\SkillsUpdateCommand;
 use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
@@ -57,6 +58,7 @@ final readonly class Application
                 'skills.add' => $this->renderPassed((new SkillsAddCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.list' => $this->renderPassed((new SkillsListCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.remove' => $this->renderPassed((new SkillsRemoveCommand())->handle($route, $this->cwd()), $preferences),
+                'skills.update' => $this->renderPassed((new SkillsUpdateCommand())->handle($route, $this->cwd()), $preferences),
                 'history.list' => $this->renderPassed((new HistoryListCommand())->handle($route, $this->cwd()), $preferences),
                 'history.view' => $this->renderPassed((new HistoryViewCommand())->handle($route, $this->cwd()), $preferences),
                 'history.remove' => $this->renderPassed((new HistoryRemoveCommand())->handle($route, $this->cwd()), $preferences),
