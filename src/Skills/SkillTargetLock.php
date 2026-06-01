@@ -6,6 +6,7 @@ namespace Sift\Skills;
 
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
+use Sift\Filesystem\FileLock;
 use Sift\Filesystem\FilesystemException;
 use Sift\Filesystem\Path;
 use Sift\Filesystem\PathGuard;
@@ -22,30 +23,21 @@ final readonly class SkillTargetLock
      */
     public function synchronized(string $cwd, array $targets, callable $operation): mixed
     {
-        $handles = [];
+        $locks = [];
 
         try {
             foreach ($this->lockPaths($cwd, $targets) as $path) {
-                $handle = @fopen($path, 'c+b');
-
-                if (! is_resource($handle)) {
-                    throw $this->filesystemError(sprintf('Could not open skill target lock "%s".', $path), $path);
+                try {
+                    $locks[] = FileLock::acquire($path);
+                } catch (FilesystemException $filesystemException) {
+                    throw $this->filesystemError($filesystemException->getMessage(), $path);
                 }
-
-                if (! @flock($handle, LOCK_EX | LOCK_NB)) {
-                    fclose($handle);
-
-                    throw $this->filesystemError(sprintf('Could not acquire skill target lock "%s".', $path), $path);
-                }
-
-                $handles[] = $handle;
             }
 
             return $operation();
         } finally {
-            foreach (array_reverse($handles) as $handle) {
-                @flock($handle, LOCK_UN);
-                fclose($handle);
+            foreach (array_reverse($locks) as $lock) {
+                $lock->release();
             }
         }
     }
