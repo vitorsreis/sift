@@ -116,7 +116,7 @@ final readonly class FileRunStore implements RunStore
 
     private function ensureDirectory(string $path): void
     {
-        if (! is_dir($path) && ! mkdir($path, 0700, true) && ! is_dir($path)) {
+        if (! is_dir($path) && ! @mkdir($path, 0700, true) && ! is_dir($path)) {
             throw FilesystemException::writeFailed($path, 'Could not create history directory');
         }
 

@@ -11,6 +11,8 @@ use Sift\Console\Commands\HistoryListCommand;
 use Sift\Console\Commands\HistoryRemoveCommand;
 use Sift\Console\Commands\HistoryViewCommand;
 use Sift\Console\Commands\InitCommand;
+use Sift\Console\Commands\RunToolCommand;
+use Sift\Console\Commands\RunToolCommandResult;
 use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
@@ -53,6 +55,7 @@ final readonly class Application
                 'history.view' => $this->renderPassed((new HistoryViewCommand())->handle($route, $this->cwd()), $preferences),
                 'history.remove' => $this->renderPassed((new HistoryRemoveCommand())->handle($route, $this->cwd()), $preferences),
                 'history.clear' => $this->renderPassed((new HistoryClearCommand())->handle($route, $this->cwd()), $preferences),
+                'run.tool' => $this->renderRunTool((new RunToolCommand(outputPreferencesResolver: $this->outputPreferencesResolver()))->handle($route, $this->cwd())),
                 default => $this->renderNotImplemented($route, $preferences),
             };
         } catch (ConfigValidationException $configValidationException) {
@@ -60,6 +63,17 @@ final readonly class Application
         } catch (UserFacingException $userFacingException) {
             return $this->renderUserFacingError($userFacingException, $preferences);
         }
+    }
+
+    private function renderRunTool(RunToolCommandResult $result): int
+    {
+        $payload = $result->payload();
+
+        if ($payload === null) {
+            return $result->exitCode();
+        }
+
+        return $this->renderPassed($payload, $result->outputPreferences());
     }
 
     private function parser(): CliParser
