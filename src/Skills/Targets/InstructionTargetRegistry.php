@@ -21,6 +21,10 @@ final readonly class InstructionTargetRegistry
             return new CursorRuleTarget();
         }
 
+        if ($normalized === 'windsurf') {
+            return new WindsurfRuleTarget();
+        }
+
         foreach ($this->descriptors() as $descriptor) {
             if ($descriptor->matches($normalized)) {
                 return new InstructionFileTarget($descriptor->name(), $descriptor->relativePath());
@@ -42,6 +46,7 @@ final readonly class InstructionTargetRegistry
         return [
             'codex',
             'cursor',
+            'windsurf',
             ...array_map(
                 static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
                 $this->descriptors(),

@@ -121,3 +121,39 @@ MD);
     expect($normalizedRule)->toContain('<!-- sift:skill:php-review:start data="');
     expect($normalizedRule)->toContain('name: php-review');
 });
+
+it('writes windsurf rules as managed markdown files', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+
+    $results = (new SkillTargetInstaller())->install(
+        $project->root(),
+        [$skill],
+        ['windsurf'],
+        new SkillSource('vendor/source', 'local', $source->root()),
+    );
+
+    $rule = (string) file_get_contents($project->path('.windsurf/rules/php-review.md'));
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]->toItem()['target'] ?? null)->toBe('windsurf');
+    expect($rule)->toContain('<!-- sift:skill:php-review:start data="');
+    expect($rule)->toContain('name: php-review');
+    expect($rule)->toContain('# PHP Review');
+});

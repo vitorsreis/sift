@@ -34,14 +34,13 @@ In non-TTY or CI, mutating skill commands require `--yes` and must not rely on p
 
 ## Targets
 
-- `codex`
-- `claude-code`
-- `cursor`
-- `github-copilot`
-- `windsurf`
-- `gemini`
-- `generic`
-- `vscode`
+- `codex`: copies the full skill directory to the Codex skills home.
+- `cursor`: writes `.cursor/rules/<skill>.mdc`.
+- `windsurf`: writes `.windsurf/rules/<skill>.md`.
+- `claude-code`: updates `CLAUDE.md`.
+- `github-copilot` / `vscode`: updates `.github/copilot-instructions.md`.
+- `gemini`: updates `GEMINI.md`.
+- `generic`: updates `AGENTS.md`.
 
 Targets with unstable path or format contracts are recognized but not write-capable until documented.
 

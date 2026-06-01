@@ -46,7 +46,17 @@ final readonly class SkillInventory
             }
 
             if ($targetName === 'cursor') {
-                foreach ($this->cursorMetadata($cwd) as $metadata) {
+                foreach ($this->ruleFileMetadata($cwd, '.cursor/rules', '.mdc') as $metadata) {
+                    if (in_array($targetName, $metadata->targets(), true)) {
+                        $items[$metadata->name()] = $metadata;
+                    }
+                }
+
+                continue;
+            }
+
+            if ($targetName === 'windsurf') {
+                foreach ($this->ruleFileMetadata($cwd, '.windsurf/rules', '.md') as $metadata) {
                     if (in_array($targetName, $metadata->targets(), true)) {
                         $items[$metadata->name()] = $metadata;
                     }
@@ -134,15 +144,15 @@ final readonly class SkillInventory
     /**
      * @return list<SkillManagedMetadata>
      */
-    private function cursorMetadata(string $cwd): array
+    private function ruleFileMetadata(string $cwd, string $relativeDirectory, string $extension): array
     {
         try {
-            $rulesDirectory = (new PathGuard($cwd))->assertInside(Path::join($cwd, '.cursor/rules'));
+            $rulesDirectory = (new PathGuard($cwd))->assertInside(Path::join($cwd, $relativeDirectory));
         } catch (FilesystemException $filesystemException) {
             throw UserFacingException::withContext(
                 errorCode: ErrorCode::FilesystemError,
                 message: $filesystemException->getMessage(),
-                context: ['path' => '.cursor/rules'],
+                context: ['path' => $relativeDirectory],
             );
         }
 
@@ -159,11 +169,11 @@ final readonly class SkillInventory
         $items = [];
 
         foreach ($entries as $entry) {
-            if (! str_ends_with($entry, '.mdc')) {
+            if (! str_ends_with($entry, $extension)) {
                 continue;
             }
 
-            foreach ($this->instructionFileMetadata($cwd, Path::join('.cursor/rules', $entry)) as $metadata) {
+            foreach ($this->instructionFileMetadata($cwd, Path::join($relativeDirectory, $entry)) as $metadata) {
                 $items[] = $metadata;
             }
         }
