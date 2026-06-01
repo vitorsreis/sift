@@ -29,3 +29,26 @@ it('inserts and replaces one managed skill block with encoded metadata', functio
     expect(substr_count($second, '<!-- sift:skill:php-review:start'))->toBe(1);
     expect(substr_count($second, '<!-- sift:skill:php-review:end -->'))->toBe(1);
 });
+
+it('reads metadata from managed skill blocks', function (): void {
+    $editor = new ManagedBlockEditor();
+    $contents = $editor->upsert(
+        '',
+        'php-review',
+        [
+            'name' => 'php-review',
+            'source' => 'repo',
+            'source_type' => 'local',
+            'installed_at' => '2026-06-01T00:00:00+00:00',
+            'targets' => ['generic'],
+        ],
+        "Body\n",
+    );
+
+    $metadata = $editor->metadata($contents);
+
+    expect($metadata)->toHaveCount(1);
+    expect($metadata[0]->name())->toBe('php-review');
+    expect($metadata[0]->source())->toBe('repo');
+    expect($metadata[0]->targets())->toBe(['generic']);
+});

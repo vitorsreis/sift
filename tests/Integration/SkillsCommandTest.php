@@ -143,6 +143,36 @@ it('installs every discovered skill with the wildcard selector', function (): vo
     expect($agents)->toContain('name: laravel-review');
 });
 
+it('lists installed generic skills from managed blocks only', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    $project->write('AGENTS.md', "Manual mention of php-review without managed metadata\n");
+
+    $emptyList = CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
+    $emptyPayload = CliRunner::decode($emptyList['stdout']);
+
+    CliRunner::run([
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+
+    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $items = skillsCommandItems($payload);
+
+    expect($emptyList['exit_code'])->toBe(0);
+    expect(skillsCommandObject($emptyPayload, 'summary')['total'] ?? null)->toBe(0);
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['total'] ?? null)->toBe(1);
+    expect($items[0]['name'] ?? null)->toBe('php-review');
+    expect($items[0]['targets'] ?? null)->toBe(['generic']);
+});
+
 it('requires confirmation before writing skills in non interactive mode', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
