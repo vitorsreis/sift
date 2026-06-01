@@ -10,8 +10,12 @@ use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
 use Sift\Skills\SkillDiscovery;
 use Sift\Skills\SkillRepositoryCloner;
+use Sift\Skills\SkillSelector;
 use Sift\Skills\SkillSource;
 use Sift\Skills\SkillSourceResolver;
+use Sift\Skills\Targets\InstructionTargetRegistry;
+use Sift\Skills\Targets\SkillTargetInstaller;
+use Sift\Skills\Targets\SkillTargetInstallResult;
 
 final readonly class SkillsAddCommand implements CommandHandler
 {
@@ -19,18 +23,21 @@ final readonly class SkillsAddCommand implements CommandHandler
         private SkillSourceResolver $sourceResolver = new SkillSourceResolver(),
         private SkillRepositoryCloner $repositoryCloner = new SkillRepositoryCloner(),
         private SkillDiscovery $discovery = new SkillDiscovery(),
+        private SkillSelector $selector = new SkillSelector(),
+        private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
+        private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        if (! $this->optionBool($route, 'list')) {
-            throw new InvalidUsageException('Skill installation is not implemented yet. Use --list to preview skills.');
-        }
-
         $sourceArgument = $route->arguments()[0] ?? null;
 
         if (! is_string($sourceArgument) || trim($sourceArgument) === '') {
             throw new InvalidUsageException('skills add requires a source.');
+        }
+
+        if (! $this->optionBool($route, 'list')) {
+            $this->assertConfirmed($route);
         }
 
         $source = $this->sourceResolver->resolve($sourceArgument, $cwd);
@@ -50,7 +57,15 @@ final readonly class SkillsAddCommand implements CommandHandler
                 throw new InvalidUsageException(sprintf('Skill source "%s" does not contain any SKILL.md files.', $resolvedSource->source()));
             }
 
-            return $this->payload($route, $resolvedSource, $skills);
+            if ($this->optionBool($route, 'list')) {
+                return $this->previewPayload($route, $resolvedSource, $skills);
+            }
+
+            $selectedSkills = $this->selector->select($skills, $this->skillSelector($route), $resolvedSource->source());
+            $targets = $this->targets($route);
+            $results = $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource);
+
+            return $this->installPayload($route, $resolvedSource, $selectedSkills, $targets, $results);
         } finally {
             $checkout->cleanup();
         }
@@ -70,7 +85,7 @@ final readonly class SkillsAddCommand implements CommandHandler
      *
      * @return array<string, mixed>
      */
-    private function payload(CommandRoute $route, SkillSource $source, array $skills): array
+    private function previewPayload(CommandRoute $route, SkillSource $source, array $skills): array
     {
         return [
             'tool' => 'sift',
@@ -89,6 +104,38 @@ final readonly class SkillsAddCommand implements CommandHandler
                 'warnings' => $source->warnings(),
                 'global' => $this->optionBool($route, 'global'),
                 'ignored_options' => $this->ignoredOptions($route),
+            ],
+        ];
+    }
+
+    /**
+     * @param list<Skill> $skills
+     * @param list<string> $targets
+     * @param list<SkillTargetInstallResult> $results
+     *
+     * @return array<string, mixed>
+     */
+    private function installPayload(CommandRoute $route, SkillSource $source, array $skills, array $targets, array $results): array
+    {
+        return [
+            'tool' => 'sift',
+            'status' => 'passed',
+            'summary' => [
+                'installed' => count($results),
+                'skills' => count($skills),
+                'targets' => count($targets),
+            ],
+            'items' => array_map(static fn(SkillTargetInstallResult $result): array => $result->toItem(), $results),
+            'artifacts' => [],
+            'extra' => [],
+            'meta' => [
+                'subcommand' => 'skills add',
+                'source' => $source->source(),
+                'source_type' => $source->type(),
+                'resolved_ref' => $source->resolvedRef(),
+                'warnings' => $source->warnings(),
+                'targets' => $targets,
+                'global' => $this->optionBool($route, 'global'),
             ],
         ];
     }
@@ -126,5 +173,55 @@ final readonly class SkillsAddCommand implements CommandHandler
     private function optionBool(CommandRoute $route, string $name): bool
     {
         return ($route->options()[$name] ?? false) === true;
+    }
+
+    private function assertConfirmed(CommandRoute $route): void
+    {
+        if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
+            return;
+        }
+
+        throw new InvalidUsageException('Mutating skill commands require --yes or --all in non-interactive mode.');
+    }
+
+    private function skillSelector(CommandRoute $route): ?string
+    {
+        if ($this->optionBool($route, 'all')) {
+            return '*';
+        }
+
+        $selector = $route->options()['skill'] ?? null;
+
+        return is_string($selector) ? $selector : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function targets(CommandRoute $route): array
+    {
+        if ($this->optionBool($route, 'all')) {
+            return $this->targetRegistry->writeCapableNames();
+        }
+
+        $agent = $route->options()['agent'] ?? null;
+
+        if (! is_string($agent) || trim($agent) === '') {
+            throw new InvalidUsageException('skills add requires --agent or --all when installing.');
+        }
+
+        $targets = [];
+
+        foreach (explode(',', $agent) as $target) {
+            $target = trim($target);
+
+            if ($target === '' || in_array($target, ['*', 'all'], true)) {
+                return $this->targetRegistry->writeCapableNames();
+            }
+
+            $targets[] = $target;
+        }
+
+        return array_values(array_unique($targets));
     }
 }

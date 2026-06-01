@@ -61,7 +61,116 @@ it('renders skills command usage errors as json', function (): void {
     expect($result['stdout'])->toBe('');
     expect($payload['status'] ?? null)->toBe('error');
     expect($error['code'] ?? null)->toBe('invalid_usage');
-    expect($error['message'] ?? null)->toBe('Skill installation is not implemented yet. Use --list to preview skills.');
+    expect($error['message'] ?? null)->toBe('Mutating skill commands require --yes or --all in non-interactive mode.');
+});
+
+it('installs a selected skill into the generic agents file', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
+    $project->write('AGENTS.md', "Manual instructions\n");
+
+    $result = CliRunner::run([
+        '--full',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--skill=php-review',
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+    $items = skillsCommandItems($payload);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect(skillsCommandObject($payload, 'summary')['installed'] ?? null)->toBe(1);
+    expect($items[0]['name'] ?? null)->toBe('php-review');
+    expect($items[0]['target'] ?? null)->toBe('generic');
+    expect($agents)->toContain('Manual instructions');
+    expect($agents)->toContain('<!-- sift:skill:php-review:start data="');
+    expect($agents)->toContain('name: php-review');
+    expect($agents)->not->toContain('name: laravel-review');
+});
+
+it('installs a single skill source without an explicit skill selector', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+
+    $result = CliRunner::run([
+        '--full',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['installed'] ?? null)->toBe(1);
+    expect($agents)->toContain('name: php-review');
+});
+
+it('installs every discovered skill with the wildcard selector', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
+
+    $result = CliRunner::run([
+        '--full',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--skill=*',
+        '--agent=generic',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['installed'] ?? null)->toBe(2);
+    expect($agents)->toContain('name: php-review');
+    expect($agents)->toContain('name: laravel-review');
+});
+
+it('requires confirmation before writing skills in non interactive mode', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+
+    $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($project->path('AGENTS.md'))->not->toBeFile();
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+});
+
+it('does not install ambiguous multi skill sources without an explicit skill selector', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
+
+    $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($project->path('AGENTS.md'))->not->toBeFile();
+    expect($error['code'] ?? null)->toBe('skill_selection_required');
 });
 
 function skillsCommandFixture(FixtureProject $project, string $path, string $name, string $description): void
