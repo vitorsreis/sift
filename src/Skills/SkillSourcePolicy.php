@@ -48,6 +48,25 @@ final readonly class SkillSourcePolicy
         }
     }
 
+    public function assertNoRequiredSubmodules(string $source, string $path): void
+    {
+        $gitmodules = Path::join($path, '.gitmodules');
+
+        if (! is_file($gitmodules)) {
+            return;
+        }
+
+        $contents = file_get_contents($gitmodules);
+
+        if (! is_string($contents) || trim($contents) === '') {
+            return;
+        }
+
+        if (preg_match('/^\s*\[submodule\s+"/m', $contents) === 1) {
+            $this->reject($source, 'Skill sources that require Git submodules are not supported.');
+        }
+    }
+
     private function reject(string $source, string $message): never
     {
         throw UserFacingException::withContext(

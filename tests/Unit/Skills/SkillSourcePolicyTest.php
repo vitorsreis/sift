@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 use Sift\Skills\SkillSourcePolicy;
+use Tests\Support\FixtureProject;
 
 it('rejects unsafe skill sources before clone or copy', function (string $source): void {
     try {
@@ -36,3 +37,22 @@ it('allows bundled local and github skill sources', function (string $source): v
     'owner/repo',
     'https://github.com/owner/repo',
 ]);
+
+it('rejects skill sources that require git submodules', function (): void {
+    $repository = FixtureProject::create('sift-submodule-source-');
+    $repository->write('.gitmodules', <<<'GITMODULES'
+[submodule "skills/php-review"]
+	path = skills/php-review
+	url = https://github.com/example/php-review.git
+GITMODULES);
+
+    try {
+        (new SkillSourcePolicy())->assertNoRequiredSubmodules('owner/repo', $repository->root());
+    } catch (UserFacingException $userFacingException) {
+        expect($userFacingException->errorCode())->toBe(ErrorCode::PolicyBlocked);
+
+        return;
+    }
+
+    throw new RuntimeException('Expected source policy to reject required submodules.');
+});

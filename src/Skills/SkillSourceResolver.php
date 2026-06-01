@@ -31,11 +31,17 @@ final readonly class SkillSourceResolver
         $this->policy->assertLocalPathAllowed($source, $localPath, $cwd);
 
         if (is_file($localPath) && basename($localPath) === 'SKILL.md') {
-            return new SkillSource($source, 'local', Path::normalize(dirname($localPath)), warnings: ['local_source']);
+            $directory = Path::normalize(dirname($localPath));
+            $this->policy->assertNoRequiredSubmodules($source, $directory);
+
+            return new SkillSource($source, 'local', $directory, warnings: ['local_source']);
         }
 
         if (is_dir($localPath)) {
-            return new SkillSource($source, 'local', Path::normalize($localPath), warnings: ['local_source']);
+            $directory = Path::normalize($localPath);
+            $this->policy->assertNoRequiredSubmodules($source, $directory);
+
+            return new SkillSource($source, 'local', $directory, warnings: ['local_source']);
         }
 
         $repositoryUrl = $this->repositoryUrl($source);

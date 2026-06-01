@@ -10,12 +10,14 @@ use Sift\Exceptions\UserFacingException;
 use Sift\Execution\ProcessRunner;
 use Sift\Execution\ToolLocator;
 use Sift\Filesystem\Path;
+use Throwable;
 
 final readonly class SkillRepositoryCloner
 {
     public function __construct(
         private ProcessRunner $processRunner = new ProcessRunner(),
         private ToolLocator $toolLocator = new ToolLocator(),
+        private SkillSourcePolicy $policy = new SkillSourcePolicy(),
     ) {}
 
     public function clone(SkillSource $source, string $cwd): ClonedSkillSource
@@ -49,7 +51,14 @@ final readonly class SkillRepositoryCloner
             );
         }
 
-        $resolvedRef = $this->resolvedRef($target, $gitBinary);
+        try {
+            $this->policy->assertNoRequiredSubmodules($source->source(), $target);
+            $resolvedRef = $this->resolvedRef($target, $gitBinary);
+        } catch (Throwable $throwable) {
+            $this->deleteTree($target);
+
+            throw $throwable;
+        }
 
         return new ClonedSkillSource(
             source: $source->withPath($target, $resolvedRef),
