@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\Composer\ComposerToolAdapter;
 use Sift\Tools\ComposerRequireChecker\ComposerRequireCheckerToolAdapter;
 use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
@@ -77,6 +78,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new ComposerUnusedToolAdapter(),
             new ComposerRequireCheckerToolAdapter(),
             new ParallelLintToolAdapter(),
+            new ComposerToolAdapter(),
         );
     }
 

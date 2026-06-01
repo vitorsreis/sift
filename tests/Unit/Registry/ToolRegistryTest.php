@@ -9,6 +9,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Execution\LocatedTool;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\CliArguments;
+use Sift\Tools\Composer\ComposerToolAdapter;
 use Sift\Tools\ComposerRequireChecker\ComposerRequireCheckerToolAdapter;
 use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
@@ -71,7 +72,7 @@ it('keeps adapters in registration order', function (): void {
 it('registers built-in adapters without external discovery', function (): void {
     $registry = ToolRegistry::builtIns();
 
-    expect($registry->all())->toHaveCount(16);
+    expect($registry->all())->toHaveCount(17);
     expect($registry->find('pest'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('test'))->toBeInstanceOf(PestToolAdapter::class);
     expect($registry->find('phpunit'))->toBeInstanceOf(PhpunitToolAdapter::class);
@@ -89,6 +90,7 @@ it('registers built-in adapters without external discovery', function (): void {
     expect($registry->find('composer-unused'))->toBeInstanceOf(ComposerUnusedToolAdapter::class);
     expect($registry->find('composer-require-checker'))->toBeInstanceOf(ComposerRequireCheckerToolAdapter::class);
     expect($registry->find('parallel-lint'))->toBeInstanceOf(ParallelLintToolAdapter::class);
+    expect($registry->find('composer'))->toBeInstanceOf(ComposerToolAdapter::class);
     expect($registry->find('vendor/package-tool'))->toBeNull();
 });
 
