@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\Filesystem\Path;
+
 final readonly class ResourcePathResolver
 {
     private function __construct(
@@ -12,24 +14,21 @@ final readonly class ResourcePathResolver
 
     public static function fromProjectRoot(string $projectRoot): self
     {
-        return new self(rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $projectRoot), DIRECTORY_SEPARATOR));
+        return new self(Path::normalize($projectRoot));
+    }
+
+    public static function fromRuntime(): self
+    {
+        return new self(Path::normalize(dirname(__DIR__, 2)));
     }
 
     public function resource(string $path): string
     {
-        return $this->join($this->projectRoot, 'resources', $path);
+        return Path::join($this->projectRoot, 'resources', $path);
     }
 
     public function skill(string $path): string
     {
-        return $this->join($this->projectRoot, 'skills', $path);
-    }
-
-    private function join(string ...$parts): string
-    {
-        return implode(DIRECTORY_SEPARATOR, array_map(
-            static fn(string $part): string => trim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $part), DIRECTORY_SEPARATOR),
-            $parts,
-        ));
+        return Path::join($this->projectRoot, 'skills', $path);
     }
 }
