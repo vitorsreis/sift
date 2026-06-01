@@ -251,6 +251,33 @@ it('requires confirmation before updating skills', function (): void {
     expect($error['code'] ?? null)->toBe('invalid_usage');
 });
 
+it('fails mutating skill commands when the target lock is held', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    $lockPath = $project->write('.sift/locks/skills/generic.lock', '');
+    $handle = fopen($lockPath, 'c+b');
+
+    if (! is_resource($handle)) {
+        throw new RuntimeException('Could not open lock fixture.');
+    }
+
+    flock($handle, LOCK_EX);
+
+    try {
+        $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
+    } finally {
+        flock($handle, LOCK_UN);
+        fclose($handle);
+    }
+
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($error['code'] ?? null)->toBe('filesystem_error');
+    expect($project->path('AGENTS.md'))->not->toBeFile();
+});
+
 it('requires confirmation before writing skills in non interactive mode', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');

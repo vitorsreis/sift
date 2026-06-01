@@ -13,6 +13,7 @@ use Sift\Filesystem\FilesystemException;
 use Sift\Filesystem\Path;
 use Sift\Filesystem\PathGuard;
 use Sift\Skills\ManagedBlockEditor;
+use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 
 final readonly class SkillsRemoveCommand implements CommandHandler
@@ -21,6 +22,7 @@ final readonly class SkillsRemoveCommand implements CommandHandler
         private ManagedBlockEditor $blockEditor = new ManagedBlockEditor(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private AtomicWriter $writer = new AtomicWriter(),
+        private SkillTargetLock $targetLock = new SkillTargetLock(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -29,17 +31,21 @@ final readonly class SkillsRemoveCommand implements CommandHandler
 
         $skillName = $this->skillName($route);
         $targets = $this->targets($route);
-        $items = [];
+        $items = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $skillName, $targets): array {
+            $items = [];
 
-        foreach ($targets as $target) {
-            $this->targetRegistry->resolve($target);
+            foreach ($targets as $target) {
+                $this->targetRegistry->resolve($target);
 
-            if ($target !== 'generic') {
-                continue;
+                if ($target !== 'generic') {
+                    continue;
+                }
+
+                $items[] = $this->removeFromInstructionFile($cwd, 'AGENTS.md', $skillName, $target);
             }
 
-            $items[] = $this->removeFromInstructionFile($cwd, 'AGENTS.md', $skillName, $target);
-        }
+            return $items;
+        });
 
         $removed = count(array_filter($items, static fn(array $item): bool => ($item['action'] ?? null) === 'removed'));
 

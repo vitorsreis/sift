@@ -13,6 +13,7 @@ use Sift\Skills\SkillRepositoryCloner;
 use Sift\Skills\SkillSelector;
 use Sift\Skills\SkillSource;
 use Sift\Skills\SkillSourceResolver;
+use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 use Sift\Skills\Targets\SkillTargetInstaller;
 use Sift\Skills\Targets\SkillTargetInstallResult;
@@ -26,6 +27,7 @@ final readonly class SkillsAddCommand implements CommandHandler
         private SkillSelector $selector = new SkillSelector(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
+        private SkillTargetLock $targetLock = new SkillTargetLock(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -63,7 +65,11 @@ final readonly class SkillsAddCommand implements CommandHandler
 
             $selectedSkills = $this->selector->select($skills, $this->skillSelector($route), $resolvedSource->source());
             $targets = $this->targets($route);
-            $results = $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource);
+            $results = $this->targetLock->synchronized(
+                $cwd,
+                $targets,
+                fn(): array => $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource),
+            );
 
             return $this->installPayload($route, $resolvedSource, $selectedSkills, $targets, $results);
         } finally {

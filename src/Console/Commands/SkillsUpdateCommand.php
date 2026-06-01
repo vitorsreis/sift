@@ -15,6 +15,7 @@ use Sift\Skills\SkillRepositoryCloner;
 use Sift\Skills\SkillSelector;
 use Sift\Skills\SkillSource;
 use Sift\Skills\SkillSourceResolver;
+use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 use Sift\Skills\Targets\SkillTargetInstaller;
 use Sift\Skills\Targets\SkillTargetInstallResult;
@@ -29,6 +30,7 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         private SkillSelector $selector = new SkillSelector(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
+        private SkillTargetLock $targetLock = new SkillTargetLock(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -36,14 +38,19 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         $this->assertConfirmed($route);
 
         $targets = $this->targets($route);
-        $installed = $this->selectedMetadata($this->inventory->list($cwd, $targets), $route);
-        $results = [];
+        $installed = [];
+        $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, &$installed): array {
+            $installed = $this->selectedMetadata($this->inventory->list($cwd, $targets), $route);
+            $results = [];
 
-        foreach ($installed as $metadata) {
-            foreach ($this->update($cwd, $metadata, $targets) as $result) {
-                $results[] = $result;
+            foreach ($installed as $metadata) {
+                foreach ($this->update($cwd, $metadata, $targets) as $result) {
+                    $results[] = $result;
+                }
             }
-        }
+
+            return $results;
+        });
 
         return [
             'tool' => 'sift',
