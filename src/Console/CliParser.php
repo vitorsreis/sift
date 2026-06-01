@@ -32,6 +32,7 @@ final readonly class CliParser
             CliOption::boolean('history'),
             CliOption::boolean('no-history'),
             CliOption::string('config', 'c'),
+            CliOption::string('d', repeatable: true),
         ]);
 
         $configOptions = self::optionMap([CliOption::string('config', 'c')]);
@@ -384,6 +385,10 @@ final readonly class CliParser
         }
 
         $option = substr($token, 1);
+
+        if (str_starts_with($option, 'd') && strlen($option) > 1) {
+            return ['d', '-d', substr($option, 1)];
+        }
 
         return [$option, '-' . $option, null];
     }

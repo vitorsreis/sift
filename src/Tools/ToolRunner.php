@@ -10,6 +10,7 @@ use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Exceptions\UserFacingException;
+use Sift\Execution\PhpCommandFactory;
 use Sift\Execution\ProcessRunner;
 use Sift\Execution\RawProcessRunner;
 use Sift\Execution\ToolResolver;
@@ -26,6 +27,7 @@ final readonly class ToolRunner
         private ProcessRunner $processRunner = new ProcessRunner(),
         private RawProcessRunner $rawProcessRunner = new RawProcessRunner(),
         private ToolResultBuilder $resultBuilder = new ToolResultBuilder(),
+        private PhpCommandFactory $phpCommandFactory = new PhpCommandFactory(),
     ) {}
 
     public function run(
@@ -52,6 +54,7 @@ final readonly class ToolRunner
         $command = $adapter->prepare($locatedTool, $context, $toolConfig);
 
         $this->policyPipeline->assertAllowed($command, $context, $toolConfig);
+        $command = $this->phpCommandFactory->apply($command, $this->phpArguments($arguments));
 
         if ($context->raw()) {
             return $this->rawProcessRunner->run($command, $rawStdout, $rawStderr);
@@ -61,5 +64,37 @@ final readonly class ToolRunner
         $parsed = $adapter->parse($execution, $context, $command);
 
         return $this->resultBuilder->build($parsed, $execution, $command, $context);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function phpArguments(CliArguments $arguments): array
+    {
+        $phpArgument = $arguments->siftOption('d');
+
+        if ($phpArgument === null) {
+            return [];
+        }
+
+        if (is_string($phpArgument)) {
+            return [$this->phpDefineArgument($phpArgument)];
+        }
+
+        if (! is_array($phpArgument)) {
+            return [];
+        }
+
+        $phpArgument = array_values(array_filter(
+            $phpArgument,
+            static fn(mixed $argument): bool => is_string($argument) && $argument !== '',
+        ));
+
+        return array_map($this->phpDefineArgument(...), $phpArgument);
+    }
+
+    private function phpDefineArgument(string $argument): string
+    {
+        return '-d' . $argument;
     }
 }

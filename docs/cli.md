@@ -24,6 +24,7 @@ All entrypoints call the same application core and should return the same payloa
 - `--history`
 - `--no-history`
 - `--config=<path>`, `-c <path>`
+- `-d <name=value>`
 
 Precedence:
 

@@ -11,6 +11,8 @@ use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
+use Sift\Execution\PhpCommandFactory;
+use Sift\Execution\PhpRuntimeArguments;
 use Sift\Registry\ToolRegistry;
 use Sift\Safety\Policy;
 use Sift\Safety\PolicyPipeline;
@@ -83,6 +85,44 @@ it('runs policies before starting the process', function (): void {
     }
 
     throw new RuntimeException('Tool runner did not block execution.');
+});
+
+it('passes inherited and tool-only php ini settings to php composer proxy binaries', function (): void {
+    $project = FixtureProject::create();
+    $proxy = $project->write('vendor/bin/demo', <<<'PHP'
+#!/usr/bin/env php
+<?php
+fwrite(STDOUT, ini_get('memory_limit') . '|' . implode(',', array_slice($_SERVER['argv'], 1)));
+PHP);
+    $batch = $project->write('vendor/bin/demo.bat', '@echo off');
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(toolRunnerAdapter('demo', [], [])),
+        phpCommandFactory: new PhpCommandFactory(PHP_BINARY, new PhpRuntimeArguments([
+            PHP_BINARY,
+            '-dmemory_limit=64M',
+            $project->path('bin/sift'),
+            'demo',
+            'user-arg',
+        ])),
+    );
+
+    $result = $runner->run(
+        arguments: new CliArguments('demo', ['user-arg'], ['d' => ['memory_limit=128M']]),
+        config: toolRunnerConfig(new ToolConfig('demo', true, $batch, [], 30)),
+        cwd: $project->root(),
+    );
+
+    if (! $result instanceof NormalizedResult) {
+        throw new RuntimeException('Expected normalized result.');
+    }
+
+    $payload = $result->toPayload();
+
+    expect($payload['summary'])->toMatchArray([
+        'stdout' => '128M|user-arg',
+        'parsed_command' => [PHP_BINARY, '-dmemory_limit=64M', '-dmemory_limit=128M', $proxy, 'user-arg'],
+    ]);
+    expect($payload['meta']['command'])->toBe([PHP_BINARY, '-dmemory_limit=64M', '-dmemory_limit=128M', $proxy, 'user-arg']);
 });
 
 /**

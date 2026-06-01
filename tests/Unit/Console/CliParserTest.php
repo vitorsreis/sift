@@ -62,6 +62,22 @@ it('parses global short aliases before the command', function (): void {
     ]);
 });
 
+it('parses repeatable php ini settings before the command', function (): void {
+    $request = CliParser::forSift()->parse([
+        '-d',
+        'xdebug.mode=coverage',
+        '-dmemory_limit=1G',
+        'pest',
+        '--coverage',
+    ]);
+
+    expect($request->command())->toBe('run');
+    expect($request->globalOptions())->toBe([
+        'd' => ['xdebug.mode=coverage', 'memory_limit=1G'],
+    ]);
+    expect($request->arguments())->toBe(['pest', '--coverage']);
+});
+
 it('does not consume the next token as a boolean flag value', function (): void {
     $request = CliParser::forSift()->parse(['--compact', 'pest', '--filter=CheckoutTest']);
 
