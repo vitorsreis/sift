@@ -84,3 +84,40 @@ MD);
         'targets' => ['codex'],
     ]);
 });
+
+it('writes cursor rules with escaped frontmatter and managed metadata', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review "PHP": projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+
+    $results = (new SkillTargetInstaller())->install(
+        $project->root(),
+        [$skill],
+        ['cursor'],
+        new SkillSource('vendor/source', 'local', $source->root()),
+    );
+
+    $rule = (string) file_get_contents($project->path('.cursor/rules/php-review.mdc'));
+    $normalizedRule = str_replace("\r\n", "\n", $rule);
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]->toItem()['target'] ?? null)->toBe('cursor');
+    expect($normalizedRule)->toStartWith("---\ndescription: \"Review \\\"PHP\\\": projects.\"\nalwaysApply: false\n---\n\n");
+    expect($normalizedRule)->toContain('<!-- sift:skill:php-review:start data="');
+    expect($normalizedRule)->toContain('name: php-review');
+});

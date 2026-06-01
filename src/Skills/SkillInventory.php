@@ -45,6 +45,16 @@ final readonly class SkillInventory
                 continue;
             }
 
+            if ($targetName === 'cursor') {
+                foreach ($this->cursorMetadata($cwd) as $metadata) {
+                    if (in_array($targetName, $metadata->targets(), true)) {
+                        $items[$metadata->name()] = $metadata;
+                    }
+                }
+
+                continue;
+            }
+
             if ($targetName === 'generic') {
                 foreach ($this->instructionFileMetadata($cwd, 'AGENTS.md') as $metadata) {
                     if (in_array($targetName, $metadata->targets(), true)) {
@@ -114,6 +124,46 @@ final readonly class SkillInventory
             $metadata = SkillManagedMetadata::fromPayload($payload, $entry);
 
             if ($metadata instanceof SkillManagedMetadata) {
+                $items[] = $metadata;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return list<SkillManagedMetadata>
+     */
+    private function cursorMetadata(string $cwd): array
+    {
+        try {
+            $rulesDirectory = (new PathGuard($cwd))->assertInside(Path::join($cwd, '.cursor/rules'));
+        } catch (FilesystemException $filesystemException) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: $filesystemException->getMessage(),
+                context: ['path' => '.cursor/rules'],
+            );
+        }
+
+        if (! is_dir($rulesDirectory)) {
+            return [];
+        }
+
+        $entries = scandir($rulesDirectory);
+
+        if ($entries === false) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($entries as $entry) {
+            if (! str_ends_with($entry, '.mdc')) {
+                continue;
+            }
+
+            foreach ($this->instructionFileMetadata($cwd, Path::join('.cursor/rules', $entry)) as $metadata) {
                 $items[] = $metadata;
             }
         }

@@ -10,13 +10,14 @@ it('resolves generic target and rejects unsupported targets', function (): void 
     $registry = new InstructionTargetRegistry();
 
     expect($registry->resolve('codex')->name())->toBe('codex');
+    expect($registry->resolve('cursor')->name())->toBe('cursor');
     expect($registry->resolve('generic')->name())->toBe('generic');
     expect($registry->resolve('claude')->name())->toBe('claude-code');
     expect($registry->resolve('copilot')->name())->toBe('github-copilot');
     expect($registry->resolve('vscode')->name())->toBe('github-copilot');
     expect($registry->resolve('vs-code')->name())->toBe('github-copilot');
     expect($registry->resolve('visual-studio-code')->name())->toBe('github-copilot');
-    expect($registry->writeCapableNames())->toBe(['codex', 'generic', 'claude-code', 'github-copilot', 'gemini']);
+    expect($registry->writeCapableNames())->toBe(['codex', 'cursor', 'generic', 'claude-code', 'github-copilot', 'gemini']);
 
     try {
         $registry->resolve('opencode');

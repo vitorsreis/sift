@@ -114,6 +114,39 @@ MD);
     expect($items[0]->targets())->toBe(['claude-code']);
 });
 
+it('lists managed cursor rules', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+
+    (new SkillTargetInstaller())->install(
+        $project->root(),
+        [$skill],
+        ['cursor'],
+        new SkillSource('vendor/source', 'local', $source->root()),
+    );
+
+    $items = (new SkillInventory())->list($project->root(), ['cursor']);
+
+    expect(array_map(static fn(SkillManagedMetadata $metadata): string => $metadata->name(), $items))->toBe(['php-review']);
+    expect($items[0]->targets())->toBe(['cursor']);
+});
+
 it('rejects unsupported inventory targets', function (): void {
     $project = FixtureProject::create();
 

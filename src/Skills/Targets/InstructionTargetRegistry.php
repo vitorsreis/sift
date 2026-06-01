@@ -17,6 +17,10 @@ final readonly class InstructionTargetRegistry
             return new CodexSkillTarget();
         }
 
+        if ($normalized === 'cursor') {
+            return new CursorRuleTarget();
+        }
+
         foreach ($this->descriptors() as $descriptor) {
             if ($descriptor->matches($normalized)) {
                 return new InstructionFileTarget($descriptor->name(), $descriptor->relativePath());
@@ -37,6 +41,7 @@ final readonly class InstructionTargetRegistry
     {
         return [
             'codex',
+            'cursor',
             ...array_map(
                 static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
                 $this->descriptors(),
