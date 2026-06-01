@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Sift\Composer\Command;
 
 use Closure;
+use Composer\Command\BaseCommand;
 use Sift\Console\Application;
 use Stringable;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-abstract class ApplicationCommand extends Command
+abstract class ApplicationCommand extends BaseCommand
 {
     /**
      * @param null|Closure(list<string>, OutputInterface): int $runner
@@ -32,6 +32,12 @@ abstract class ApplicationCommand extends Command
             ->addArgument('arguments', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Sift command arguments');
 
         $this->ignoreValidationErrors();
+    }
+
+    #[\Override]
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        unset($input, $output);
     }
 
     /**

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Composer\Command\BaseCommand;
+use Composer\Console\Application as ComposerApplication;
 use Composer\Plugin\Capability\CommandProvider;
 use Sift\Composer\Command\ComposerSkillsCommand;
 use Sift\Composer\Command\SiftCommand;
@@ -40,7 +42,7 @@ it('bridges composer sift arguments into the application', function (): void {
         },
     );
 
-    $tester = new CommandTester($command);
+    $tester = composerCommandTester($command);
     $exitCode = $tester->execute([
         'arguments' => ['--compact', '--pretty', 'pest'],
     ]);
@@ -62,7 +64,7 @@ it('keeps raw sift flags from argv input', function (): void {
     );
 
     $output = new BufferedOutput();
-    $exitCode = $command->run(new ArgvInput(['composer', 'sift', '--compact', '--pretty', 'pest']), $output);
+    $exitCode = attachComposerApplication($command)->run(new ArgvInput(['composer', 'sift', '--compact', '--pretty', 'pest']), $output);
 
     expect($exitCode)->toBe(0);
     expect($captured)->toBe(['--compact', '--pretty', 'pest']);
@@ -80,7 +82,7 @@ it('bridges composer skills arguments into the skills command namespace', functi
         },
     );
 
-    $tester = new CommandTester($command);
+    $tester = composerCommandTester($command);
     $exitCode = $tester->execute([
         'arguments' => ['add', 'vitorsreis/sift', '--skill', 'sift'],
     ]);
@@ -91,7 +93,7 @@ it('bridges composer skills arguments into the skills command namespace', functi
 });
 
 it('runs the real application through composer sift', function (): void {
-    $tester = new CommandTester(new SiftCommand());
+    $tester = composerCommandTester(new SiftCommand());
     $exitCode = $tester->execute([
         'arguments' => ['--no-pretty', 'help'],
     ]);
@@ -105,7 +107,7 @@ it('runs the real application through composer sift', function (): void {
 });
 
 it('runs the real application through composer skills', function (): void {
-    $tester = new CommandTester(new ComposerSkillsCommand());
+    $tester = composerCommandTester(new ComposerSkillsCommand());
     $exitCode = $tester->execute([
         'arguments' => ['--no-pretty', 'list'],
     ]);
@@ -140,4 +142,19 @@ function decodeComposerCommandPayload(string $json): array
     }
 
     return $normalized;
+}
+
+function composerCommandTester(BaseCommand $command): CommandTester
+{
+    attachComposerApplication($command);
+
+    return new CommandTester($command);
+}
+
+function attachComposerApplication(BaseCommand $command): BaseCommand
+{
+    $application = new ComposerApplication();
+    $application->addCommand($command);
+
+    return $command;
 }
