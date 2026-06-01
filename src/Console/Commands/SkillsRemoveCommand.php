@@ -6,22 +6,13 @@ namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
 use Sift\Console\InvalidUsageException;
-use Sift\Core\ErrorCode;
-use Sift\Exceptions\UserFacingException;
-use Sift\Filesystem\AtomicWriter;
-use Sift\Filesystem\FilesystemException;
-use Sift\Filesystem\Path;
-use Sift\Filesystem\PathGuard;
-use Sift\Skills\ManagedBlockEditor;
 use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 
 final readonly class SkillsRemoveCommand implements CommandHandler
 {
     public function __construct(
-        private ManagedBlockEditor $blockEditor = new ManagedBlockEditor(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
-        private AtomicWriter $writer = new AtomicWriter(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
     ) {}
 
@@ -35,13 +26,7 @@ final readonly class SkillsRemoveCommand implements CommandHandler
             $items = [];
 
             foreach ($targets as $target) {
-                $this->targetRegistry->resolve($target);
-
-                if ($target !== 'generic') {
-                    continue;
-                }
-
-                $items[] = $this->removeFromInstructionFile($cwd, 'AGENTS.md', $skillName, $target);
+                $items[] = $this->targetRegistry->resolve($target)->remove($cwd, $skillName)->toItem();
             }
 
             return $items;
@@ -109,67 +94,5 @@ final readonly class SkillsRemoveCommand implements CommandHandler
         }
 
         return array_values(array_unique($targets));
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function removeFromInstructionFile(string $cwd, string $relativePath, string $skillName, string $target): array
-    {
-        $path = $this->targetPath($cwd, $relativePath);
-
-        if (! is_file($path)) {
-            return [
-                'name' => $skillName,
-                'target' => $target,
-                'path' => $path,
-                'action' => 'missing',
-            ];
-        }
-
-        $contents = file_get_contents($path);
-
-        if (! is_string($contents)) {
-            throw UserFacingException::withContext(
-                errorCode: ErrorCode::FilesystemError,
-                message: sprintf('Could not read target file "%s".', $path),
-                context: ['path' => $path],
-            );
-        }
-
-        $next = $this->blockEditor->remove($contents, $skillName);
-        $action = $next === $contents ? 'missing' : 'removed';
-
-        if ($action === 'removed') {
-            try {
-                $this->writer->write($path, $next);
-            } catch (FilesystemException $filesystemException) {
-                throw UserFacingException::withContext(
-                    errorCode: ErrorCode::FilesystemError,
-                    message: $filesystemException->getMessage(),
-                    context: ['path' => $path],
-                );
-            }
-        }
-
-        return [
-            'name' => $skillName,
-            'target' => $target,
-            'path' => $path,
-            'action' => $action,
-        ];
-    }
-
-    private function targetPath(string $cwd, string $relativePath): string
-    {
-        try {
-            return (new PathGuard($cwd))->assertInside(Path::join($cwd, $relativePath));
-        } catch (FilesystemException $filesystemException) {
-            throw UserFacingException::withContext(
-                errorCode: ErrorCode::FilesystemError,
-                message: $filesystemException->getMessage(),
-                context: ['path' => $relativePath],
-            );
-        }
     }
 }

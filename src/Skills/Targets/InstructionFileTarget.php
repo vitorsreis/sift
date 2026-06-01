@@ -55,6 +55,33 @@ final readonly class InstructionFileTarget implements InstructionTarget
         );
     }
 
+    public function remove(string $cwd, string $skillName): SkillTargetRemoveResult
+    {
+        $path = $this->targetPath($cwd);
+
+        if (! is_file($path)) {
+            return new SkillTargetRemoveResult($skillName, $this->name, $path, 'missing');
+        }
+
+        $current = $this->readCurrentContents($path);
+        $next = $this->blockEditor->remove($current, $skillName);
+        $action = $next === $current ? 'missing' : 'removed';
+
+        if ($action === 'removed') {
+            try {
+                $this->writer->write($path, $next);
+            } catch (FilesystemException $filesystemException) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::FilesystemError,
+                    message: $filesystemException->getMessage(),
+                    context: ['path' => $path],
+                );
+            }
+        }
+
+        return new SkillTargetRemoveResult($skillName, $this->name, $path, $action);
+    }
+
     private function targetPath(string $cwd): string
     {
         try {

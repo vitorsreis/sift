@@ -14,4 +14,6 @@ interface InstructionTarget
      * @param array<string, mixed> $metadata
      */
     public function install(string $cwd, Skill $skill, array $metadata): SkillTargetInstallResult;
+
+    public function remove(string $cwd, string $skillName): SkillTargetRemoveResult;
 }

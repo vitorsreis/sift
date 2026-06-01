@@ -25,16 +25,33 @@ final readonly class SkillTargetInstaller
     public function install(string $cwd, array $skills, array $targets, SkillSource $source): array
     {
         $results = [];
+        $resolvedTargets = $this->resolveTargets($targets);
+        $canonicalTargets = array_keys($resolvedTargets);
 
-        foreach ($targets as $targetName) {
-            $target = $this->registry->resolve($targetName);
-
+        foreach ($resolvedTargets as $target) {
             foreach ($skills as $skill) {
-                $results[] = $target->install($cwd, $skill, $this->metadata($skill, $source, $targets));
+                $results[] = $target->install($cwd, $skill, $this->metadata($skill, $source, $canonicalTargets));
             }
         }
 
         return $results;
+    }
+
+    /**
+     * @param list<string> $targets
+     *
+     * @return array<string, InstructionTarget>
+     */
+    private function resolveTargets(array $targets): array
+    {
+        $resolvedTargets = [];
+
+        foreach ($targets as $targetName) {
+            $target = $this->registry->resolve($targetName);
+            $resolvedTargets[$target->name()] = $target;
+        }
+
+        return $resolvedTargets;
     }
 
     /**

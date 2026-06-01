@@ -200,6 +200,63 @@ it('removes only managed generic skill blocks', function (): void {
     expect(skillsCommandObject($list, 'summary')['total'] ?? null)->toBe(0);
 });
 
+it('removes managed codex skill directories', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    $previousCodexHome = getenv('SIFT_CODEX_HOME');
+    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+    try {
+        CliRunner::run([
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent=codex',
+            '--yes',
+        ], $project->root());
+
+        $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
+        $payload = CliRunner::decode($result['stdout']);
+        $items = skillsCommandItems($payload);
+        $list = CliRunner::decode(CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=codex'], $project->root())['stdout']);
+    } finally {
+        putenv($previousCodexHome === false ? 'SIFT_CODEX_HOME' : 'SIFT_CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(1);
+    expect($items[0]['target'] ?? null)->toBe('codex');
+    expect($items[0]['action'] ?? null)->toBe('removed');
+    expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
+    expect(skillsCommandObject($list, 'summary')['total'] ?? null)->toBe(0);
+});
+
+it('does not remove unmanaged codex skill directories', function (): void {
+    $project = FixtureProject::create();
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $codexHome->write('skills/php-review/SKILL.md', "# PHP Review\n");
+
+    $previousCodexHome = getenv('SIFT_CODEX_HOME');
+    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
+        $payload = CliRunner::decode($result['stdout']);
+        $items = skillsCommandItems($payload);
+    } finally {
+        putenv($previousCodexHome === false ? 'SIFT_CODEX_HOME' : 'SIFT_CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(0);
+    expect($items[0]['target'] ?? null)->toBe('codex');
+    expect($items[0]['action'] ?? null)->toBe('missing');
+    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
+});
+
 it('requires confirmation before removing skills', function (): void {
     $project = FixtureProject::create();
 

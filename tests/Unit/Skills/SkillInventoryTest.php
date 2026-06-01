@@ -5,8 +5,11 @@ declare(strict_types=1);
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 use Sift\Skills\ManagedBlockEditor;
+use Sift\Skills\Skill;
 use Sift\Skills\SkillInventory;
 use Sift\Skills\SkillManagedMetadata;
+use Sift\Skills\SkillSource;
+use Sift\Skills\Targets\SkillTargetInstaller;
 use Tests\Support\FixtureProject;
 
 it('returns an empty inventory when instruction target file is missing', function (): void {
@@ -76,6 +79,39 @@ it('reads managed instruction files through target aliases', function (): void {
     $items = (new SkillInventory())->list($project->root(), ['claude']);
 
     expect(array_map(static fn(SkillManagedMetadata $metadata): string => $metadata->name(), $items))->toBe(['php-review']);
+});
+
+it('lists skills installed through target aliases', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+
+    (new SkillTargetInstaller())->install(
+        $project->root(),
+        [$skill],
+        ['claude'],
+        new SkillSource('vendor/source', 'local', $source->root()),
+    );
+
+    $items = (new SkillInventory())->list($project->root(), ['claude']);
+
+    expect(array_map(static fn(SkillManagedMetadata $metadata): string => $metadata->name(), $items))->toBe(['php-review']);
+    expect($items[0]->targets())->toBe(['claude-code']);
 });
 
 it('rejects unsupported inventory targets', function (): void {

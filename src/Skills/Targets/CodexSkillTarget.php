@@ -13,6 +13,7 @@ use Sift\Filesystem\JsonFile;
 use Sift\Filesystem\Path;
 use Sift\Filesystem\PathGuard;
 use Sift\Skills\Skill;
+use Sift\Skills\SkillManagedMetadata;
 use SplFileInfo;
 
 final readonly class CodexSkillTarget implements InstructionTarget
@@ -32,7 +33,7 @@ final readonly class CodexSkillTarget implements InstructionTarget
      */
     public function install(string $cwd, Skill $skill, array $metadata): SkillTargetInstallResult
     {
-        $targetDirectory = $this->targetDirectory($skill);
+        $targetDirectory = $this->targetDirectory($skill->name());
         $exists = is_dir($targetDirectory);
 
         $this->copySkillDirectory($skill->path(), $targetDirectory);
@@ -46,12 +47,26 @@ final readonly class CodexSkillTarget implements InstructionTarget
         );
     }
 
-    private function targetDirectory(Skill $skill): string
+    public function remove(string $cwd, string $skillName): SkillTargetRemoveResult
+    {
+        $targetDirectory = $this->targetDirectory($skillName);
+        $metadata = $this->managedMetadata($targetDirectory, $skillName);
+
+        if (! $metadata instanceof SkillManagedMetadata || ! in_array($this->name(), $metadata->targets(), true)) {
+            return new SkillTargetRemoveResult($skillName, $this->name(), $targetDirectory, 'missing');
+        }
+
+        $this->deleteTree($targetDirectory);
+
+        return new SkillTargetRemoveResult($skillName, $this->name(), $targetDirectory, 'removed');
+    }
+
+    private function targetDirectory(string $skillName): string
     {
         $base = Path::join($this->resolveCodexHome(), 'skills');
 
         try {
-            return (new PathGuard($base))->assertInside(Path::join($base, $skill->name()));
+            return (new PathGuard($base))->assertInside(Path::join($base, $skillName));
         } catch (FilesystemException $filesystemException) {
             throw UserFacingException::withContext(
                 errorCode: ErrorCode::FilesystemError,
@@ -59,6 +74,33 @@ final readonly class CodexSkillTarget implements InstructionTarget
                 context: ['path' => $base],
             );
         }
+    }
+
+    private function managedMetadata(string $targetDirectory, string $skillName): ?SkillManagedMetadata
+    {
+        $metadataPath = Path::join($targetDirectory, '.sift-skill.json');
+
+        if (! is_file($metadataPath)) {
+            return null;
+        }
+
+        try {
+            $payload = $this->jsonFile->readObject($metadataPath);
+        } catch (FilesystemException $filesystemException) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: $filesystemException->getMessage(),
+                context: ['path' => $metadataPath],
+            );
+        }
+
+        $metadata = SkillManagedMetadata::fromPayload($payload, $skillName);
+
+        if (! $metadata instanceof SkillManagedMetadata || $metadata->name() !== $skillName) {
+            return null;
+        }
+
+        return $metadata;
     }
 
     private function resolveCodexHome(): string
@@ -134,6 +176,60 @@ final readonly class CodexSkillTarget implements InstructionTarget
             throw UserFacingException::withContext(
                 errorCode: ErrorCode::FilesystemError,
                 message: sprintf('Could not create directory "%s".', $path),
+                context: ['path' => $path],
+            );
+        }
+    }
+
+    private function deleteTree(string $path): void
+    {
+        if (is_link($path) || is_file($path)) {
+            $this->deleteFile($path);
+
+            return;
+        }
+
+        if (! is_dir($path)) {
+            return;
+        }
+
+        $entries = scandir($path);
+
+        if ($entries === false) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: sprintf('Could not read directory "%s".', $path),
+                context: ['path' => $path],
+            );
+        }
+
+        foreach ($entries as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+
+            if ($entry === '..') {
+                continue;
+            }
+
+            $this->deleteTree(Path::join($path, $entry));
+        }
+
+        if (! rmdir($path)) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: sprintf('Could not remove directory "%s".', $path),
+                context: ['path' => $path],
+            );
+        }
+    }
+
+    private function deleteFile(string $path): void
+    {
+        if (! unlink($path) && (is_file($path) || is_link($path))) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: sprintf('Could not remove file "%s".', $path),
                 context: ['path' => $path],
             );
         }
