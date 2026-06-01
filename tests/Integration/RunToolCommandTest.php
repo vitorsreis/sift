@@ -64,6 +64,59 @@ it('streams raw tool output, preserves native exit code and skips history', func
     expect(runToolCommandHistoryDocuments($project))->toBe([]);
 });
 
+it('writes the prepared process to stderr when enabled by config', function (): void {
+    $project = FixtureProject::create();
+    $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'pest',
+        writes: ['--log-junit' => runToolCommandJunitReport($test)],
+    );
+    runToolCommandConfig($project, [
+        'history' => ['enabled' => false],
+        'output' => ['size' => 'full', 'pretty' => false, 'show_process' => true],
+        'tools' => ['pest' => ['binary' => $fake->binary()]],
+    ]);
+
+    $result = CliRunner::run(['pest', '--filter', 'CheckoutTest'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $process = CliRunner::decode($result['stderr']);
+    $command = runToolCommandList($process, 'command');
+
+    expect($result['exit_code'])->toBe(0);
+    expect($payload['tool'] ?? null)->toBe('pest');
+    expect($process)->toMatchArray([
+        'tool' => 'pest',
+        'type' => 'process',
+        'cwd' => $project->root(),
+    ]);
+    expect($command)->toContain('--filter', 'CheckoutTest', '--log-junit');
+});
+
+it('writes the prepared process to stderr when enabled by option', function (): void {
+    $project = FixtureProject::create();
+    $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'pest',
+        writes: ['--log-junit' => runToolCommandJunitReport($test)],
+    );
+    runToolCommandConfig($project, [
+        'history' => ['enabled' => false],
+        'output' => ['size' => 'full', 'pretty' => false, 'show_process' => false],
+        'tools' => ['pest' => ['binary' => $fake->binary()]],
+    ]);
+
+    $result = CliRunner::run(['--show-process', 'pest'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $process = CliRunner::decode($result['stderr']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($payload['tool'] ?? null)->toBe('pest');
+    expect($process['tool'] ?? null)->toBe('pest');
+    expect($process['type'] ?? null)->toBe('process');
+});
+
 it('applies history overrides with no-history taking precedence', function (): void {
     $recordingProject = FixtureProject::create();
     $recordingTest = $recordingProject->write('tests/Feature/CheckoutTest.php', '<?php');
@@ -230,6 +283,22 @@ function runToolCommandObject(array $payload, string $key): array
     }
 
     return $object;
+}
+
+/**
+ * @param array<string, mixed> $payload
+ *
+ * @return list<mixed>
+ */
+function runToolCommandList(array $payload, string $key): array
+{
+    $value = $payload[$key] ?? [];
+
+    if (! is_array($value) || ! array_is_list($value)) {
+        throw new RuntimeException(sprintf('Expected list field "%s".', $key));
+    }
+
+    return $value;
 }
 
 /**

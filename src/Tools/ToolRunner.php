@@ -9,6 +9,7 @@ use Sift\Config\ToolConfigResolver;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
+use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Execution\PhpCommandFactory;
 use Sift\Execution\ProcessRunner;
@@ -36,6 +37,7 @@ final readonly class ToolRunner
         string $cwd,
         mixed $rawStdout = null,
         mixed $rawStderr = null,
+        ?callable $processReporter = null,
     ): NormalizedResult|ExecutionResult {
         $adapter = $this->registry->find($arguments->tool());
 
@@ -55,6 +57,7 @@ final readonly class ToolRunner
 
         $this->policyPipeline->assertAllowed($command, $context, $toolConfig);
         $command = $this->phpCommandFactory->apply($command, $this->phpArguments($arguments));
+        $this->reportProcess($command, $processReporter);
 
         if ($context->raw()) {
             return $this->rawProcessRunner->run($command, $rawStdout, $rawStderr);
@@ -96,5 +99,17 @@ final readonly class ToolRunner
     private function phpDefineArgument(string $argument): string
     {
         return '-d' . $argument;
+    }
+
+    /**
+     * @param (callable(PreparedCommand): void)|null $processReporter
+     */
+    private function reportProcess(PreparedCommand $command, ?callable $processReporter): void
+    {
+        if ($processReporter === null) {
+            return;
+        }
+
+        $processReporter($command);
     }
 }

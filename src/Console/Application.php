@@ -73,7 +73,10 @@ final readonly class Application
                 'history.view' => $this->renderPassed((new HistoryViewCommand())->handle($route, $this->cwd()), $preferences),
                 'history.remove' => $this->renderPassed((new HistoryRemoveCommand())->handle($route, $this->cwd()), $preferences),
                 'history.clear' => $this->renderPassed((new HistoryClearCommand())->handle($route, $this->cwd()), $preferences),
-                'run.tool' => $this->renderRunTool((new RunToolCommand(outputPreferencesResolver: $this->outputPreferencesResolver()))->handle($route, $this->cwd())),
+                'run.tool' => $this->renderRunTool((new RunToolCommand(
+                    outputPreferencesResolver: $this->outputPreferencesResolver(),
+                    stderrWriter: $this->stderrWriter,
+                ))->handle($route, $this->cwd())),
                 default => $this->renderNotImplemented($route, $preferences),
             };
         } catch (ConfigValidationException $configValidationException) {

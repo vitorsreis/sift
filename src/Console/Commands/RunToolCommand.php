@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Sift\Console\Commands;
 
+use Closure;
 use Sift\Config\ConfigLoader;
 use Sift\Config\HistoryConfig;
 use Sift\Console\CommandRoute;
+use Sift\Console\OutputPreferences;
 use Sift\Console\OutputPreferencesResolver;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
+use Sift\Core\PreparedCommand;
 use Sift\Core\RunStatus;
 use Sift\Exceptions\UserFacingException;
 use Sift\Filesystem\FilesystemException;
 use Sift\History\RunHistoryService;
+use Sift\History\SecretRedactor;
 use Sift\Output\ErrorPayload;
 use Sift\Registry\ToolRegistry;
 use Sift\Safety\BlockedArgumentsPolicy;
@@ -36,6 +40,8 @@ final readonly class RunToolCommand
         private WorkspaceResolver $workspaceResolver = new WorkspaceResolver(),
         private OutputPreferencesResolver $outputPreferencesResolver = new OutputPreferencesResolver(),
         private RunHistoryService $historyService = new RunHistoryService(),
+        private ?Closure $stderrWriter = null,
+        private SecretRedactor $redactor = new SecretRedactor(),
     ) {
         $this->toolRunner = $toolRunner ?? new ToolRunner(
             registry: ToolRegistry::builtIns(),
@@ -62,6 +68,7 @@ final readonly class RunToolCommand
                 arguments: $arguments,
                 config: $config,
                 cwd: $workspace->projectRoot(),
+                processReporter: $this->processReporter($preferences),
             );
         } catch (UserFacingException $userFacingException) {
             throw $this->withHistoryRunId($userFacingException, $historyConfig, $arguments->tool());
@@ -112,6 +119,35 @@ final readonly class RunToolCommand
     private function optionBool(CommandRoute $route, string $name): bool
     {
         return ($route->globalOptions()[$name] ?? $route->options()[$name] ?? false) === true;
+    }
+
+    private function processReporter(OutputPreferences $preferences): ?Closure
+    {
+        if (! $preferences->showProcess()) {
+            return null;
+        }
+
+        return function (PreparedCommand $command): void {
+            $payload = [
+                'tool' => $command->tool(),
+                'type' => 'process',
+                'cwd' => $command->cwd(),
+                'command' => $command->displayCommand(),
+            ];
+
+            $this->writeStderr(json_encode($this->redactor->redactPayload($payload), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+        };
+    }
+
+    private function writeStderr(string $contents): void
+    {
+        if ($this->stderrWriter instanceof Closure) {
+            ($this->stderrWriter)($contents);
+
+            return;
+        }
+
+        fwrite(STDERR, $contents);
     }
 
     /**
