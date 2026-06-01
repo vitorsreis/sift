@@ -7,8 +7,10 @@ namespace Sift\Tools\Testing;
 use Sift\Config\ToolConfig;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
+use Sift\Core\ItemType;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
+use Sift\Core\RunStatus;
 use Sift\Exceptions\UserFacingException;
 use Sift\Execution\LocatedTool;
 use Sift\Filesystem\TempFileFactory;
@@ -40,6 +42,10 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
     public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
     {
         try {
+            if (! $execution->successful() && $this->missingGeneratedReport($command, $context)) {
+                return $this->nativeExecutionError($execution);
+            }
+
             $junitPath = $this->artifact($command, 'junit');
             $junit = $this->junitParser->parse($junitPath, $command->cwd(), $this->generatedFiles($command));
             $summary = $junit->summary();
@@ -72,6 +78,40 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
         }
     }
 
+    private function nativeExecutionError(ExecutionResult $execution): NormalizedResult
+    {
+        return new NormalizedResult(
+            tool: $this->name(),
+            status: RunStatus::Error,
+            summary: [
+                'exit_code' => $execution->exitCode(),
+            ],
+            items: [[
+                'type' => ItemType::Error->value,
+                'message' => $this->firstOutputLine($execution),
+            ]],
+            extra: [
+                'stdout' => trim($execution->stdout()),
+                'stderr' => trim($execution->stderr()),
+            ],
+        );
+    }
+
+    private function firstOutputLine(ExecutionResult $execution): string
+    {
+        $output = trim($execution->stderr()) !== '' ? $execution->stderr() : $execution->stdout();
+
+        foreach (preg_split('/\R/', trim($output)) ?: [] as $line) {
+            $line = trim($line);
+
+            if ($line !== '') {
+                return $line;
+            }
+        }
+
+        return 'Test runner exited before writing reports.';
+    }
+
     private function commandFactory(): TestRunnerCommandFactory
     {
         return $this->commandFactory ?? new TestRunnerCommandFactory(new TempFileFactory(sys_get_temp_dir()));
@@ -89,6 +129,36 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
         }
 
         return $path;
+    }
+
+    private function missingGeneratedReport(PreparedCommand $command, ToolContext $context): bool
+    {
+        $artifacts = ['junit'];
+
+        if ($context->coverage() || $context->coverageMin() !== null) {
+            $artifacts[] = 'coverage_clover';
+        }
+
+        foreach ($artifacts as $artifact) {
+            if ($this->reportMissingOrEmpty($command, $artifact)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function reportMissingOrEmpty(PreparedCommand $command, string $name): bool
+    {
+        $path = $command->artifacts()[$name] ?? null;
+
+        if (! is_string($path) || ! is_file($path)) {
+            return true;
+        }
+
+        $size = filesize($path);
+
+        return ! is_int($size) || $size === 0;
     }
 
     /**

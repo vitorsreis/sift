@@ -119,6 +119,32 @@ XML,
     expect(is_file($command->artifacts()['coverage_clover']))->toBeFalse();
 });
 
+it('returns native pest errors when reports are not generated', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PestToolAdapter(commandFactory: pestAdapterCommandFactory($project));
+    $context = $adapter->context(new CliArguments('pest', ['--coverage']), $project->root());
+    $command = $adapter->prepare(
+        tool: new LocatedTool('pest', $project->path('vendor/bin/pest'), 'vendor/bin/pest', 'relative'),
+        context: $context,
+        config: new ToolConfig('pest', true, null, [], 120),
+    );
+
+    $payload = $adapter->parse(
+        execution: ExecutionResult::completed(1, '', 'No code coverage driver is available.', 0.12),
+        context: $context,
+        command: $command,
+    )->toPayload();
+
+    expect($payload['status'])->toBe(RunStatus::Error->value);
+    expect($payload['summary'])->toMatchArray(['exit_code' => 1]);
+    expect($payload['items'][0])->toMatchArray([
+        'type' => 'error',
+        'message' => 'No code coverage driver is available.',
+    ]);
+    expect(is_file($command->artifacts()['junit']))->toBeFalse();
+    expect(is_file($command->artifacts()['coverage_clover']))->toBeFalse();
+});
+
 function pestAdapterCommandFactory(FixtureProject $project): TestRunnerCommandFactory
 {
     return new TestRunnerCommandFactory(new TempFileFactory($project->path('build/tmp')));
