@@ -43,6 +43,7 @@ In non-TTY or CI, mutating skill commands require `--yes` and must not rely on p
 - `generic`: updates `AGENTS.md`.
 
 Targets with unstable path or format contracts are recognized but not write-capable until documented.
+Current recognized read-only targets are `antigravity` and `opencode`.
 
 ## Managed Metadata
 

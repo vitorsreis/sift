@@ -20,10 +20,24 @@ it('resolves generic target and rejects unsupported targets', function (): void 
     expect($registry->resolve('visual-studio-code')->name())->toBe('github-copilot');
     expect($registry->writeCapableNames())->toBe(['codex', 'cursor', 'windsurf', 'generic', 'claude-code', 'github-copilot', 'gemini']);
 
+    foreach (['opencode', 'antigravity'] as $recognizedButNotWritable) {
+        try {
+            $registry->resolve($recognizedButNotWritable);
+        } catch (UserFacingException $userFacingException) {
+            expect($userFacingException->errorCode())->toBe(ErrorCode::UnsupportedTarget);
+            expect($userFacingException->context()['recognized'] ?? null)->toBeTrue();
+
+            continue;
+        }
+
+        throw new RuntimeException('Expected recognized target without write support to fail.');
+    }
+
     try {
-        $registry->resolve('opencode');
+        $registry->resolve('unknown-agent');
     } catch (UserFacingException $userFacingException) {
         expect($userFacingException->errorCode())->toBe(ErrorCode::UnsupportedTarget);
+        expect($userFacingException->context()['recognized'] ?? null)->toBeFalse();
 
         return;
     }

@@ -31,10 +31,19 @@ final readonly class InstructionTargetRegistry
             }
         }
 
+        if (in_array($normalized, $this->recognizedReadOnlyNames(), true)) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::UnsupportedTarget,
+                message: sprintf('Skill target "%s" is recognized but is not write-capable yet.', $target),
+                hint: 'Use a stable write-capable target or wait until this target format is documented.',
+                context: ['target' => $target, 'recognized' => true],
+            );
+        }
+
         throw UserFacingException::withContext(
             errorCode: ErrorCode::UnsupportedTarget,
             message: sprintf('Skill target "%s" is not supported yet.', $target),
-            context: ['target' => $target],
+            context: ['target' => $target, 'recognized' => false],
         );
     }
 
@@ -74,6 +83,17 @@ final readonly class InstructionTargetRegistry
                 'visual-studio-code',
             ]),
             new InstructionTargetDescriptor('gemini', 'GEMINI.md'),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function recognizedReadOnlyNames(): array
+    {
+        return [
+            'antigravity',
+            'opencode',
         ];
     }
 }
