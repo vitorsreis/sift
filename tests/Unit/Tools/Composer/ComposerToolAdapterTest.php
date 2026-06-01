@@ -53,6 +53,21 @@ it('prepares composer read-only subcommands with json output', function (string 
     expect($command->arguments())->toBe([$subcommand, '--format=json']);
 })->with(['audit', 'licenses', 'outdated', 'show']);
 
+it('prepares composer validate without json output', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ComposerToolAdapter();
+    $context = $adapter->context(new CliArguments('composer', ['validate', '--strict']), $project->root());
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('composer', 'composer', 'composer', 'system'),
+        context: $context,
+        config: new ToolConfig('composer', true, null, [], 120),
+    );
+
+    expect($context->subcommand())->toBe('validate');
+    expect($command->arguments())->toBe(['validate', '--strict']);
+});
+
 it('maps composer show --outdated to outdated mode', function (): void {
     $project = FixtureProject::create();
     $adapter = new ComposerToolAdapter();
@@ -104,7 +119,7 @@ it('rejects mutating composer commands even in raw mode', function (): void {
         tool: new LocatedTool('composer', 'composer', 'composer', 'system'),
         context: $context,
         config: new ToolConfig('composer', true, null, [], 120),
-    ))->toThrow(InvalidUsageException::class, 'Composer adapter supports only audit, licenses, outdated and show.');
+    ))->toThrow(InvalidUsageException::class, 'Composer adapter supports only audit, licenses, outdated, show and validate.');
 });
 
 it('parses composer audit findings as failed status', function (): void {
@@ -135,6 +150,22 @@ it('treats unexpected non-zero composer exits without findings as errors', funct
     )->toPayload();
 
     expect($payload['status'])->toBe(RunStatus::Error->value);
+});
+
+it('parses composer validate success output', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ComposerToolAdapter();
+    $context = $adapter->context(new CliArguments('composer', ['validate', '--strict']), $project->root());
+
+    $payload = $adapter->parse(
+        execution: ExecutionResult::completed(0, './composer.json is valid', '', 0.12),
+        context: $context,
+        command: composerToolPreparedCommand($project, ['validate', '--strict']),
+    )->toPayload();
+
+    expect($payload['tool'])->toBe('composer');
+    expect($payload['status'])->toBe(RunStatus::Passed->value);
+    expect($payload['summary'])->toMatchArray(['valid' => true, 'findings' => 0]);
 });
 
 /**

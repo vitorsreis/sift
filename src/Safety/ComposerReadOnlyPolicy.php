@@ -19,6 +19,7 @@ final readonly class ComposerReadOnlyPolicy implements Policy
         'licenses',
         'outdated',
         'show',
+        'validate',
     ];
 
     public function violations(PreparedCommand $command, ToolContext $context, ToolConfig $config): array

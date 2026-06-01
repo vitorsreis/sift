@@ -16,7 +16,7 @@ it('allows read-only composer subcommands', function (string $subcommand): void 
     );
 
     expect($violations)->toBe([]);
-})->with(['audit', 'licenses', 'outdated', 'show']);
+})->with(['audit', 'licenses', 'outdated', 'show', 'validate']);
 
 it('blocks mutating composer subcommands before process execution', function (string $subcommand): void {
     $violations = (new ComposerReadOnlyPolicy())->violations(

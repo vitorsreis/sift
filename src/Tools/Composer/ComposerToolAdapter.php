@@ -20,7 +20,7 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
     /**
      * @var list<string>
      */
-    private const array ALLOWED_SUBCOMMANDS = ['audit', 'licenses', 'outdated', 'show'];
+    private const array ALLOWED_SUBCOMMANDS = ['audit', 'licenses', 'outdated', 'show', 'validate'];
 
     /**
      * @var list<string>
@@ -31,6 +31,7 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
         private ComposerAuditParser $auditParser = new ComposerAuditParser(),
         private ComposerLicensesParser $licensesParser = new ComposerLicensesParser(),
         private ComposerPackagesParser $packagesParser = new ComposerPackagesParser(),
+        private ComposerValidateParser $validateParser = new ComposerValidateParser(),
         private StatusDecider $statusDecider = new StatusDecider(),
     ) {}
 
@@ -117,7 +118,8 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
             'audit' => $this->auditParser->parse($execution->stdout(), $execution->stderr()),
             'licenses' => $this->licensesParser->parse($execution->stdout(), $execution->stderr()),
             'outdated', 'show' => $this->packagesParser->parse($execution->stdout(), $execution->stderr()),
-            default => throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated and show.'),
+            'validate' => $this->validateParser->parse($execution),
+            default => throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated, show and validate.'),
         };
 
         return new NormalizedResult(
@@ -144,7 +146,7 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
         }
 
         if ($validate && ($subcommand === null || ! in_array($subcommand, self::ALLOWED_SUBCOMMANDS, true))) {
-            throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated and show.');
+            throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated, show and validate.');
         }
 
         return [
@@ -224,7 +226,11 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
         $subcommand = $command['subcommand'];
 
         if (! is_string($subcommand)) {
-            throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated and show.');
+            throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated, show and validate.');
+        }
+
+        if ($subcommand === 'validate') {
+            return [$subcommand, ...$command['arguments']];
         }
 
         $format = $this->optionValue($command['arguments'], '--format', '-f');
