@@ -43,6 +43,7 @@ it('runs composer sift and composer skills from an installed plugin package', fu
 
     $sift = runComposerEntrypoint($project, ['sift', '--no-pretty', 'help']);
     $skills = runComposerEntrypoint($project, ['skills', '--no-pretty', 'list']);
+    $vendorBin = runVendorSiftEntrypoint($project, ['--no-pretty', 'help']);
 
     expect($sift['exit_code'])->toBe(0);
     expect($sift['stderr'])->toBe('');
@@ -51,6 +52,10 @@ it('runs composer sift and composer skills from an installed plugin package', fu
     expect($skills['exit_code'])->toBe(0);
     expect($skills['stderr'])->toBe('');
     expect(decodeComposerEntrypointPayload($skills['stdout'])['total'] ?? null)->toBe(0);
+
+    expect($vendorBin['exit_code'])->toBe(0);
+    expect($vendorBin['stderr'])->toBe('');
+    expect($vendorBin['stdout'])->toBe($sift['stdout']);
 });
 
 /**
@@ -88,6 +93,49 @@ function runComposerEntrypoint(FixtureProject $project, array $arguments): array
 
     if ($stdout === false || $stderr === false) {
         throw new RuntimeException('Could not read Composer process output.');
+    }
+
+    return [
+        'exit_code' => proc_close($process),
+        'stdout' => $stdout,
+        'stderr' => $stderr,
+    ];
+}
+
+/**
+ * @param list<string> $arguments
+ *
+ * @return array{exit_code: int, stdout: string, stderr: string}
+ */
+function runVendorSiftEntrypoint(FixtureProject $project, array $arguments): array
+{
+    $command = [PHP_BINARY, $project->path('vendor/bin/sift')];
+
+    foreach ($arguments as $argument) {
+        $command[] = $argument;
+    }
+
+    $process = proc_open(
+        $command,
+        [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ],
+        $pipes,
+        $project->root(),
+    );
+
+    if (! is_resource($process)) {
+        throw new RuntimeException('Could not start vendor/bin/sift process.');
+    }
+
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+
+    if ($stdout === false || $stderr === false) {
+        throw new RuntimeException('Could not read vendor/bin/sift process output.');
     }
 
     return [
