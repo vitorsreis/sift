@@ -30,6 +30,24 @@ it('calculates removals by max files per tool and max age', function (): void {
     ]);
 });
 
+it('skips age retention when max age days is absent', function (): void {
+    $policy = new HistoryRetentionPolicy();
+    $config = new HistoryConfig(
+        enabled: true,
+        path: '.sift/history',
+        maxFiles: 10,
+        maxAgeDays: null,
+        maxBytesPerRun: 1048576,
+        redactSecrets: true,
+    );
+
+    $removals = $policy->expiredRunIds([
+        historyRetentionRun('run_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'pest', '2026-04-01T12:00:00+00:00'),
+    ], $config, new DateTimeImmutable('2026-05-31T12:00:00+00:00'));
+
+    expect($removals)->toBe([]);
+});
+
 /**
  * @return array<string, mixed>
  */

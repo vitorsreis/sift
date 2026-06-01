@@ -30,11 +30,15 @@ final readonly class HistoryRetentionPolicy
             }
         }
 
-        $oldestAllowed = $now->modify(sprintf('-%d days', $config->maxAgeDays()));
+        $maxAgeDays = $config->maxAgeDays();
 
-        foreach ($eligibleRuns as $run) {
-            if ($this->storedAt($run['stored_at']) < $oldestAllowed) {
-                $removals[] = $run['run_id'];
+        if ($maxAgeDays !== null) {
+            $oldestAllowed = $now->modify(sprintf('-%d days', $maxAgeDays));
+
+            foreach ($eligibleRuns as $run) {
+                if ($this->storedAt($run['stored_at']) < $oldestAllowed) {
+                    $removals[] = $run['run_id'];
+                }
             }
         }
 

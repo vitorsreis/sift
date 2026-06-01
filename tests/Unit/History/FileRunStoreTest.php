@@ -57,6 +57,25 @@ it('removes only requested runs and clears the history directory', function (): 
     expect(is_dir($project->path('.sift/history')))->toBeFalse();
 });
 
+it('removes only the empty default sift parent during clear', function (): void {
+    $project = FixtureProject::create();
+    $defaultStore = new FileRunStore($project->path('.sift/history'), removeDefaultParentOnClear: true);
+    $customStore = new FileRunStore($project->path('storage/history'));
+    $customSiftStore = new FileRunStore($project->path('nested/.sift/history'));
+
+    $defaultStore->store(historyRunDocument('run_11111111111111111111111111111111', 'pest'));
+    $customStore->store(historyRunDocument('run_22222222222222222222222222222222', 'pest'));
+    $customSiftStore->store(historyRunDocument('run_33333333333333333333333333333333', 'pest'));
+
+    expect($defaultStore->clearAll())->toBe(1);
+    expect($customStore->clearAll())->toBe(1);
+    expect($customSiftStore->clearAll())->toBe(1);
+
+    expect(is_dir($project->path('.sift')))->toBeFalse();
+    expect(is_dir($project->path('storage')))->toBeTrue();
+    expect(is_dir($project->path('nested/.sift')))->toBeTrue();
+});
+
 /**
  * @return array<string, mixed>
  */

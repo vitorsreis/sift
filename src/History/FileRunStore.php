@@ -14,6 +14,7 @@ final readonly class FileRunStore implements RunStore
     public function __construct(
         private string $historyPath,
         private JsonFile $jsonFile = new JsonFile(),
+        private bool $removeDefaultParentOnClear = false,
     ) {}
 
     public function store(array $document): void
@@ -96,7 +97,10 @@ final readonly class FileRunStore implements RunStore
             return 0;
         }
 
-        return $this->removeTree($path);
+        $removedFiles = $this->removeTree($path);
+        $this->removeDefaultParent($path);
+
+        return $removedFiles;
     }
 
     private function runsPath(): string
@@ -184,5 +188,22 @@ final readonly class FileRunStore implements RunStore
         }
 
         return $removedFiles;
+    }
+
+    private function removeDefaultParent(string $path): void
+    {
+        if (! $this->removeDefaultParentOnClear) {
+            return;
+        }
+
+        if (basename($path) !== 'history' || basename(dirname($path)) !== '.sift') {
+            return;
+        }
+
+        $parent = dirname($path);
+
+        if (is_dir($parent)) {
+            @rmdir($parent);
+        }
     }
 }

@@ -30,7 +30,7 @@ abstract readonly class AbstractHistoryCommand implements CommandHandler
         private WorkspaceResolver $workspaceResolver = new WorkspaceResolver(),
     ) {
         $this->storeFactory = Closure::fromCallable(
-            $storeFactory ?? static fn(HistoryConfig $config): RunStore => new FileRunStore($config->path()),
+            $storeFactory ?? static fn(HistoryConfig $config): RunStore => new FileRunStore($config->path(), removeDefaultParentOnClear: $config->defaultPath()),
         );
     }
 

@@ -55,6 +55,7 @@ it('loads partial supported config and resolves config-relative paths', function
     expect($config->usingDefaults())->toBeFalse();
     expect($config->configPath())->toBe($configPath);
     expect($config->history()->path())->toBe($project->path('config/storage/sift-history'));
+    expect($config->history()->maxAgeDays())->toBeNull();
     expect($phpstan->enabled())->toBeTrue();
     expect($phpstan->binary())->toBe($project->path('config/vendor/bin/phpstan'));
     expect($phpstan->blockedArgs())->toBe(['--xdebug']);

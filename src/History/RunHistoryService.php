@@ -27,7 +27,7 @@ final readonly class RunHistoryService
         private Clock $clock = new SystemClock(),
     ) {
         $this->storeFactory = Closure::fromCallable(
-            $storeFactory ?? static fn(HistoryConfig $config): RunStore => new FileRunStore($config->path()),
+            $storeFactory ?? static fn(HistoryConfig $config): RunStore => new FileRunStore($config->path(), removeDefaultParentOnClear: $config->defaultPath()),
         );
     }
 

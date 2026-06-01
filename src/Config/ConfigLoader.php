@@ -129,7 +129,7 @@ final readonly class ConfigLoader
         $enabled = $this->boolValue($history, 'enabled', $defaults['enabled'], $path, 'history.enabled');
         $historyPath = $this->stringValue($history, 'path', $defaults['path'], $path, 'history.path');
         $maxFiles = $this->intValue($history, 'max_files', $defaults['max_files'], $path, 'history.max_files', minimum: 1);
-        $maxAgeDays = $this->intValue($history, 'max_age_days', $defaults['max_age_days'], $path, 'history.max_age_days', minimum: 1);
+        $maxAgeDays = $this->optionalIntValue($history, 'max_age_days', $path, 'history.max_age_days', minimum: 1);
         $maxBytesPerRun = $this->intValue($history, 'max_bytes_per_run', $defaults['max_bytes_per_run'], $path, 'history.max_bytes_per_run', minimum: 1024);
         $redactSecrets = $this->boolValue($history, 'redact_secrets', $defaults['redact_secrets'], $path, 'history.redact_secrets');
 
@@ -140,6 +140,7 @@ final readonly class ConfigLoader
             maxAgeDays: $maxAgeDays,
             maxBytesPerRun: $maxBytesPerRun,
             redactSecrets: $redactSecrets,
+            defaultPath: Path::normalize($historyPath) === Path::normalize($defaults['path']),
         );
     }
 
@@ -290,6 +291,24 @@ final readonly class ConfigLoader
     private function intValue(array $object, string $key, int $default, ?string $path, string $label, int $minimum): int
     {
         $value = $object[$key] ?? $default;
+
+        if (! is_int($value) || $value < $minimum) {
+            throw ConfigValidationException::invalidConfig($path, sprintf('The `%s` value must be an integer greater than or equal to %d.', $label, $minimum));
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param JsonObject $object
+     */
+    private function optionalIntValue(array $object, string $key, ?string $path, string $label, int $minimum): ?int
+    {
+        if (! array_key_exists($key, $object)) {
+            return null;
+        }
+
+        $value = $object[$key];
 
         if (! is_int($value) || $value < $minimum) {
             throw ConfigValidationException::invalidConfig($path, sprintf('The `%s` value must be an integer greater than or equal to %d.', $label, $minimum));

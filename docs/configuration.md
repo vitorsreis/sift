@@ -45,6 +45,7 @@ Sift uses `$schema` as the config contract identifier. `init` writes a schema UR
 - Relative paths inside `sift.json` resolve from the config file directory.
 - Runtime defaults such as history and locks resolve from the project root.
 - Global scope uses `SIFT_HOME` or `~/.sift`.
+- `history.max_age_days` is optional. `init` writes `30`; omitting the field disables age-based retention.
 
 ## Validation
 

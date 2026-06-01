@@ -92,6 +92,7 @@ final readonly class RunToolCommand
             maxAgeDays: $config->maxAgeDays(),
             maxBytesPerRun: $config->maxBytesPerRun(),
             redactSecrets: $config->redactSecrets(),
+            defaultPath: $config->defaultPath(),
         );
     }
 
