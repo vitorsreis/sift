@@ -34,6 +34,7 @@ it('runs composer sift and composer skills from an installed plugin package', fu
         'minimum-stability' => 'dev',
         'prefer-stable' => true,
     ]);
+    $composerJson = (string) file_get_contents($project->path('composer.json'));
 
     $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
 
@@ -41,9 +42,13 @@ it('runs composer sift and composer skills from an installed plugin package', fu
         throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
     }
 
+    expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
+
     $sift = runComposerEntrypoint($project, ['sift', '--no-pretty', 'help']);
     $skills = runComposerEntrypoint($project, ['skills', '--no-pretty', 'list']);
     $vendorBin = runVendorSiftEntrypoint($project, ['--no-pretty', 'help']);
+
+    expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
 
     expect($sift['exit_code'])->toBe(0);
     expect($sift['stderr'])->toBe('');
