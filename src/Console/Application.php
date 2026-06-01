@@ -26,6 +26,7 @@ use Sift\Console\Commands\VersionCommand;
 use Sift\Core\ErrorCode;
 use Sift\Core\RunStatus;
 use Sift\Exceptions\UserFacingException;
+use Sift\History\SecretRedactor;
 use Sift\Output\ErrorPayload;
 use Sift\Output\JsonRenderer;
 
@@ -50,6 +51,7 @@ final readonly class Application
         try {
             $route = $this->router()->route($this->parser()->parse(array_slice($argv, 1)));
             $preferences = $this->outputPreferencesResolver()->resolve($route);
+            $this->writeDebug($route, $preferences);
         } catch (InvalidUsageException $invalidUsageException) {
             return $this->renderUsageError($invalidUsageException, $this->outputPreferencesResolver()->defaults());
         }
@@ -190,5 +192,29 @@ final readonly class Application
         }
 
         fwrite(STDERR, $contents);
+    }
+
+    private function writeDebug(CommandRoute $route, OutputPreferences $preferences): void
+    {
+        if (! $preferences->debug()) {
+            return;
+        }
+
+        $payload = [
+            'tool' => 'sift',
+            'type' => 'debug',
+            'handler' => $route->handler(),
+            'cwd' => $this->cwd(),
+            'arguments' => $route->arguments(),
+            'options' => $route->options(),
+            'global_options' => $route->globalOptions(),
+            'output' => [
+                'size' => $preferences->size()->value,
+                'pretty' => $preferences->pretty(),
+                'show_process' => $preferences->showProcess(),
+            ],
+        ];
+
+        $this->writeStderr(json_encode((new SecretRedactor())->redactPayload($payload), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . PHP_EOL);
     }
 }

@@ -211,3 +211,27 @@ it('respects pretty and no-pretty output flags', function (): void {
     expect($compact['stdout'])->not->toContain("\n    ");
     expect(substr_count($compact['stdout'], "\n"))->toBe(1);
 });
+
+it('writes debug diagnostics to stderr without changing stdout', function (): void {
+    $token = 'ghp_abcdefghijklmnopqrstuvwxyz123456';
+    $normal = runSift(['--no-pretty', '--config=' . $token, 'help']);
+    $debug = runSift(['--debug', '--no-pretty', '--config=' . $token, 'help']);
+    $diagnostic = json_decode($debug['stderr'], true, 512, JSON_THROW_ON_ERROR);
+
+    if (! is_array($diagnostic)) {
+        throw new RuntimeException('Debug payload must be an object.');
+    }
+
+    $globalOptions = $diagnostic['global_options'] ?? null;
+
+    if (! is_array($globalOptions)) {
+        throw new RuntimeException('Debug payload must include global_options.');
+    }
+
+    expect($debug['exit_code'])->toBe(0);
+    expect($debug['stdout'])->toBe($normal['stdout']);
+    expect($debug['stderr'])->not->toContain($token);
+    expect($diagnostic['type'] ?? null)->toBe('debug');
+    expect($diagnostic['handler'] ?? null)->toBe('help');
+    expect($globalOptions['config'] ?? null)->toBe('[REDACTED]');
+});
