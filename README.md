@@ -86,7 +86,7 @@ Accepted sources:
 
 ## Config Schema
 
-`sift.json` uses `$schema` as the config contract version. `init` writes a schema URL pinned to the installed Sift version:
+`sift.json` uses `$schema` as editor metadata. `init` writes a schema URL pinned to the installed Sift version, but runtime loading accepts older, future, relative, or missing schema references:
 
 ```json
 {
@@ -94,7 +94,7 @@ Accepted sources:
   "output": {
     "size": "compact",
     "pretty": true,
-    "show_process": true
+    "show_process": false
   },
   "history": {
     "enabled": true,
@@ -106,8 +106,7 @@ Accepted sources:
   },
   "tools": {
     "*": {
-      "enabled": true,
-      "timeout": 1800
+      "enabled": true
     }
   }
 }

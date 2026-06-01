@@ -8,7 +8,7 @@ sift.json
 
 ## Schema
 
-Sift uses `$schema` as the config contract identifier. `init` writes a schema URL pinned to the installed Sift version:
+Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to the installed Sift version, but runtime config loading does not reject older, future, relative, or missing schema references:
 
 ```json
 {
@@ -16,7 +16,7 @@ Sift uses `$schema` as the config contract identifier. `init` writes a schema UR
   "output": {
     "size": "compact",
     "pretty": true,
-    "show_process": true
+    "show_process": false
   },
   "history": {
     "enabled": true,
@@ -28,8 +28,7 @@ Sift uses `$schema` as the config contract identifier. `init` writes a schema UR
   },
   "tools": {
     "*": {
-      "enabled": true,
-      "timeout": 1800
+      "enabled": true
     },
     "phpstan": {
       "binary": "vendor/bin/phpstan",
@@ -49,6 +48,6 @@ Sift uses `$schema` as the config contract identifier. `init` writes a schema UR
 
 ## Validation
 
-`composer sift validate` checks schema and semantic rules. Missing config is valid because runtime defaults are valid.
+`composer sift validate` parses JSON and checks semantic rules. Missing config is valid because runtime defaults are valid.
 
 Invalid config exits with code `3` and a JSON error.

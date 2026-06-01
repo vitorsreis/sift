@@ -5,9 +5,6 @@
   "description": "Schema for Sift configuration file.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "$schema"
-  ],
   "properties": {
     "$schema": {
       "type": "string"

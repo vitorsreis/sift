@@ -22,8 +22,9 @@ it('loads defaults when config is absent', function (): void {
     expect($config->history()->path())->toBe($project->path('.sift/history'));
     expect($config->output()->size())->toBe('compact');
     expect($config->output()->pretty())->toBeTrue();
-    expect($config->output()->showProcess())->toBeTrue();
-    expect($config->tools())->toBe([]);
+    expect($config->output()->showProcess())->toBeFalse();
+    expect($config->tool('*')?->enabled())->toBeTrue();
+    expect((new ToolConfigResolver())->resolve($config, 'pest')->enabled())->toBeTrue();
 });
 
 it('loads partial supported config and resolves config-relative paths', function (): void {
@@ -82,19 +83,41 @@ it('keeps path binaries as command names', function (): void {
     expect((new ToolConfigResolver())->resolve($config, 'phpstan')->binary())->toBe('phpstan');
 });
 
-it('rejects missing or unsupported schema as schema contract errors', function (): void {
+it('loads config without blocking on schema references', function (?string $schema): void {
     $project = FixtureProject::create();
-    $project->writeJson('missing-schema.json', ['tools' => []]);
-    $project->writeJson('bad-schema.json', ['$schema' => 'https://example.com/schema.json']);
+    $document = [
+        'tools' => [
+            '*' => [
+                'enabled' => true,
+            ],
+        ],
+    ];
 
-    $resolver = new WorkspaceResolver(homeDirectory: $project->path('home'));
-    $loader = new ConfigLoader();
+    if ($schema !== null) {
+        $document['$schema'] = $schema;
+    }
 
-    expect(fn(): mixed => $loader->load($resolver->resolve($project->root(), $project->path('missing-schema.json'))))
-        ->toThrow(ConfigValidationException::class, 'The `$schema` field is required.');
+    $project->writeJson('sift.json', $document);
 
-    expect(fn(): mixed => $loader->load($resolver->resolve($project->root(), $project->path('bad-schema.json'))))
-        ->toThrow(ConfigValidationException::class, 'Unsupported config schema.');
+    $workspace = (new WorkspaceResolver(homeDirectory: $project->path('home')))->resolve($project->root());
+    $config = (new ConfigLoader())->load($workspace);
+
+    expect($config->schema())->toBe(ConfigDefaults::schemaUrl());
+    expect((new ToolConfigResolver())->resolve($config, 'pest')->enabled())->toBeTrue();
+})->with([
+    'resources/schema.json',
+    'https://example.com/future-schema.json',
+    null,
+]);
+
+it('ignores non string schema metadata while parsing config', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', ['$schema' => 2]);
+
+    $workspace = (new WorkspaceResolver(homeDirectory: $project->path('home')))->resolve($project->root());
+    $config = (new ConfigLoader())->load($workspace);
+
+    expect($config->schema())->toBe(ConfigDefaults::schemaUrl());
 });
 
 it('rejects invalid semantic values without coercing arrays', function (): void {

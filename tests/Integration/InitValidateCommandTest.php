@@ -63,6 +63,7 @@ it('initializes a minimal config and validates it', function (): void {
     $validate = CliRunner::run(['--full', 'validate'], $project->root());
     $validatePayload = CliRunner::decode($validate['stdout']);
     $validateSummary = initValidateObject($validatePayload, 'summary');
+    $output = initValidateObject($document, 'output');
 
     expect($init['exit_code'])->toBe(0);
     expect($init['stderr'])->toBe('');
@@ -70,7 +71,12 @@ it('initializes a minimal config and validates it', function (): void {
     expect($initSummary['already_initialized'] ?? null)->toBeFalse();
     expect($initSummary['skill_installed'] ?? null)->toBeFalse();
     expect($document['$schema'])->toBe(ConfigDefaults::schemaUrl());
-    expect($document['tools'])->toBe([]);
+    expect($output['show_process'] ?? null)->toBeFalse();
+    expect($document['tools'])->toBe([
+        '*' => [
+            'enabled' => true,
+        ],
+    ]);
     expect($validate['exit_code'])->toBe(0);
     expect($validateSummary['using_defaults'] ?? null)->toBeFalse();
 });
@@ -129,7 +135,7 @@ it('preserves known config overrides when forcing init', function (): void {
     expect($document['output'])->toMatchArray([
         'size' => 'full',
         'pretty' => false,
-        'show_process' => true,
+        'show_process' => false,
     ]);
     expect($document['history'])->toMatchArray([
         'enabled' => false,
@@ -159,22 +165,27 @@ it('does not overwrite invalid JSON during init', function (): void {
     expect(file_get_contents($project->path('sift.json')))->toBe('{');
 });
 
-it('does not overwrite unsupported schema during init force', function (): void {
+it('rewrites future schema references during init force', function (): void {
     $project = FixtureProject::create();
     $project->writeJson('sift.json', [
         '$schema' => 'https://example.com/future-schema.json',
-        'tools' => [],
+        'tools' => [
+            'phpstan' => [
+                'timeout' => 60,
+            ],
+        ],
     ]);
 
     $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
-    $payload = CliRunner::decode($result['stderr']);
-    $error = initValidateObject($payload, 'error');
     $document = $project->readJson('sift.json');
 
-    expect($result['exit_code'])->toBe(3);
-    expect($result['stdout'])->toBe('');
-    expect($error['code'] ?? null)->toBe('config_schema_unsupported');
-    expect($document['$schema'])->toBe('https://example.com/future-schema.json');
+    expect($result['exit_code'])->toBe(0);
+    expect($document['$schema'])->toBe(ConfigDefaults::schemaUrl());
+    expect($document['tools'])->toBe([
+        'phpstan' => [
+            'timeout' => 60,
+        ],
+    ]);
 });
 
 it('returns config errors as JSON on stderr', function (): void {

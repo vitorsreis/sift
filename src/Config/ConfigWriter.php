@@ -43,7 +43,7 @@ final readonly class ConfigWriter
             'history' => $this->mergeKnownObject($historyDefaults, $existing['history'] ?? null),
             'tools' => is_array($existing['tools'] ?? null) && ! array_is_list($existing['tools'])
                 ? $existing['tools']
-                : [],
+                : ConfigDefaults::tools(),
         ];
     }
 

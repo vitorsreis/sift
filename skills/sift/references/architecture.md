@@ -37,10 +37,10 @@ Entrypoint
 ## Config Contract
 
 - v2 only.
-- `$schema` is the config contract version.
+- `$schema` is editor metadata for schema-aware tools.
 - `init` writes `https://raw.githubusercontent.com/vitorsreis/sift/v{Sift::VERSION}/resources/schema.json`.
 - Missing config is valid and uses defaults.
-- Config without `$schema` fails with `config_schema_unsupported`.
+- Runtime loading accepts older, future, relative, or missing schema references.
 - Schema, runtime loader, and docs must describe the same fields.
 
 ## Payload Contract

@@ -19,7 +19,7 @@ it('writes the minimal default config document', function (): void {
         'output' => [
             'size' => 'compact',
             'pretty' => true,
-            'show_process' => true,
+            'show_process' => false,
         ],
         'history' => [
             'enabled' => true,
@@ -29,8 +29,14 @@ it('writes the minimal default config document', function (): void {
             'max_bytes_per_run' => 1048576,
             'redact_secrets' => true,
         ],
-        'tools' => [],
+        'tools' => [
+            '*' => [
+                'enabled' => true,
+            ],
+        ],
     ]);
+    expect((string) file_get_contents($path))->toContain('"*"');
+    expect((string) file_get_contents($path))->toContain('"enabled": true');
     expect(glob($project->path('sift.json.tmp.*')))->toBe([]);
 });
 
@@ -80,7 +86,7 @@ it('preserves known overrides when rewriting defaults', function (): void {
     expect($document['output'])->toMatchArray([
         'size' => 'full',
         'pretty' => false,
-        'show_process' => true,
+        'show_process' => false,
     ]);
     expect($document['history'])->toMatchArray([
         'enabled' => false,

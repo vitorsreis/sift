@@ -37,7 +37,6 @@ final readonly class InitCommand implements CommandHandler
                 $alreadyInitialized = true;
             } else {
                 $existing = $this->configLoader->readDocument($configPath);
-                $this->configLoader->validateSchema($existing, $configPath);
             }
         }
 

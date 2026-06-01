@@ -36,7 +36,19 @@ final class ConfigDefaults
         return [
             'size' => 'compact',
             'pretty' => true,
-            'show_process' => true,
+            'show_process' => false,
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function tools(): array
+    {
+        return [
+            '*' => [
+                'enabled' => true,
+            ],
         ];
     }
 
@@ -49,7 +61,7 @@ final class ConfigDefaults
             '$schema' => self::schemaUrl(),
             'output' => self::output(),
             'history' => self::history(),
-            'tools' => [],
+            'tools' => self::tools(),
         ];
     }
 }

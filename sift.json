@@ -1,0 +1,19 @@
+{
+  "$schema": "resources/schema.json",
+  "output": {
+    "size": "compact",
+    "pretty": true,
+    "show_process": false
+  },
+  "history": {
+    "enabled": true,
+    "path": ".sift/history",
+    "max_files": 10,
+    "redact_secrets": true
+  },
+  "tools": {
+    "*": {
+      "enabled": true
+    }
+  }
+}

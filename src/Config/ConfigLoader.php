@@ -33,7 +33,6 @@ final readonly class ConfigLoader
         }
 
         $document = $this->readDocument($configPath);
-        $this->validateSchema($document, $configPath);
 
         return $this->fromDocument(
             document: $document,
@@ -52,22 +51,6 @@ final readonly class ConfigLoader
             return $this->jsonFile->readObject($path);
         } catch (FilesystemException $filesystemException) {
             throw ConfigValidationException::invalidConfig($path, $filesystemException->getMessage());
-        }
-    }
-
-    /**
-     * @param JsonObject $document
-     */
-    public function validateSchema(array $document, string $path): void
-    {
-        $schema = $document['$schema'] ?? null;
-
-        if (! is_string($schema) || trim($schema) === '') {
-            throw ConfigValidationException::schemaUnsupported($path, 'The `$schema` field is required.');
-        }
-
-        if ($schema !== ConfigDefaults::schemaUrl()) {
-            throw ConfigValidationException::schemaUnsupported($path, 'Unsupported config schema.');
         }
     }
 
