@@ -11,19 +11,19 @@ it('writes and reads JSON objects with stable formatting', function (): void {
     $path = $project->path('sift.json');
 
     (new JsonFile())->writeObject($path, [
-        'url' => 'https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json',
+        'url' => 'https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json',
         'enabled' => true,
     ]);
 
     expect(file_get_contents($path))->toBe(implode("\n", [
         '{',
-        '    "url": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",',
+        '    "url": "https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json",',
         '    "enabled": true',
         '}',
         '',
     ]));
     expect((new JsonFile())->readObject($path))->toBe([
-        'url' => 'https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json',
+        'url' => 'https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json',
         'enabled' => true,
     ]);
 });

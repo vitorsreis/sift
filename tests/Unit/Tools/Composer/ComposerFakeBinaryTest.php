@@ -58,7 +58,7 @@ function composerFakeBinaryConfig(ToolConfig ...$tools): SiftConfig
     }
 
     return new SiftConfig(
-        schema: 'https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json',
+        schema: 'https://raw.githubusercontent.com/vitorsreis/sift/master/resources/schema.json',
         configPath: null,
         usingDefaults: true,
         history: new HistoryConfig(false, '.sift/history', 50, 30, 1048576, true),
