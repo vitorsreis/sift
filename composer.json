@@ -70,7 +70,7 @@
   },
   "scripts": {
     "check:composer": "composer validate --strict",
-    "test": "pest --configuration=phpunit.xml --colors=never",
+    "test": "pest --configuration=phpunit.xml --colors=never --parallel",
     "test:coverage": "pest --configuration=phpunit.xml --coverage --min=80 --colors=never",
     "analyse": "phpstan analyse --configuration=phpstan.neon --memory-limit=1G",
     "format": "pint --config=pint.json --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
