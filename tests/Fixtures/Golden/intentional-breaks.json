@@ -1,0 +1,26 @@
+[
+  {
+    "name": "top level add command removed",
+    "argv": ["add", "pest"],
+    "expected_error": "Unknown command \"add\".",
+    "reason": "v2 keeps skill and tool actions under explicit command namespaces"
+  },
+  {
+    "name": "top level list command removed",
+    "argv": ["list"],
+    "expected_error": "Unknown command \"list\".",
+    "reason": "v2 avoids ambiguous top-level aliases"
+  },
+  {
+    "name": "tools add command removed",
+    "argv": ["tools", "add", "phpstan"],
+    "expected_error": "Unknown command \"tools add\".",
+    "reason": "v2 does not support runtime tool registration through the CLI"
+  },
+  {
+    "name": "unknown global option rejected",
+    "argv": ["--old-version", "validate"],
+    "expected_error": "Unknown option \"--old-version\".",
+    "reason": "v2 intentionally does not preserve v1 compatibility flags"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "direct pest tool command",
+    "argv": ["pest", "--filter=CheckoutTest"],
+    "expected_handler": "run.tool",
+    "expected_arguments": ["pest", "--filter=CheckoutTest"],
+    "reason": "direct tool commands remain the primary shorthand in v2"
+  },
+  {
+    "name": "explicit run command",
+    "argv": ["run", "composer", "validate"],
+    "expected_handler": "run.tool",
+    "expected_arguments": ["composer", "validate"],
+    "reason": "explicit run keeps tool execution unambiguous"
+  },
+  {
+    "name": "history run id shorthand",
+    "argv": ["history", "0td7j1a01z141z"],
+    "expected_handler": "history.view",
+    "expected_arguments": ["0td7j1a01z141z"],
+    "reason": "history shorthand is preserved for run lookup"
+  },
+  {
+    "name": "skills list alias",
+    "argv": ["skills", "ls"],
+    "expected_handler": "skills.list",
+    "expected_arguments": [],
+    "reason": "short list aliases remain supported"
+  }
+]

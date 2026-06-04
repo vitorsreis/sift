@@ -56,6 +56,10 @@ command option > global option > config > default
 - `run <tool> [args]`
 - `<tool> [args]`
 
+## Intentional V2 Breaks
+
+Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`, `list`, `view`, and `runs` are not supported. Tool registration through `tools add` is also not supported; tool configuration lives in `sift.json`.
+
 ## Streams
 
 - Terminal result output goes to `STDOUT` by default.
