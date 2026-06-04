@@ -60,6 +60,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - History redaction covers embedded short secrets in flags, URLs, queries, and paths.
 - History/debug redaction covers short standalone values that self-identify as tokens or secrets.
 - Composer validate warnings are normalized as warning items instead of triggering fatal result validation.
+- Skill catalog results tolerate missing descriptions by falling back to a safe generated description.
 - Process timeouts terminate descendant processes best-effort.
 - Atomic writes preserve existing permissions and restrict new files.
 - Skill mutations request explicit confirmation in TTY and require `--yes` or `--all` otherwise.
