@@ -64,6 +64,51 @@ it('runs composer sift and composer skills from an installed plugin package', fu
     expect($vendorBin['stdout'])->toBe($sift['stdout']);
 });
 
+it('installs the composer package as a copied distribution', function (): void {
+    $project = FixtureProject::create('sift-composer-dist-');
+    $repoRoot = str_replace('\\', '/', dirname(__DIR__, 2));
+
+    $project->writeJson('composer.json', [
+        'name' => 'fixture/dist-project',
+        'type' => 'project',
+        'require' => [
+            'vitorsreis/sift' => '*',
+        ],
+        'repositories' => [
+            [
+                'type' => 'path',
+                'url' => $repoRoot,
+                'options' => [
+                    'symlink' => false,
+                ],
+            ],
+        ],
+        'config' => [
+            'allow-plugins' => [
+                'vitorsreis/sift' => true,
+            ],
+            'platform' => [
+                'php' => '8.3',
+            ],
+        ],
+        'minimum-stability' => 'dev',
+        'prefer-stable' => true,
+    ]);
+
+    $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
+    $validatePackage = runComposerEntrypointIn($project->path('vendor/vitorsreis/sift'), ['validate', '--strict', '--no-ansi']);
+    $vendorBin = runVendorSiftEntrypoint($project, ['version']);
+
+    if ($install['exit_code'] !== 0) {
+        throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
+    }
+
+    expect($validatePackage['exit_code'])->toBe(0);
+    expect($vendorBin['exit_code'])->toBe(0);
+    expect($vendorBin['stdout'])->toStartWith('Sift ');
+    expect($project->path('vendor/vitorsreis/sift/src/Sift.php'))->toBeFile();
+});
+
 /**
  * @param list<string> $arguments
  *
@@ -73,6 +118,50 @@ function runComposerEntrypoint(FixtureProject $project, array $arguments): array
 {
     $root = dirname(__DIR__, 2);
     $command = [PHP_BINARY, $root . '/vendor/bin/composer', '--working-dir', $project->root()];
+
+    foreach ($arguments as $argument) {
+        $command[] = $argument;
+    }
+
+    $process = proc_open(
+        $command,
+        [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ],
+        $pipes,
+        $root,
+    );
+
+    if (! is_resource($process)) {
+        throw new RuntimeException('Could not start Composer process.');
+    }
+
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+
+    if ($stdout === false || $stderr === false) {
+        throw new RuntimeException('Could not read Composer process output.');
+    }
+
+    return [
+        'exit_code' => proc_close($process),
+        'stdout' => $stdout,
+        'stderr' => $stderr,
+    ];
+}
+
+/**
+ * @param list<string> $arguments
+ *
+ * @return array{exit_code: int, stdout: string, stderr: string}
+ */
+function runComposerEntrypointIn(string $workingDirectory, array $arguments): array
+{
+    $root = dirname(__DIR__, 2);
+    $command = [PHP_BINARY, $root . '/vendor/bin/composer', '--working-dir', $workingDirectory];
 
     foreach ($arguments as $argument) {
         $command[] = $argument;

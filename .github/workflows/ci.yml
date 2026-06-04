@@ -45,3 +45,19 @@ jobs:
 
       - name: Smoke test PHAR
         run: php build/phar/sift.phar help
+
+      - name: Validate exported Composer package
+        if: matrix.os == 'ubuntu-latest' && matrix.php == '8.3'
+        shell: bash
+        run: |
+          rm -rf build/composer-package
+          mkdir -p build/composer-package/export build/composer-package/install
+          composer archive --format=zip --dir=build/composer-package/export
+          unzip -q build/composer-package/export/*.zip -d build/composer-package/source
+          package_dir="$(find build/composer-package/source -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          composer --working-dir "$package_dir" validate --strict
+          composer --working-dir build/composer-package/install init --name=fixture/project --no-interaction
+          composer config --working-dir build/composer-package/install repositories.sift path "$(pwd)/$package_dir"
+          composer config --working-dir build/composer-package/install allow-plugins.vitorsreis/sift true
+          composer --working-dir build/composer-package/install require vitorsreis/sift:* --no-interaction --no-progress
+          php build/composer-package/install/vendor/bin/sift version
