@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sift\Console\InvalidUsageException;
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 use Sift\Skills\SkillsShCatalogClient;
@@ -59,6 +60,54 @@ it('uses SKILLS_API_URL as the self hosted catalog endpoint', function (): void 
     putenv('SKILLS_API_URL');
 });
 
+it('appends query parameters to catalog endpoints that already have parameters', function (): void {
+    /** @var list<string> $urls */
+    $urls = [];
+    $client = new SkillsShCatalogClient(
+        fetcher: function (string $url, int $timeout, array $headers) use (&$urls): array {
+            $urls[] = $url;
+
+            return [
+                'status' => 200,
+                'body' => '{"items":[]}',
+                'error' => null,
+            ];
+        },
+        baseUrl: 'https://catalog.example.test/search?source=sift',
+        timeoutSeconds: 3,
+    );
+
+    $client->search('php review', 5);
+
+    expect($urls)->toBe(['https://catalog.example.test/search?source=sift&q=php+review&limit=5']);
+});
+
+it('rejects invalid catalog search input before fetching', function (string $query, int $limit, string $message): void {
+    $called = false;
+    $client = new SkillsShCatalogClient(
+        fetcher: function () use (&$called): array {
+            $called = true;
+
+            return [
+                'status' => 200,
+                'body' => '{"items":[]}',
+                'error' => null,
+            ];
+        },
+    );
+
+    expect(fn(): array => $client->search($query, $limit))->toThrow(InvalidUsageException::class, $message);
+    expect($called)->toBeFalse();
+})->with([
+    'empty query' => ['   ', 10, 'skills find requires a query.'],
+    'zero limit' => ['review', 0, 'skills find limit must be positive.'],
+]);
+
+it('requires a positive catalog timeout', function (): void {
+    expect(fn(): SkillsShCatalogClient => new SkillsShCatalogClient(timeoutSeconds: 0))
+        ->toThrow(InvalidArgumentException::class, 'Catalog timeout must be positive.');
+});
+
 it('returns skill catalog unavailable for failed catalog responses', function (): void {
     /** @var list<array{status: int|null, body: string|null, error: string|null}> $responses */
     $responses = [
@@ -66,6 +115,7 @@ it('returns skill catalog unavailable for failed catalog responses', function ()
         ['status' => null, 'body' => null, 'error' => 'timeout'],
         ['status' => 500, 'body' => '{}', 'error' => null],
         ['status' => 200, 'body' => '{', 'error' => null],
+        ['status' => 200, 'body' => '"unexpected"', 'error' => null],
     ];
 
     foreach ($responses as $response) {
