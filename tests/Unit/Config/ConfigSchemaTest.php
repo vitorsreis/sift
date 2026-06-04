@@ -46,7 +46,16 @@ it('keeps schema, defaults and documentation on the same contract url and fields
     $output = configSchemaObject($properties, 'output');
     $outputProperties = configSchemaObject($output, 'properties');
     $tools = configSchemaObject($properties, 'tools');
+    $wildcardTool = configSchemaObject(configSchemaObject($tools, 'properties'), '*');
+    $wildcardToolProperties = configSchemaObject($wildcardTool, 'properties');
     $toolProperties = configSchemaObject(configSchemaObject($tools, 'additionalProperties'), 'properties');
+    $historyEnabled = configSchemaObject($historyProperties, 'enabled');
+    $historyPath = configSchemaObject($historyProperties, 'path');
+    $outputFormat = configSchemaObject($outputProperties, 'format');
+    $outputSize = configSchemaObject($outputProperties, 'size');
+    $wildcardEnabled = configSchemaObject($wildcardToolProperties, 'enabled');
+    $wildcardTimeout = configSchemaObject($wildcardToolProperties, 'timeout');
+    $toolTimeout = configSchemaObject($toolProperties, 'timeout');
 
     expect($schema['$id'] ?? null)->toBe(ConfigDefaults::schemaUrl());
     expect($historyProperties)->toHaveKeys([
@@ -69,6 +78,15 @@ it('keeps schema, defaults and documentation on the same contract url and fields
         'blocked_args',
         'timeout',
     ]);
+    expect($historyEnabled['default'] ?? null)->toBe(ConfigDefaults::history()['enabled']);
+    expect($historyPath['default'] ?? null)->toBe(ConfigDefaults::history()['path']);
+    expect($outputFormat['default'] ?? null)->toBe(ConfigDefaults::output()['format']);
+    expect($outputFormat['enum'] ?? null)->toBe(['terminal', 'json']);
+    expect($outputSize['default'] ?? null)->toBe(ConfigDefaults::output()['size']);
+    expect($outputSize['enum'] ?? null)->toBe(['compact', 'normal', 'full']);
+    expect($wildcardEnabled['default'] ?? null)->toBeTrue();
+    expect($wildcardTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);
+    expect($toolTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);
 
     expect($documentation)->toContain(ConfigDefaults::schemaUrl());
     expect($documentation)->toContain('max_age_days');

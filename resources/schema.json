@@ -111,7 +111,7 @@
               "description": "Default process timeout in seconds. Use 0 to disable the timeout.",
               "type": "integer",
               "minimum": 0,
-              "default": 0
+              "default": 1800
             }
           }
         }
@@ -139,7 +139,7 @@
             "description": "Process timeout in seconds for this tool. Use 0 to disable the timeout.",
             "type": "integer",
             "minimum": 0,
-            "default": 0
+            "default": 1800
           },
           "blocked_args": {
             "description": "Command-line arguments that Sift must reject for this tool.",

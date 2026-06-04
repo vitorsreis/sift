@@ -170,7 +170,7 @@ final readonly class ConfigLoader
             enabled: $this->boolValue($wildcardInput, 'enabled', true, $path, 'tools.*.enabled'),
             binary: null,
             blockedArgs: [],
-            timeout: $this->intValue($wildcardInput, 'timeout', 1800, $path, 'tools.*.timeout', minimum: 0),
+            timeout: $this->intValue($wildcardInput, 'timeout', ConfigDefaults::TOOL_TIMEOUT, $path, 'tools.*.timeout', minimum: 0),
         );
         $configs['*'] = $wildcard;
 

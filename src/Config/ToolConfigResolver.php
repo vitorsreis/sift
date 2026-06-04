@@ -8,7 +8,7 @@ final class ToolConfigResolver
 {
     public function resolve(SiftConfig $config, string $tool): ToolConfig
     {
-        $wildcard = $config->tool('*') ?? new ToolConfig('*', true, null, [], 1800);
+        $wildcard = $config->tool('*') ?? new ToolConfig('*', true, null, [], ConfigDefaults::TOOL_TIMEOUT);
         $configured = $config->tool($tool);
 
         if ($configured instanceof ToolConfig) {

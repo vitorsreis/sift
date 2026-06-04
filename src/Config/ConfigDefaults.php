@@ -8,6 +8,8 @@ use Sift\Sift;
 
 final class ConfigDefaults
 {
+    public const TOOL_TIMEOUT = 1800;
+
     public static function schemaUrl(): string
     {
         return 'https://raw.githubusercontent.com/vitorsreis/sift/v' . Sift::VERSION . '/resources/schema.json';
