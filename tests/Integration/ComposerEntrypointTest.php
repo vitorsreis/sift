@@ -222,6 +222,10 @@ function copyPackageDirectory(string $source, string $target): void
     );
 
     foreach ($iterator as $item) {
+        if (! $item instanceof SplFileInfo) {
+            continue;
+        }
+
         $targetPath = $target . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
 
         if ($item->isDir()) {
