@@ -2,98 +2,149 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
   "title": "Sift Config Schema",
-  "description": "Schema for Sift configuration file.",
+  "description": "Configuration schema for Sift v2.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": {
-      "type": "string"
+      "description": "Editor metadata URL for this configuration schema. Sift does not enforce this value at runtime.",
+      "type": "string",
+      "format": "uri-reference",
+      "default": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json"
     },
     "history": {
+      "description": "Controls run history storage, retention, and secret redaction.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "description": "Record tool runs to the configured history path by default.",
+          "type": "boolean",
+          "default": true
         },
         "path": {
+          "description": "Directory used to store history files. Relative paths resolve from the config file directory.",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "default": ".sift/history",
+          "examples": [
+            ".sift/history",
+            "storage/sift-history"
+          ]
         },
         "max_files": {
+          "description": "Maximum number of stored history run files to keep.",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "default": 50
         },
         "max_age_days": {
+          "description": "Maximum age, in days, for stored history runs. Omit this field to disable age-based retention.",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "default": 30
         },
         "max_bytes_per_run": {
+          "description": "Maximum serialized payload size kept for each history run.",
           "type": "integer",
-          "minimum": 1024
+          "minimum": 1024,
+          "default": 1048576
         },
         "redact_secrets": {
-          "type": "boolean"
+          "description": "Redact likely secrets from history payloads before writing them to disk.",
+          "type": "boolean",
+          "default": true
         }
       }
     },
     "output": {
+      "description": "Controls terminal and JSON output verbosity.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "size": {
+          "description": "Default output detail level for tool results.",
           "type": "string",
           "enum": [
             "compact",
             "normal",
             "full"
-          ]
+          ],
+          "default": "compact"
         },
         "pretty": {
-          "type": "boolean"
+          "description": "Pretty-print JSON output when JSON mode is enabled.",
+          "type": "boolean",
+          "default": true
         },
         "show_process": {
-          "type": "boolean"
+          "description": "Show underlying process command/status details in terminal output.",
+          "type": "boolean",
+          "default": false
         }
       }
     },
     "tools": {
+      "description": "Per-tool settings. Use `*` for defaults inherited by every tool, and tool names such as `phpstan` for overrides.",
       "type": "object",
       "properties": {
         "*": {
+          "description": "Default settings inherited by every tool unless overridden by a specific tool entry.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "enabled": {
-              "type": "boolean"
+              "description": "Enable tools by default.",
+              "type": "boolean",
+              "default": true
             },
             "timeout": {
+              "description": "Default process timeout in seconds. Use 0 to disable the timeout.",
               "type": "integer",
-              "minimum": 0
+              "minimum": 0,
+              "default": 0
             }
           }
         }
       },
       "additionalProperties": {
+        "description": "Settings for a specific tool.",
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "enabled": {
-            "type": "boolean"
+            "description": "Enable or disable this tool.",
+            "type": "boolean",
+            "default": true
           },
           "binary": {
+            "description": "Executable path or command used to run this tool. Relative paths resolve from the config file directory.",
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "examples": [
+              "vendor/bin/phpstan",
+              "vendor/bin/pest.bat"
+            ]
           },
           "timeout": {
+            "description": "Process timeout in seconds for this tool. Use 0 to disable the timeout.",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "default": 0
           },
           "blocked_args": {
+            "description": "Command-line arguments that Sift must reject for this tool.",
             "type": "array",
+            "default": [],
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "minLength": 1
+            },
+            "examples": [
+              [
+                "--xdebug"
+              ]
+            ]
           }
         }
       }
