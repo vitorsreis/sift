@@ -42,6 +42,7 @@ it('normalizes rector changed files diffs and errors', function (): void {
         'changed_files' => 1,
         'errors' => 1,
         'diffs' => 1,
+        'warnings' => [],
     ]);
     expect($report->items())->toBe([
         [
@@ -89,10 +90,17 @@ it('uses changed file evidence when rector totals are inconsistent', function ()
     expect($report->summary())->toMatchArray([
         'changed_files' => 1,
         'diffs' => 1,
+        'warnings' => [
+            'Rector reported totals.changed_files=0 but changed_files contains 1 item(s).',
+            'Rector reported totals.changed_files=0 but file_diffs contains 1 item(s).',
+        ],
+    ]);
+    expect($report->items()[0])->toMatchArray([
+        'type' => ItemType::Warning->value,
     ]);
 });
 
-it('does not count changed file list entries without totals or diffs', function (): void {
+it('reports noisy changed file list entries as warnings without counting findings', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');
     $report = (new RectorParser())->parse(json_encode([
@@ -105,5 +113,13 @@ it('does not count changed file list entries without totals or diffs', function 
 
     expect($report->changedFiles())->toBe(0);
     expect($report->findings())->toBe(0);
-    expect($report->items())->toHaveCount(1);
+    expect($report->summary())->toMatchArray([
+        'warnings' => [
+            'Rector reported totals.changed_files=0 but changed_files contains 1 item(s).',
+        ],
+    ]);
+    expect($report->items())->toHaveCount(2);
+    expect($report->items()[0])->toMatchArray([
+        'type' => ItemType::Warning->value,
+    ]);
 });

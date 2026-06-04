@@ -32,6 +32,7 @@ final readonly class RectorParser
         $changedFileItems = $this->changedFileItems($this->list($document['changed_files'] ?? [], 'changed_files'), $cwd);
         $diffItems = $this->diffItems($this->list($document['file_diffs'] ?? [], 'file_diffs'), $cwd);
         $errorItems = $this->errorItems($this->list($document['errors'] ?? [], 'errors'), $cwd);
+        $warnings = $this->warnings($reportedChangedFiles, count($changedFileItems), count($diffItems));
         $changedFiles = max($reportedChangedFiles, count($diffItems));
 
         return new RectorReport(
@@ -39,10 +40,52 @@ final readonly class RectorParser
                 'changed_files' => $changedFiles,
                 'errors' => $errors,
                 'diffs' => count($diffItems),
+                'warnings' => $warnings,
             ],
-            items: [...$changedFileItems, ...$diffItems, ...$errorItems],
+            items: [...$this->warningItems($warnings), ...$changedFileItems, ...$diffItems, ...$errorItems],
             changedFiles: $changedFiles,
             errors: $errors,
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function warnings(int $reportedChangedFiles, int $changedFileItems, int $diffItems): array
+    {
+        $warnings = [];
+
+        if ($reportedChangedFiles !== $changedFileItems) {
+            $warnings[] = sprintf(
+                'Rector reported totals.changed_files=%d but changed_files contains %d item(s).',
+                $reportedChangedFiles,
+                $changedFileItems,
+            );
+        }
+
+        if ($reportedChangedFiles < $diffItems) {
+            $warnings[] = sprintf(
+                'Rector reported totals.changed_files=%d but file_diffs contains %d item(s).',
+                $reportedChangedFiles,
+                $diffItems,
+            );
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * @param list<string> $warnings
+     * @return list<array<string, mixed>>
+     */
+    private function warningItems(array $warnings): array
+    {
+        return array_map(
+            static fn(string $warning): array => [
+                'type' => ItemType::Warning->value,
+                'message' => $warning,
+            ],
+            $warnings,
         );
     }
 
