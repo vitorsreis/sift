@@ -18,13 +18,13 @@
     "argv": ["history", "0td7j1a01z141z"],
     "expected_handler": "history.view",
     "expected_arguments": ["0td7j1a01z141z"],
-    "reason": "history shorthand is preserved for run lookup"
+    "reason": "history shorthand is part of the v2 command grammar"
   },
   {
     "name": "skills list alias",
     "argv": ["skills", "ls"],
     "expected_handler": "skills.list",
     "expected_arguments": [],
-    "reason": "short list aliases remain supported"
+    "reason": "skills list shorthand is part of the v2 command grammar"
   }
 ]

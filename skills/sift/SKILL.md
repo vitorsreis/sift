@@ -12,6 +12,7 @@ Sift is the project command layer for PHP tools and agent skills. Prefer it when
 - Run PHP quality tools through `composer sift`.
 - Manage agent skills through `composer skills`.
 - Read structured results from Sift history before rerunning noisy tools.
+- Prefer Sift history and compact output whenever possible to save context tokens.
 - Use `--json` only when machine-readable output is needed.
 
 Do not install Sift unless the user asks. If Sift is unavailable or broken, use the native tool.

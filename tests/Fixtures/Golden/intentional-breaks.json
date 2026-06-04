@@ -19,8 +19,8 @@
   },
   {
     "name": "unknown global option rejected",
-    "argv": ["--old-version", "validate"],
-    "expected_error": "Unknown option \"--old-version\".",
-    "reason": "v2 intentionally does not preserve v1 compatibility flags"
+    "argv": ["--unknown-option", "validate"],
+    "expected_error": "Unknown option \"--unknown-option\".",
+    "reason": "v2 rejects unknown global options"
   }
 ]

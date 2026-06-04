@@ -9,11 +9,11 @@ use Sift\Console\InvalidUsageException;
 /**
  * @return list<array{name: string, argv: list<string>, expected_handler: string, expected_arguments: list<string>, reason: string}>
  */
-function preservedCommandFixtures(): array
+function currentCommandFixtures(): array
 {
     $fixtures = [];
 
-    foreach (goldenFixtureList('preserved-commands.json') as $fixture) {
+    foreach (goldenFixtureList('current-commands.json') as $fixture) {
         $fixtures[] = [
             'name' => goldenString($fixture, 'name'),
             'argv' => goldenStringList($fixture, 'argv'),
@@ -120,8 +120,8 @@ function goldenStringList(array $fixture, string $key): array
     return $strings;
 }
 
-it('preserves documented v2 command behavior from golden fixtures', function (): void {
-    foreach (preservedCommandFixtures() as $fixture) {
+it('matches documented v2 command behavior from golden fixtures', function (): void {
+    foreach (currentCommandFixtures() as $fixture) {
         $route = CommandRouter::forSift()->route(CliParser::forSift()->parse($fixture['argv']));
 
         expect($route->handler())->toBe($fixture['expected_handler']);
