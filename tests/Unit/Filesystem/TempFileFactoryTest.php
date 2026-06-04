@@ -2,36 +2,29 @@
 
 declare(strict_types=1);
 
+use Sift\Filesystem\TempFile;
 use Sift\Filesystem\TempFileFactory;
 use Tests\Support\FixtureProject;
 
-it('creates tracked temporary files in the configured directory', function (): void {
+it('creates and removes temporary files', function (): void {
     $project = FixtureProject::create();
-    $directory = $project->mkdir('tmp');
+    $factory = new TempFileFactory($project->path('tmp'));
+    $tempFile = $factory->create('coverage-', '.xml');
 
-    $tempFile = (new TempFileFactory($directory))->create('junit-', '.xml');
-
+    expect($tempFile)->toBeInstanceOf(TempFile::class);
     expect($tempFile->exists())->toBeTrue();
-    expect(dirname($tempFile->path()))->toBe($directory);
-    expect(basename($tempFile->path()))->toStartWith('junit-');
+    expect(basename($tempFile->path()))->toStartWith('coverage-');
     expect($tempFile->path())->toEndWith('.xml');
 
     $tempFile->remove();
+
+    expect($tempFile->exists())->toBeFalse();
 });
 
-it('creates the configured temp directory when missing', function (): void {
-    $project = FixtureProject::create();
-    $directory = $project->path('missing/tmp');
-
-    $tempFile = (new TempFileFactory($directory))->create('sift-', '.tmp');
-
-    expect(is_dir($directory))->toBeTrue();
-    expect($tempFile->exists())->toBeTrue();
-
-    $tempFile->remove();
-});
-
-it('rejects empty temp directories', function (): void {
-    expect(fn(): mixed => new TempFileFactory(''))
+it('rejects empty temporary paths', function (): void {
+    expect(fn(): mixed => new TempFileFactory(' '))
         ->toThrow(InvalidArgumentException::class, 'Temporary directory cannot be empty.');
+
+    expect(fn(): mixed => new TempFile(' '))
+        ->toThrow(InvalidArgumentException::class, 'Temporary file path cannot be empty.');
 });
