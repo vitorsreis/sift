@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sift\Execution;
 
+use Closure;
 use InvalidArgumentException;
 use Sift\Core\Clock;
 use Sift\Core\ErrorCode;
@@ -18,6 +19,7 @@ final readonly class ProcessSupervisor
         private ProcessCommandBuilder $commandBuilder = new ProcessCommandBuilder(),
         private Clock $clock = new SystemClock(),
         private ProcessTreeTerminator $processTerminator = new ProcessTreeTerminator(),
+        private ?Closure $interruptionChecker = null,
     ) {}
 
     /**
@@ -62,6 +64,18 @@ final readonly class ProcessSupervisor
 
             while (true) {
                 $status = proc_get_status($process);
+
+                if ($status['running'] && $this->interrupted()) {
+                    $this->processTerminator->terminate($process);
+                    proc_close($process);
+                    $closed = true;
+
+                    return ExecutionResult::interruption(
+                        stdout: $this->readFile($stdoutPath),
+                        stderr: $this->readFile($stderrPath),
+                        durationSeconds: $this->clock->monotonicSeconds() - $startedAt,
+                    );
+                }
 
                 if ($status['running'] && $timeoutSeconds > 0 && ($this->clock->monotonicSeconds() - $startedAt) >= $timeoutSeconds) {
                     $this->processTerminator->terminate($process);
@@ -155,6 +169,18 @@ final readonly class ProcessSupervisor
             while (true) {
                 $status = proc_get_status($process);
 
+                if ($status['running'] && $this->interrupted()) {
+                    $this->processTerminator->terminate($process);
+                    proc_close($process);
+                    $closed = true;
+
+                    return ExecutionResult::interruption(
+                        stdout: '',
+                        stderr: '',
+                        durationSeconds: $this->clock->monotonicSeconds() - $startedAt,
+                    );
+                }
+
                 if ($status['running'] && $timeoutSeconds > 0 && ($this->clock->monotonicSeconds() - $startedAt) >= $timeoutSeconds) {
                     $this->processTerminator->terminate($process);
                     proc_close($process);
@@ -212,6 +238,15 @@ final readonly class ProcessSupervisor
         }
 
         return $path;
+    }
+
+    private function interrupted(): bool
+    {
+        if (! $this->interruptionChecker instanceof Closure) {
+            return false;
+        }
+
+        return ($this->interruptionChecker)() === true;
     }
 
     private function closePipe(mixed $pipe): void

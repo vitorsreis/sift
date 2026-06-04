@@ -67,6 +67,10 @@ final readonly class ToolRunner
 
         $execution = $this->processRunner->run($command);
 
+        if ($execution->interrupted()) {
+            return $execution;
+        }
+
         try {
             $parsed = $adapter->parse($execution, $context, $command);
         } catch (UserFacingException $userFacingException) {

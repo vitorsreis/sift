@@ -13,6 +13,8 @@ use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Execution\PhpCommandFactory;
 use Sift\Execution\PhpRuntimeArguments;
+use Sift\Execution\ProcessRunner;
+use Sift\Execution\ProcessSupervisor;
 use Sift\Registry\ToolRegistry;
 use Sift\Safety\Policy;
 use Sift\Safety\PolicyPipeline;
@@ -142,6 +144,27 @@ PHP);
         $proxy,
         'user-arg',
     ]);
+});
+
+it('returns interrupted executions without parsing partial output', function (): void {
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(toolRunnerAdapter('demo', [], ['-r', 'sleep(3);'])),
+        processRunner: new ProcessRunner(new ProcessSupervisor(interruptionChecker: static fn(): bool => true)),
+    );
+
+    $result = $runner->run(
+        arguments: new CliArguments('demo'),
+        config: toolRunnerConfig(new ToolConfig('demo', true, null, [], 30)),
+        cwd: getcwd() ?: '.',
+    );
+
+    if (! $result instanceof ExecutionResult) {
+        throw new RuntimeException('Expected execution result.');
+    }
+
+    expect($result->interrupted())->toBeTrue();
+    expect($result->exitCode())->toBe(130);
+    expect($result->errorCode())->toBe(ErrorCode::ProcessInterrupted);
 });
 
 /**

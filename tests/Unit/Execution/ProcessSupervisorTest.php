@@ -44,3 +44,27 @@ it('returns a timeout result and runs cleanup callbacks', function (): void {
     expect($result->errorCode())->toBe(ErrorCode::ProcessTimeout);
     expect($cleaned)->toBeTrue();
 });
+
+it('returns an interruption result and runs cleanup callbacks', function (): void {
+    $cleaned = false;
+
+    $result = (new ProcessSupervisor(interruptionChecker: static fn(): bool => true))->run(
+        command: new PreparedCommand(
+            tool: 'php',
+            binary: PHP_BINARY,
+            arguments: ['-r', 'sleep(3);'],
+            cwd: getcwd() ?: '.',
+        ),
+        timeoutSeconds: 5.0,
+        cleanupCallbacks: [
+            function () use (&$cleaned): void {
+                $cleaned = true;
+            },
+        ],
+    );
+
+    expect($result->interrupted())->toBeTrue();
+    expect($result->exitCode())->toBe(130);
+    expect($result->errorCode())->toBe(ErrorCode::ProcessInterrupted);
+    expect($cleaned)->toBeTrue();
+});
