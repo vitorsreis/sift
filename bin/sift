@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 use Sift\Console\Application;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+$autoloadPath = $GLOBALS['_composer_autoload_path'] ?? dirname(__DIR__) . '/vendor/autoload.php';
+
+require $autoloadPath;
 
 exit((new Application())->run($_SERVER['argv']));

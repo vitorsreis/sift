@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Sift\Core\PreparedCommand;
+use Sift\Execution\ProcessSupervisor;
 use Tests\Support\FixtureProject;
 
 it('runs composer sift and composer skills from an installed plugin package', function (): void {
@@ -66,7 +68,8 @@ it('runs composer sift and composer skills from an installed plugin package', fu
 
 it('installs the composer package as a copied distribution', function (): void {
     $project = FixtureProject::create('sift-composer-dist-');
-    $repoRoot = str_replace('\\', '/', dirname(__DIR__, 2));
+    $package = FixtureProject::create('sift-package-export-');
+    $repoRoot = exportCurrentPackage($package->root());
 
     $project->writeJson('composer.json', [
         'name' => 'fixture/dist-project',
@@ -102,6 +105,14 @@ it('installs the composer package as a copied distribution', function (): void {
 
     if ($install['exit_code'] !== 0) {
         throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
+    }
+
+    if ($vendorBin['exit_code'] !== 0) {
+        throw new RuntimeException($vendorBin['stderr'] . PHP_EOL . $vendorBin['stdout']);
+    }
+
+    if ($vendorValidate['exit_code'] !== 0) {
+        throw new RuntimeException($vendorValidate['stderr'] . PHP_EOL . $vendorValidate['stdout']);
     }
 
     expect($validatePackage['exit_code'])->toBe(0);
@@ -162,40 +173,73 @@ it('runs vendor bin when the composer plugin is disabled', function (): void {
 function runComposerEntrypoint(FixtureProject $project, array $arguments): array
 {
     $root = dirname(__DIR__, 2);
-    $command = [PHP_BINARY, $root . '/vendor/bin/composer', '--working-dir', $project->root()];
-
-    foreach ($arguments as $argument) {
-        $command[] = $argument;
-    }
-
-    $process = proc_open(
-        $command,
-        [
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ],
-        $pipes,
-        $root,
+    $command = new PreparedCommand(
+        tool: 'composer',
+        binary: PHP_BINARY,
+        arguments: [$root . '/vendor/bin/composer', '--working-dir', $project->root(), ...$arguments],
+        cwd: $root,
+        timeout: 90,
     );
-
-    if (! is_resource($process)) {
-        throw new RuntimeException('Could not start Composer process.');
-    }
-
-    $stdout = stream_get_contents($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-
-    if ($stdout === false || $stderr === false) {
-        throw new RuntimeException('Could not read Composer process output.');
-    }
+    $result = (new ProcessSupervisor())->run($command, timeoutSeconds: (float) $command->timeout());
 
     return [
-        'exit_code' => proc_close($process),
-        'stdout' => $stdout,
-        'stderr' => $stderr,
+        'exit_code' => $result->exitCode(),
+        'stdout' => $result->stdout(),
+        'stderr' => $result->timedOut()
+            ? trim($result->stderr() . PHP_EOL . 'Composer process timed out after 90 seconds.')
+            : $result->stderr(),
     ];
+}
+
+function exportCurrentPackage(string $targetRoot): string
+{
+    $sourceRoot = dirname(__DIR__, 2);
+
+    foreach (['bin', 'src', 'resources', 'skills', 'docs'] as $directory) {
+        copyPackageDirectory($sourceRoot . DIRECTORY_SEPARATOR . $directory, $targetRoot . DIRECTORY_SEPARATOR . $directory);
+    }
+
+    foreach ([
+        'composer.json',
+        'README.md',
+        'CHANGELOG.md',
+        'LICENSE.md',
+        'CODE_OF_CONDUCT.md',
+        'CONTRIBUTING.md',
+        'SECURITY.md',
+    ] as $file) {
+        copy($sourceRoot . DIRECTORY_SEPARATOR . $file, $targetRoot . DIRECTORY_SEPARATOR . $file);
+    }
+
+    return str_replace('\\', '/', $targetRoot);
+}
+
+function copyPackageDirectory(string $source, string $target): void
+{
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS),
+        \RecursiveIteratorIterator::SELF_FIRST,
+    );
+
+    foreach ($iterator as $item) {
+        $targetPath = $target . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+
+        if ($item->isDir()) {
+            if (! is_dir($targetPath) && ! mkdir($targetPath, 0777, true) && ! is_dir($targetPath)) {
+                throw new RuntimeException(sprintf('Could not create package export directory "%s".', $targetPath));
+            }
+
+            continue;
+        }
+
+        $targetDirectory = dirname($targetPath);
+
+        if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0777, true) && ! is_dir($targetDirectory)) {
+            throw new RuntimeException(sprintf('Could not create package export directory "%s".', $targetDirectory));
+        }
+
+        copy($item->getPathname(), $targetPath);
+    }
 }
 
 /**
@@ -206,39 +250,21 @@ function runComposerEntrypoint(FixtureProject $project, array $arguments): array
 function runComposerEntrypointIn(string $workingDirectory, array $arguments): array
 {
     $root = dirname(__DIR__, 2);
-    $command = [PHP_BINARY, $root . '/vendor/bin/composer', '--working-dir', $workingDirectory];
-
-    foreach ($arguments as $argument) {
-        $command[] = $argument;
-    }
-
-    $process = proc_open(
-        $command,
-        [
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ],
-        $pipes,
-        $root,
+    $command = new PreparedCommand(
+        tool: 'composer',
+        binary: PHP_BINARY,
+        arguments: [$root . '/vendor/bin/composer', '--working-dir', $workingDirectory, ...$arguments],
+        cwd: $root,
+        timeout: 90,
     );
-
-    if (! is_resource($process)) {
-        throw new RuntimeException('Could not start Composer process.');
-    }
-
-    $stdout = stream_get_contents($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-
-    if ($stdout === false || $stderr === false) {
-        throw new RuntimeException('Could not read Composer process output.');
-    }
+    $result = (new ProcessSupervisor())->run($command, timeoutSeconds: (float) $command->timeout());
 
     return [
-        'exit_code' => proc_close($process),
-        'stdout' => $stdout,
-        'stderr' => $stderr,
+        'exit_code' => $result->exitCode(),
+        'stdout' => $result->stdout(),
+        'stderr' => $result->timedOut()
+            ? trim($result->stderr() . PHP_EOL . 'Composer process timed out after 90 seconds.')
+            : $result->stderr(),
     ];
 }
 
@@ -249,39 +275,21 @@ function runComposerEntrypointIn(string $workingDirectory, array $arguments): ar
  */
 function runVendorSiftEntrypoint(FixtureProject $project, array $arguments): array
 {
-    $command = [PHP_BINARY, $project->path('vendor/bin/sift')];
-
-    foreach ($arguments as $argument) {
-        $command[] = $argument;
-    }
-
-    $process = proc_open(
-        $command,
-        [
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ],
-        $pipes,
-        $project->root(),
+    $command = new PreparedCommand(
+        tool: 'sift',
+        binary: PHP_BINARY,
+        arguments: [$project->path('vendor/bin/sift'), ...$arguments],
+        cwd: $project->root(),
+        timeout: 30,
     );
-
-    if (! is_resource($process)) {
-        throw new RuntimeException('Could not start vendor/bin/sift process.');
-    }
-
-    $stdout = stream_get_contents($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-
-    if ($stdout === false || $stderr === false) {
-        throw new RuntimeException('Could not read vendor/bin/sift process output.');
-    }
+    $result = (new ProcessSupervisor())->run($command, timeoutSeconds: (float) $command->timeout());
 
     return [
-        'exit_code' => proc_close($process),
-        'stdout' => $stdout,
-        'stderr' => $stderr,
+        'exit_code' => $result->exitCode(),
+        'stdout' => $result->stdout(),
+        'stderr' => $result->timedOut()
+            ? trim($result->stderr() . PHP_EOL . 'Sift process timed out after 30 seconds.')
+            : $result->stderr(),
     ];
 }
 
