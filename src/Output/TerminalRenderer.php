@@ -10,6 +10,8 @@ final readonly class TerminalRenderer
 {
     public function __construct(
         private PayloadSizer $payloadSizer = new PayloadSizer(),
+        private HelpTerminalRenderer $helpRenderer = new HelpTerminalRenderer(),
+        private ToolsListTerminalRenderer $toolsListRenderer = new ToolsListTerminalRenderer(),
     ) {}
 
     /**
@@ -24,7 +26,7 @@ final readonly class TerminalRenderer
         $subcommand = $this->subcommand($payload);
 
         if ($subcommand === 'help') {
-            return $this->renderHelp() . PHP_EOL;
+            return $this->helpRenderer->render() . PHP_EOL;
         }
 
         if ($subcommand === 'version') {
@@ -32,7 +34,7 @@ final readonly class TerminalRenderer
         }
 
         if ($subcommand === 'tools list') {
-            return $this->renderToolsList($payload) . PHP_EOL;
+            return $this->toolsListRenderer->render($payload) . PHP_EOL;
         }
 
         return $this->renderPayload($this->payloadSizer->resize($payload, $preferences)) . PHP_EOL;
@@ -54,60 +56,6 @@ final readonly class TerminalRenderer
         return is_string($subcommand) ? $subcommand : null;
     }
 
-    private function renderHelp(): string
-    {
-        return str_replace("\n", PHP_EOL, <<<'TEXT'
-Sift
-  Agent tooling and skills layer for PHP projects.
-
-Usage
-  composer sift [options] <command> [args]
-  composer sift [options] <tool> [args]
-  composer skills [options] <command>
-
-Commands
-  <tool> [args]                Shortcut for run <tool>.
-  run <tool> [args]            Run a tool through Sift.
-  tools list                   List supported tools and local availability.
-
-  history list                 List stored runs.
-  history view <run_id>        Show a stored run.
-
-  skills list                  List installed skills.
-  skills add <source>          Install skills from a source.
-  skills find [query]          Search available skills.
-  skills init [name]           Scaffold a skill.
-  skills remove <skill>        Remove installed skills.
-  skills update [skill ...]    Update installed skills.
-
-  init                         Create a sift.json config.
-  validate                     Validate sift.json.
-  version                      Show the installed Sift version.
-  help                         Show this reference.
-
-Options
-  --json                       Render normalized JSON for supported commands.
-  --no-json                    Force terminal output.
-  --compact                    Keep result output short.
-  --full                       Show complete result output.
-  --pretty, -p                 Pretty-print JSON output.
-  --raw                        Stream native tool output.
-  --show-process               Show prepared process on STDERR.
-  --history / --no-history     Force or skip history for a run.
-  --config=<path>, -c <path>   Use a specific config file.
-
-Terminal-only commands
-  help, version, tools list     Always render terminal output.
-
-Examples
-  composer sift pest
-  composer sift --compact phpstan analyse src
-  composer sift --json --compact pest
-  composer sift --no-json validate
-  composer sift --full history view <run_id>
-TEXT);
-    }
-
     /**
      * @param array<string, mixed> $payload
      */
@@ -122,42 +70,9 @@ TEXT);
         return 'Sift ' . $this->value($summary['version'] ?? 'unknown');
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function renderToolsList(array $payload): string
-    {
-        $items = $payload['items'] ?? [];
-
-        $lines = [rtrim($this->renderToolsListHeader(), PHP_EOL)];
-
-        if (! is_array($items) || ! array_is_list($items) || $items === []) {
-            $lines[] = '  No tools found.';
-
-            return implode(PHP_EOL, $lines);
-        }
-
-        foreach ($items as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            if (array_is_list($item)) {
-                continue;
-            }
-
-            /** @var array<string, mixed> $item */
-            $lines[] = rtrim($this->renderToolsListItem($item), PHP_EOL);
-        }
-
-        return implode(PHP_EOL, $lines);
-    }
-
     public function renderToolsListHeader(): string
     {
-        return 'Tools' . PHP_EOL
-            . '  Supported tools and local availability.' . PHP_EOL
-            . PHP_EOL;
+        return $this->toolsListRenderer->header();
     }
 
     /**
@@ -165,65 +80,7 @@ TEXT);
      */
     public function renderToolsListItem(array $item): string
     {
-        $installed = ($item['installed'] ?? null) === true && ($item['enabled'] ?? null) === true;
-        $status = $installed ? $this->green('OK') : $this->red('NO');
-        $name = $this->toolDisplayName($this->value($item['tool'] ?? 'tool'));
-        $version = $item['version'] ?? null;
-
-        if ($installed) {
-            $suffix = $this->toolVersion($version);
-
-            return trim($status . ' ' . $name . ($suffix === '' ? '' : ' ' . $suffix)) . PHP_EOL;
-        }
-
-        $hint = $item['install_hint'] ?? null;
-        $install = is_string($hint) && $hint !== '' ? ', use `' . $hint . '`' : '';
-
-        return $status . ' ' . $name . $install . PHP_EOL;
-    }
-
-    private function toolVersion(mixed $version): string
-    {
-        if (! is_string($version) || $version === '') {
-            return '';
-        }
-
-        $clean = preg_replace('/\e\[[\d;]*m/', '', $version);
-        $clean = is_string($clean) ? trim($clean) : '';
-
-        if ($clean === '') {
-            return '';
-        }
-
-        if (preg_match('/\bv?\d+(?:\.\d+)+(?:[-+@][^\s]+)?\b/i', $clean, $matches) === 1) {
-            return $matches[0];
-        }
-
-        $lines = preg_split('/\R/', $clean);
-
-        return is_array($lines) ? trim($lines[0]) : $clean;
-    }
-
-    private function toolDisplayName(string $tool): string
-    {
-        return match ($tool) {
-            'phpunit' => 'PHPUnit',
-            'phpstan' => 'PHPStan',
-            'phpcs' => 'PHPCS',
-            'phpmd' => 'PHPMD',
-            'php-cs-fixer' => 'PHP-CS-Fixer',
-            default => str_replace(' ', '-', ucwords(str_replace('-', ' ', $tool))),
-        };
-    }
-
-    private function green(string $value): string
-    {
-        return "\033[32m" . $value . "\033[0m";
-    }
-
-    private function red(string $value): string
-    {
-        return "\033[31m" . $value . "\033[0m";
+        return $this->toolsListRenderer->item($item);
     }
 
     /**
