@@ -81,6 +81,62 @@ it('initializes a minimal config and validates it', function (): void {
     expect($validateSummary['using_defaults'] ?? null)->toBeFalse();
 });
 
+it('installs the bundled sift skill during init when yes is explicit', function (): void {
+    $project = FixtureProject::create();
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $init = CliRunner::run(['--json', '--full', 'init', '--yes'], $project->root());
+        $again = CliRunner::run(['--json', '--full', 'init', '--skill'], $project->root());
+    } finally {
+        putenv('SIFT_CODEX_HOME');
+    }
+
+    $initPayload = CliRunner::decode($init['stdout']);
+    $againPayload = CliRunner::decode($again['stdout']);
+    $initSummary = initValidateObject($initPayload, 'summary');
+    $againSummary = initValidateObject($againPayload, 'summary');
+
+    expect($init['exit_code'])->toBe(0);
+    expect($again['exit_code'])->toBe(0);
+    expect($initSummary['skill_installed'] ?? null)->toBeTrue();
+    expect($againSummary['already_initialized'] ?? null)->toBeTrue();
+    expect($againSummary['skill_installed'] ?? null)->toBeTrue();
+    expect($codexHome->path('skills/sift/SKILL.md'))->toBeFile();
+    expect($codexHome->path('skills/sift/.sift-skill.json'))->toBeFile();
+});
+
+it('does not install the bundled skill during init without an explicit opt in', function (): void {
+    $project = FixtureProject::create();
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $init = CliRunner::run(['--json', '--full', 'init'], $project->root());
+    } finally {
+        putenv('SIFT_CODEX_HOME');
+    }
+
+    $payload = CliRunner::decode($init['stdout']);
+    $summary = initValidateObject($payload, 'summary');
+
+    expect($init['exit_code'])->toBe(0);
+    expect($summary['skill_installed'] ?? null)->toBeFalse();
+    expect($codexHome->path('skills/sift/SKILL.md'))->not->toBeFile();
+});
+
+it('rejects contradictory init skill flags', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--json', 'init', '--skill', '--no-skill'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = initValidateObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+});
+
 it('keeps init idempotent without force', function (): void {
     $project = FixtureProject::create();
 
