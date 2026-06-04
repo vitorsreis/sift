@@ -39,6 +39,31 @@ it('runs add and update skill handlers directly', function (): void {
     expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Updated guidance');
 });
 
+it('previews skills add without requiring confirmation or writing targets', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    criticalCommandSkill($source, 'Preview guidance');
+
+    $payload = (new SkillsAddCommand())->handle(
+        new CommandRoute(
+            'skills.add',
+            [$source->root()],
+            ['list' => true, 'agent' => 'generic', 'yes' => true, 'all' => true],
+        ),
+        $project->root(),
+    );
+    $items = criticalCommandPayloadList($payload, 'items');
+    $firstItem = criticalCommandPayloadMap($items[0] ?? null);
+
+    expect($payload['summary'])->toMatchArray(['total' => 1]);
+    expect($firstItem['name'] ?? null)->toBe('critical-review');
+    expect($payload['meta'])->toMatchArray([
+        'subcommand' => 'skills add --list',
+        'ignored_options' => ['agent', 'yes', 'all'],
+    ]);
+    expect($project->path('AGENTS.md'))->not->toBeFile();
+});
+
 it('runs a normalized tool handler directly with process reporting and history disabled', function (): void {
     $project = FixtureProject::create();
     $stderr = '';
@@ -98,6 +123,44 @@ function criticalCommandSkill(FixtureProject $source, string $body): void
         "---\nname: critical-review\ndescription: Critical review.\n---\n\n# Critical Review\n\n%s\n",
         $body,
     ));
+}
+
+/**
+ * @param array<string, mixed> $payload
+ *
+ * @return list<mixed>
+ */
+function criticalCommandPayloadList(array $payload, string $key): array
+{
+    $value = $payload[$key] ?? null;
+
+    if (! is_array($value) || ! array_is_list($value)) {
+        throw new RuntimeException(sprintf('Expected "%s" list payload value.', $key));
+    }
+
+    return $value;
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function criticalCommandPayloadMap(mixed $value): array
+{
+    if (! is_array($value) || array_is_list($value)) {
+        throw new RuntimeException('Expected object payload item.');
+    }
+
+    $normalized = [];
+
+    foreach ($value as $key => $item) {
+        if (! is_string($key)) {
+            throw new RuntimeException('Expected string payload item keys.');
+        }
+
+        $normalized[$key] = $item;
+    }
+
+    return $normalized;
 }
 
 function criticalCommandAdapter(): AbstractCliToolAdapter
