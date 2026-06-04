@@ -17,6 +17,7 @@ final readonly class ProcessSupervisor
     public function __construct(
         private ProcessCommandBuilder $commandBuilder = new ProcessCommandBuilder(),
         private Clock $clock = new SystemClock(),
+        private ProcessTreeTerminator $processTerminator = new ProcessTreeTerminator(),
     ) {}
 
     /**
@@ -63,7 +64,7 @@ final readonly class ProcessSupervisor
                 $status = proc_get_status($process);
 
                 if ($status['running'] && $timeoutSeconds > 0 && ($this->clock->monotonicSeconds() - $startedAt) >= $timeoutSeconds) {
-                    proc_terminate($process);
+                    $this->processTerminator->terminate($process);
                     proc_close($process);
                     $closed = true;
 
@@ -155,7 +156,7 @@ final readonly class ProcessSupervisor
                 $status = proc_get_status($process);
 
                 if ($status['running'] && $timeoutSeconds > 0 && ($this->clock->monotonicSeconds() - $startedAt) >= $timeoutSeconds) {
-                    proc_terminate($process);
+                    $this->processTerminator->terminate($process);
                     proc_close($process);
                     $closed = true;
 

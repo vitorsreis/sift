@@ -14,6 +14,7 @@ use Sift\Exceptions\UserFacingException;
 use Sift\Execution\LocatedTool;
 use Sift\Execution\ProcessCommandBuilder;
 use Sift\Execution\ProcessRunner;
+use Sift\Execution\ProcessTreeTerminator;
 use Sift\Execution\ToolResolver;
 use Sift\Registry\ToolRegistryInterface;
 
@@ -30,6 +31,7 @@ final class ToolInspector
         private readonly ToolResolver $toolResolver = new ToolResolver(),
         private readonly ProcessRunner $processRunner = new ProcessRunner(),
         private readonly ProcessCommandBuilder $commandBuilder = new ProcessCommandBuilder(),
+        private readonly ProcessTreeTerminator $processTerminator = new ProcessTreeTerminator(),
     ) {}
 
     /**
@@ -239,7 +241,7 @@ final class ToolInspector
                 }
 
                 if ($this->versionJobTimedOut($job)) {
-                    proc_terminate($job['process']);
+                    $this->processTerminator->terminate($job['process']);
                     $this->closeVersionJob($job);
                     unset($running[$index]);
 
