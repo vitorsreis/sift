@@ -87,6 +87,19 @@ final readonly class SecretRedactor
         $value = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=-]{10,}\b/i', 'Bearer ' . self::REDACTED, $value) ?? $value;
         $value = preg_replace('/\bgh[pousr]_\w{20,}\b/', self::REDACTED, $value) ?? $value;
 
+        if ($this->looksLikeFilePath($value)) {
+            return $value;
+        }
+
         return preg_replace('/(?<![A-Za-z0-9])[A-Za-z0-9+\/_.=-]{40,}(?![A-Za-z0-9])/', self::REDACTED, $value) ?? $value;
+    }
+
+    private function looksLikeFilePath(string $value): bool
+    {
+        if (! str_contains($value, '/') && ! str_contains($value, '\\')) {
+            return false;
+        }
+
+        return preg_match('/\.[A-Za-z0-9]{1,8}(?::\d+)?$/', $value) === 1;
     }
 }

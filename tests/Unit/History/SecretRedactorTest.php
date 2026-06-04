@@ -48,3 +48,15 @@ it('redacts bearer tokens github tokens and long secrets inside strings', functi
         'extra' => 'secret [REDACTED]',
     ]);
 });
+
+it('does not redact file paths that look like long secret strings', function (): void {
+    $redactor = new SecretRedactor();
+
+    expect($redactor->redact([
+        'file' => 'src/Console/Commands/SkillsUpdateCommand.php',
+        'absolute' => 'D:\\Work\\projects\\others\\sift\\src\\Console\\Commands\\RunToolCommand.php',
+    ]))->toBe([
+        'file' => 'src/Console/Commands/SkillsUpdateCommand.php',
+        'absolute' => 'D:\\Work\\projects\\others\\sift\\src\\Console\\Commands\\RunToolCommand.php',
+    ]);
+});
