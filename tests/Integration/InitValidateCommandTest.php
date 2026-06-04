@@ -207,6 +207,26 @@ it('returns config errors as JSON on stderr', function (): void {
     expect($error['code'] ?? null)->toBe('invalid_config');
 });
 
+it('rejects config documents that violate the bundled json schema', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'tools' => [
+            'phpstan' => [
+                'blocked_args' => [''],
+            ],
+        ],
+    ]);
+
+    $result = CliRunner::run(['--json', 'validate'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = initValidateObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($error['code'] ?? null)->toBe('invalid_config');
+    expect($error['message'] ?? null)->toContain('tools.phpstan.blocked_args[0]');
+});
+
 it('renders validate as terminal text by default', function (): void {
     $project = FixtureProject::create();
 
