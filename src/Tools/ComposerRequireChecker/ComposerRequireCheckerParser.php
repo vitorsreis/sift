@@ -57,9 +57,12 @@ final readonly class ComposerRequireCheckerParser
             $item = [
                 'type' => ItemType::MissingDependency->value,
                 'symbol' => $symbol,
-                'package' => $detail['packages'][0],
                 'packages' => $detail['packages'],
             ];
+
+            if ($detail['packages'] !== []) {
+                $item['package'] = $detail['packages'][0];
+            }
 
             foreach (['file', 'line'] as $optionalField) {
                 if (array_key_exists($optionalField, $detail)) {
@@ -77,7 +80,7 @@ final readonly class ComposerRequireCheckerParser
     }
 
     /**
-     * @return array{packages: non-empty-list<string>, file?: string, line?: int}
+     * @return array{packages: list<string>, file?: string, line?: int}
      */
     private function symbolDetail(mixed $details, string $symbol): array
     {
@@ -105,10 +108,6 @@ final readonly class ComposerRequireCheckerParser
         }
 
         $packages = array_values(array_unique($packages));
-
-        if ($packages === []) {
-            throw $this->invalidShape(sprintf('Composer Require Checker "unknown-symbols.%s" must reference at least one package.', $symbol));
-        }
 
         $result = ['packages' => $packages];
 

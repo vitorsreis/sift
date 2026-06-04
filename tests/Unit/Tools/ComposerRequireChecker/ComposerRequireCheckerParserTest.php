@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\Command\BaseCommand;
 use Sift\Core\ItemType;
 use Sift\Tools\ComposerRequireChecker\ComposerRequireCheckerParser;
 
@@ -11,6 +12,7 @@ it('normalizes composer-require-checker unknown symbols and packages', function 
             'composer-require-checker' => ['version' => '4.20.0'],
         ],
         'unknown-symbols' => [
+            BaseCommand::class => [],
             'ctype_digit' => ['ext-ctype'],
             'App\\Ghost' => [
                 [
@@ -22,23 +24,28 @@ it('normalizes composer-require-checker unknown symbols and packages', function 
         ],
     ], JSON_THROW_ON_ERROR), '');
 
-    expect($report->unknownSymbols())->toBe(2);
+    expect($report->unknownSymbols())->toBe(3);
     expect($report->summary())->toBe([
-        'unknown_symbols' => 2,
+        'unknown_symbols' => 3,
         'packages' => 2,
     ]);
     expect($report->items())->toBe([
         [
             'type' => ItemType::MissingDependency->value,
+            'symbol' => BaseCommand::class,
+            'packages' => [],
+        ],
+        [
+            'type' => ItemType::MissingDependency->value,
             'symbol' => 'ctype_digit',
-            'package' => 'ext-ctype',
             'packages' => ['ext-ctype'],
+            'package' => 'ext-ctype',
         ],
         [
             'type' => ItemType::MissingDependency->value,
             'symbol' => 'App\\Ghost',
-            'package' => 'vendor/missing',
             'packages' => ['vendor/missing'],
+            'package' => 'vendor/missing',
             'file' => 'src/Ghost.php',
             'line' => 12,
         ],
