@@ -56,6 +56,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Windows batch argument escaping is covered by a real command-injection regression test.
 - Config validation checks the bundled JSON Schema and shares timeout defaults with runtime.
 - History redaction covers embedded short secrets in flags, URLs, queries, and paths.
+- History/debug redaction covers short standalone values that self-identify as tokens or secrets.
 - Process timeouts terminate descendant processes best-effort.
 - Atomic writes preserve existing permissions and restrict new files.
 - Skill mutations request explicit confirmation in TTY and require `--yes` or `--all` otherwise.
