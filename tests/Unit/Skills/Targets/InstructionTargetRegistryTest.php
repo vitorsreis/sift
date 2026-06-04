@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
+use Sift\Skills\Targets\GeminiInstructionTarget;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 
 it('resolves generic target and rejects unsupported targets', function (): void {
@@ -12,7 +13,7 @@ it('resolves generic target and rejects unsupported targets', function (): void 
     expect($registry->resolve('codex')->name())->toBe('codex');
     expect($registry->resolve('cursor')->name())->toBe('cursor');
     expect($registry->resolve('windsurf')->name())->toBe('windsurf');
-    expect($registry->resolve('gemini'))->toBeInstanceOf(\Sift\Skills\Targets\GeminiInstructionTarget::class);
+    expect($registry->resolve('gemini'))->toBeInstanceOf(GeminiInstructionTarget::class);
     expect($registry->resolve('generic')->name())->toBe('generic');
     expect($registry->resolve('claude')->name())->toBe('claude-code');
     expect($registry->resolve('copilot')->name())->toBe('github-copilot');

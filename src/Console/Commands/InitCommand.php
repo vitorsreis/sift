@@ -14,6 +14,7 @@ use Sift\Skills\SkillSelector;
 use Sift\Skills\SkillSourceResolver;
 use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\SkillTargetInstaller;
+use Sift\Skills\Targets\SkillTargetInstallResult;
 use Sift\Workspace\WorkspaceResolver;
 
 final readonly class InitCommand implements CommandHandler
@@ -69,7 +70,7 @@ final readonly class InitCommand implements CommandHandler
                 'already_initialized' => $alreadyInitialized,
                 'skill_installed' => $skillResults !== [],
             ],
-            'items' => array_map(static fn($result): array => $result->toItem(), $skillResults),
+            'items' => array_map(static fn(SkillTargetInstallResult $result): array => $result->toItem(), $skillResults),
             'artifacts' => [],
             'extra' => [],
             'meta' => [
@@ -95,7 +96,7 @@ final readonly class InitCommand implements CommandHandler
     }
 
     /**
-     * @return list<\Sift\Skills\Targets\SkillTargetInstallResult>
+     * @return list<SkillTargetInstallResult>
      */
     private function installBundledSkill(CommandRoute $route, string $cwd): array
     {

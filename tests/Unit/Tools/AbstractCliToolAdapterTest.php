@@ -6,6 +6,7 @@ use Sift\Config\ToolConfig;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
+use Sift\Core\RunStatus;
 use Sift\Execution\LocatedTool;
 use Sift\Tools\AbstractCliToolAdapter;
 use Sift\Tools\CliArguments;
@@ -133,7 +134,7 @@ abstract readonly class TestExposedCliAdapter extends AbstractCliToolAdapter
         return $this->commonMeta($context);
     }
 
-    public function exposedResolveStatus(ExecutionResult $execution): \Sift\Core\RunStatus
+    public function exposedResolveStatus(ExecutionResult $execution): RunStatus
     {
         return $this->resolveStatus($execution);
     }

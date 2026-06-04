@@ -11,6 +11,7 @@ use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
+use Sift\Execution\LocatedTool;
 use Sift\Execution\PhpCommandFactory;
 use Sift\Execution\PhpRuntimeArguments;
 use Sift\Execution\ProcessRunner;
@@ -281,7 +282,7 @@ function toolRunnerAdapter(
         }
 
         public function prepare(
-            \Sift\Execution\LocatedTool $tool,
+            LocatedTool $tool,
             ToolContext $context,
             ToolConfig $config,
         ): PreparedCommand {
