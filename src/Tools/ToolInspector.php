@@ -12,9 +12,8 @@ use Sift\Core\ExecutionResult;
 use Sift\Core\PreparedCommand;
 use Sift\Exceptions\UserFacingException;
 use Sift\Execution\LocatedTool;
-use Sift\Execution\ProcessCommandBuilder;
+use Sift\Execution\ParallelProcessSupervisor;
 use Sift\Execution\ProcessRunner;
-use Sift\Execution\ProcessTreeTerminator;
 use Sift\Execution\ToolResolver;
 use Sift\Registry\ToolRegistryInterface;
 
@@ -30,8 +29,7 @@ final class ToolInspector
         private readonly ToolConfigResolver $configResolver = new ToolConfigResolver(),
         private readonly ToolResolver $toolResolver = new ToolResolver(),
         private readonly ProcessRunner $processRunner = new ProcessRunner(),
-        private readonly ProcessCommandBuilder $commandBuilder = new ProcessCommandBuilder(),
-        private readonly ProcessTreeTerminator $processTerminator = new ProcessTreeTerminator(),
+        private readonly ParallelProcessSupervisor $parallelProcessSupervisor = new ParallelProcessSupervisor(),
     ) {}
 
     /**
@@ -222,129 +220,24 @@ final class ToolInspector
      */
     private function runVersionChunk(array $jobs, string $cwd): iterable
     {
-        $running = [];
-
-        foreach ($jobs as $job) {
-            $running[] = $this->startVersionJob($job, $cwd);
-        }
-
-        while ($running !== []) {
-            foreach ($running as $index => $job) {
-                if (! is_resource($job['process'])) {
-                    unset($running[$index]);
-
-                    $this->versionCache[$job['cache_key']] = null;
-
-                    yield $this->itemWithVersion($job['item'], null);
-
-                    continue;
-                }
-
-                if ($this->versionJobTimedOut($job)) {
-                    $this->processTerminator->terminate($job['process']);
-                    $this->closeVersionJob($job);
-                    unset($running[$index]);
-
-                    $this->versionCache[$job['cache_key']] = null;
-
-                    yield $this->itemWithVersion($job['item'], null);
-
-                    continue;
-                }
-
-                $status = proc_get_status($job['process']);
-
-                if ($status['running']) {
-                    continue;
-                }
-
-                $exitCode = $status['exitcode'] >= 0 ? $status['exitcode'] : proc_close($job['process']);
-                if ($status['exitcode'] >= 0) {
-                    proc_close($job['process']);
-                }
-
-                $duration = microtime(true) - $job['started_at'];
-                $stdout = $this->readVersionOutput($job['stdout_path']);
-                $stderr = $this->readVersionOutput($job['stderr_path']);
-                $this->cleanupVersionJob($job);
-                unset($running[$index]);
-
-                $version = $this->versionFromExecution(ExecutionResult::completed($exitCode, $stdout, $stderr, $duration));
-                $this->versionCache[$job['cache_key']] = $version;
-
-                yield $this->itemWithVersion($job['item'], $version);
-            }
-
-            if ($running !== []) {
-                usleep(10_000);
-            }
-        }
-    }
-
-    /**
-     * @param array{definition: ToolDefinition, config: ToolConfig, tool: LocatedTool, item: array{tool: string, description: string, enabled: bool, installed: bool, status: string, path: ?string, configured_binary: ?string, install_hint: string}, cache_key: string} $job
-     *
-     * @return array{process: resource|null, stdout_path: string, stderr_path: string, started_at: float, timeout: int, item: array{tool: string, description: string, enabled: bool, installed: bool, status: string, path: ?string, configured_binary: ?string, install_hint: string}, cache_key: string}
-     */
-    private function startVersionJob(array $job, string $cwd): array
-    {
-        $stdoutPath = $this->temporaryPath('sift-version-out-');
-        $stderrPath = $this->temporaryPath('sift-version-err-');
-        $pipes = [];
-        $command = new PreparedCommand(
-            tool: $job['definition']->name(),
-            binary: $job['tool']->binary(),
-            arguments: $job['definition']->versionCommand(),
-            cwd: $cwd,
-            timeout: $job['config']->timeout(),
+        $commands = array_map(
+            static fn(array $job): PreparedCommand => new PreparedCommand(
+                tool: $job['definition']->name(),
+                binary: $job['tool']->binary(),
+                arguments: $job['definition']->versionCommand(),
+                cwd: $cwd,
+                timeout: $job['config']->timeout(),
+            ),
+            $jobs,
         );
-        $process = @proc_open(
-            $this->commandBuilder->argv($command),
-            [
-                0 => ['pipe', 'r'],
-                1 => ['file', $stdoutPath, 'w'],
-                2 => ['file', $stderrPath, 'w'],
-            ],
-            $pipes,
-            $cwd,
-        );
+        $executions = $this->parallelProcessSupervisor->run($commands);
 
-        if (! is_resource($process)) {
-            @unlink($stdoutPath);
-            @unlink($stderrPath);
+        foreach ($jobs as $index => $job) {
+            $version = $this->versionFromExecution($executions[$index]);
+            $this->versionCache[$job['cache_key']] = $version;
 
-            return [
-                'process' => null,
-                'stdout_path' => '',
-                'stderr_path' => '',
-                'started_at' => microtime(true),
-                'timeout' => 0,
-                'item' => $job['item'],
-                'cache_key' => $job['cache_key'],
-            ];
+            yield $this->itemWithVersion($job['item'], $version);
         }
-
-        if (is_resource($pipes[0] ?? null)) {
-            fclose($pipes[0]);
-        }
-
-        return [
-            'process' => $process,
-            'stdout_path' => $stdoutPath,
-            'stderr_path' => $stderrPath,
-            'started_at' => microtime(true),
-            'timeout' => $job['config']->timeout(),
-            'item' => $job['item'],
-            'cache_key' => $job['cache_key'],
-        ];
-    }
-
-    /**
-     * @param array{started_at: float, timeout: int} $job
-     */
-    private function versionJobTimedOut(array $job): bool
-    {
-        return $job['timeout'] > 0 && microtime(true) - $job['started_at'] >= $job['timeout'];
     }
 
     /**
@@ -360,54 +253,4 @@ final class ToolInspector
         ];
     }
 
-    /**
-     * @param array{process: resource|null, stdout_path: string, stderr_path: string} $job
-     */
-    private function closeVersionJob(array $job): void
-    {
-        if (is_resource($job['process'])) {
-            proc_close($job['process']);
-        }
-
-        $this->cleanupVersionJob($job);
-    }
-
-    /**
-     * @param array{stdout_path: string, stderr_path: string} $job
-     */
-    private function cleanupVersionJob(array $job): void
-    {
-        if ($job['stdout_path'] !== '') {
-            @unlink($job['stdout_path']);
-        }
-
-        if ($job['stderr_path'] !== '') {
-            @unlink($job['stderr_path']);
-        }
-    }
-
-    private function readVersionOutput(string $path): string
-    {
-        if ($path === '') {
-            return '';
-        }
-
-        $contents = file_get_contents($path);
-
-        return is_string($contents) ? $contents : '';
-    }
-
-    private function temporaryPath(string $prefix): string
-    {
-        $path = tempnam(sys_get_temp_dir(), $prefix);
-
-        if ($path === false) {
-            throw UserFacingException::withContext(
-                errorCode: ErrorCode::FilesystemError,
-                message: 'Could not create version output spool file.',
-            );
-        }
-
-        return $path;
-    }
 }
