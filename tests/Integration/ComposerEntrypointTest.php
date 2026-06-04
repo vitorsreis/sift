@@ -98,6 +98,7 @@ it('installs the composer package as a copied distribution', function (): void {
     $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
     $validatePackage = runComposerEntrypointIn($project->path('vendor/vitorsreis/sift'), ['validate', '--strict', '--no-ansi']);
     $vendorBin = runVendorSiftEntrypoint($project, ['version']);
+    $vendorValidate = runVendorSiftEntrypoint($project, ['--json', '--no-pretty', 'validate']);
 
     if ($install['exit_code'] !== 0) {
         throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
@@ -105,7 +106,9 @@ it('installs the composer package as a copied distribution', function (): void {
 
     expect($validatePackage['exit_code'])->toBe(0);
     expect($vendorBin['exit_code'])->toBe(0);
+    expect($vendorValidate['exit_code'])->toBe(0);
     expect($vendorBin['stdout'])->toStartWith('Sift ');
+    expect(decodeComposerEntrypointPayload($vendorValidate['stdout'])['status'] ?? null)->toBe('passed');
     expect($project->path('vendor/vitorsreis/sift/src/Sift.php'))->toBeFile();
 });
 
