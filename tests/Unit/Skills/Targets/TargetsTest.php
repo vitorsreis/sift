@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Sift\Exceptions\UserFacingException;
 use Sift\Skills\Skill;
 use Sift\Skills\SkillSource;
+use Sift\Skills\Targets\CodexHomeResolver;
+use Sift\Skills\Targets\CodexSkillTarget;
 use Sift\Skills\Targets\SkillTargetInstaller;
 use Tests\Support\FixtureProject;
 
@@ -84,6 +86,32 @@ MD);
         'source_type' => 'local',
         'targets' => ['codex'],
     ]);
+});
+
+it('updates and removes managed codex skill directories', function (): void {
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', "# PHP Review\n");
+    $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
+    $target = new CodexSkillTarget(new CodexHomeResolver($codexHome->root()));
+    $metadata = [
+        'name' => 'php-review',
+        'source' => 'vendor/source',
+        'source_type' => 'local',
+        'resolved_ref' => null,
+        'installed_at' => '2026-06-04T00:00:00+00:00',
+        'targets' => ['codex'],
+    ];
+
+    $installed = $target->install($source->root(), $skill, $metadata);
+    $source->write('references/checklist.md', "# Checklist\n");
+    $updated = $target->install($source->root(), $skill, $metadata);
+    $removed = $target->remove($source->root(), 'php-review');
+
+    expect($installed->toItem()['action'] ?? null)->toBe('installed');
+    expect($updated->toItem()['action'] ?? null)->toBe('updated');
+    expect($removed->toItem()['action'] ?? null)->toBe('removed');
+    expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
 });
 
 if (PHP_OS_FAMILY !== 'Windows') {
