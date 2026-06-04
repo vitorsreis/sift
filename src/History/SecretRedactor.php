@@ -84,22 +84,21 @@ final readonly class SecretRedactor
 
     private function redactString(string $value): string
     {
+        $sensitiveKey = '[A-Za-z0-9_-]*(?:api[-_]?key|token|secret|password|passwd|authorization|cookie)[A-Za-z0-9_-]*';
+        $value = preg_replace('#(https?://[^:/@\s]+:)[^@/\s]+@#i', '$1' . self::REDACTED . '@', $value) ?? $value;
+        $value = preg_replace(
+            '/(^|[\s?&;\/\\\\])((?:--)?' . $sensitiveKey . '=)([^\s?&;\/\\\\]+)/i',
+            '$1$2' . self::REDACTED,
+            $value,
+        ) ?? $value;
+        $value = preg_replace(
+            '/(^|\s)((?:--?)' . $sensitiveKey . ')(\s+)([^\s]+)/i',
+            '$1$2$3' . self::REDACTED,
+            $value,
+        ) ?? $value;
         $value = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=-]{10,}\b/i', 'Bearer ' . self::REDACTED, $value) ?? $value;
         $value = preg_replace('/\bgh[pousr]_\w{20,}\b/', self::REDACTED, $value) ?? $value;
 
-        if ($this->looksLikeFilePath($value)) {
-            return $value;
-        }
-
-        return preg_replace('/(?<![A-Za-z0-9])[A-Za-z0-9+\/_.=-]{40,}(?![A-Za-z0-9])/', self::REDACTED, $value) ?? $value;
-    }
-
-    private function looksLikeFilePath(string $value): bool
-    {
-        if (! str_contains($value, '/') && ! str_contains($value, '\\')) {
-            return false;
-        }
-
-        return preg_match('/\.[A-Za-z0-9]{1,8}(?::\d+)?$/', $value) === 1;
+        return preg_replace('/(?<![A-Za-z0-9\/\\\\])[A-Za-z0-9+_.=-]{40,}(?![A-Za-z0-9\/\\\\])/', self::REDACTED, $value) ?? $value;
     }
 }

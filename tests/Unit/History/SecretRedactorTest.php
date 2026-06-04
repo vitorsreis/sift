@@ -60,3 +60,21 @@ it('does not redact file paths that look like long secret strings', function ():
         'absolute' => 'D:\\Work\\projects\\others\\sift\\src\\Console\\Commands\\RunToolCommand.php',
     ]);
 });
+
+it('redacts short secrets in flags urls query strings and paths', function (): void {
+    $redactor = new SecretRedactor();
+
+    expect($redactor->redact([
+        'flag' => '--password=short',
+        'separate_flag' => '--api-token tiny',
+        'url_credentials' => 'https://user:pass@example.com/path',
+        'query' => 'https://example.com/file.php?api_key=abc&safe=yes',
+        'path' => '/tmp/token=abc/file.php',
+    ]))->toBe([
+        'flag' => '--password=[REDACTED]',
+        'separate_flag' => '--api-token [REDACTED]',
+        'url_credentials' => 'https://user:[REDACTED]@example.com/path',
+        'query' => 'https://example.com/file.php?api_key=[REDACTED]&safe=yes',
+        'path' => '/tmp/token=[REDACTED]/file.php',
+    ]);
+});
