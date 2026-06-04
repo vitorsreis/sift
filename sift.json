@@ -2,7 +2,7 @@
   "$schema": "resources/schema.json",
   "output": {
     "size": "compact",
-    "pretty": true,
+    "pretty": false,
     "show_process": false
   },
   "history": {
