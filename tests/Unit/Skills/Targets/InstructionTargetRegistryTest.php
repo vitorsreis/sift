@@ -12,13 +12,14 @@ it('resolves generic target and rejects unsupported targets', function (): void 
     expect($registry->resolve('codex')->name())->toBe('codex');
     expect($registry->resolve('cursor')->name())->toBe('cursor');
     expect($registry->resolve('windsurf')->name())->toBe('windsurf');
+    expect($registry->resolve('gemini'))->toBeInstanceOf(\Sift\Skills\Targets\GeminiInstructionTarget::class);
     expect($registry->resolve('generic')->name())->toBe('generic');
     expect($registry->resolve('claude')->name())->toBe('claude-code');
     expect($registry->resolve('copilot')->name())->toBe('github-copilot');
     expect($registry->resolve('vscode')->name())->toBe('github-copilot');
     expect($registry->resolve('vs-code')->name())->toBe('github-copilot');
     expect($registry->resolve('visual-studio-code')->name())->toBe('github-copilot');
-    expect($registry->writeCapableNames())->toBe(['codex', 'cursor', 'windsurf', 'generic', 'claude-code', 'github-copilot', 'gemini']);
+    expect($registry->writeCapableNames())->toBe(['codex', 'cursor', 'windsurf', 'gemini', 'generic', 'claude-code', 'github-copilot']);
 
     foreach (['opencode', 'antigravity'] as $recognizedButNotWritable) {
         try {

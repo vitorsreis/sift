@@ -14,10 +14,10 @@ it('resolves supported instruction targets and aliases', function (): void {
         'codex',
         'cursor',
         'windsurf',
+        'gemini',
         'generic',
         'claude-code',
         'github-copilot',
-        'gemini',
     ]);
 
     expect($registry->resolve('generic'))->toBeInstanceOf(InstructionFileTarget::class);

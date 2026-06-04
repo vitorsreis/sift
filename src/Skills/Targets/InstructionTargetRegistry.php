@@ -25,6 +25,10 @@ final readonly class InstructionTargetRegistry
             return new WindsurfRuleTarget();
         }
 
+        if ($normalized === 'gemini') {
+            return new GeminiInstructionTarget();
+        }
+
         foreach ($this->descriptors() as $descriptor) {
             if ($descriptor->matches($normalized)) {
                 return new InstructionFileTarget($descriptor->name(), $descriptor->relativePath());
@@ -56,6 +60,7 @@ final readonly class InstructionTargetRegistry
             'codex',
             'cursor',
             'windsurf',
+            'gemini',
             ...array_map(
                 static fn(InstructionTargetDescriptor $descriptor): string => $descriptor->name(),
                 $this->descriptors(),
@@ -82,7 +87,6 @@ final readonly class InstructionTargetRegistry
                 'vs-code',
                 'visual-studio-code',
             ]),
-            new InstructionTargetDescriptor('gemini', 'GEMINI.md'),
         ];
     }
 
