@@ -3,6 +3,14 @@
 
 /.github export-ignore
 /tests export-ignore
+/build export-ignore
+/vendor export-ignore
+/.deptrac.cache export-ignore
+/.phpstan.cache export-ignore
+/.phpunit.cache export-ignore
+/.rector.cache export-ignore
+/.sift export-ignore
+/composer.lock export-ignore
 /.editorconfig export-ignore
 /phpunit.xml export-ignore
 /phpstan.neon export-ignore
