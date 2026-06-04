@@ -21,28 +21,49 @@ it('requires rector to run in dry-run mode', function (): void {
     expect($violations[0]->policy())->toBe('rector_dry_run');
 });
 
-it('allows rector with explicit dry-run mode', function (string $argument): void {
-    $violations = (new RectorDryRunPolicy())->violations(
-        command: new PreparedCommand('rector', 'vendor/bin/rector', ['process', $argument]),
-        context: new ToolContext('rector'),
-        config: new ToolConfig('rector', true, null, [], 1800),
-    );
+it('allows rector with explicit dry-run mode', function (): void {
+    $cases = [
+        ['--dry-run'],
+        ['--dry-run=true'],
+        ['--dry-run=1'],
+        ['--dry-run', 'true'],
+        ['--dry-run', '1'],
+    ];
 
-    expect($violations)->toBe([]);
-})->with(['--dry-run', '--dry-run=true', '--dry-run=1']);
+    foreach ($cases as $arguments) {
+        $violations = (new RectorDryRunPolicy())->violations(
+            command: new PreparedCommand('rector', 'vendor/bin/rector', ['process', ...$arguments]),
+            context: new ToolContext('rector'),
+            config: new ToolConfig('rector', true, null, [], 1800),
+        );
 
-it('rejects unsafe dry-run false variants', function (string $argument): void {
-    $violations = (new RectorDryRunPolicy())->violations(
-        command: new PreparedCommand('rector', 'vendor/bin/rector', ['process', $argument]),
-        context: new ToolContext('rector', raw: true),
-        config: new ToolConfig('rector', true, null, [], 1800),
-    );
+        expect($violations)->toBe([]);
+    }
+});
 
-    expect($violations)->toHaveCount(1);
-    expect($violations[0]->code())->toBe(ErrorCode::PolicyBlocked);
-    expect($violations[0]->argument())->toBe($argument);
-    expect($violations[0]->policy())->toBe('rector_dry_run');
-})->with(['--dry-run=false', '--dry-run=0', '--no-dry-run']);
+it('rejects unsafe dry-run false variants', function (): void {
+    $cases = [
+        ['--dry-run=false', ['--dry-run=false']],
+        ['--dry-run=0', ['--dry-run=0']],
+        ['--dry-run', ['--dry-run', 'false']],
+        ['--dry-run', ['--dry-run', '0']],
+        ['--dry-run=maybe', ['--dry-run=maybe']],
+        ['--no-dry-run', ['--no-dry-run']],
+    ];
+
+    foreach ($cases as [$expectedArgument, $arguments]) {
+        $violations = (new RectorDryRunPolicy())->violations(
+            command: new PreparedCommand('rector', 'vendor/bin/rector', ['process', ...$arguments]),
+            context: new ToolContext('rector', raw: true),
+            config: new ToolConfig('rector', true, null, [], 1800),
+        );
+
+        expect($violations)->toHaveCount(1);
+        expect($violations[0]->code())->toBe(ErrorCode::PolicyBlocked);
+        expect($violations[0]->argument())->toBe($expectedArgument);
+        expect($violations[0]->policy())->toBe('rector_dry_run');
+    }
+});
 
 it('ignores non-rector tools', function (): void {
     $violations = (new RectorDryRunPolicy())->violations(

@@ -60,6 +60,8 @@ it('blocks mago fix without dry-run', function (string $argument, string ...$arg
     'lint fix' => ['--fix', 'lint', '--fix'],
     'analyze fix false dry-run' => ['--dry-run=false', 'analyze', '--fix', '--dry-run=false'],
     'guard fix zero dry-run' => ['--dry-run=0', 'guard', '--fix', '--dry-run=0'],
+    'analyze fix separated false dry-run' => ['--dry-run', 'analyze', '--fix', '--dry-run', 'false'],
+    'guard fix separated zero dry-run' => ['--dry-run', 'guard', '--fix', '--dry-run', '0'],
     'lint fix no dry-run' => ['--no-dry-run', 'lint', '--fix', '--no-dry-run'],
 ]);
 
@@ -75,6 +77,8 @@ it('blocks mago format write mode without a safe option', function (string ...$a
     'format target' => ['format', 'src'],
     'format alias' => ['fmt', 'src'],
     'format after globals' => ['--colors=never', '--workspace', 'app', 'format', 'src'],
+    'format false check' => ['format', 'src', '--check=false'],
+    'format separated false check' => ['format', 'src', '--check', 'false'],
 ]);
 
 it('allows mago safe modes', function (string ...$arguments): void {
@@ -83,8 +87,10 @@ it('allows mago safe modes', function (string ...$arguments): void {
     'default lint' => [],
     'lint' => ['lint'],
     'analyze dry-run fix' => ['analyze', '--fix', '--dry-run'],
+    'analyze separated true dry-run fix' => ['analyze', '--fix', '--dry-run', 'true'],
     'guard short dry-run fix' => ['guard', '--fix', '-d'],
     'format check' => ['format', 'src', '--check'],
+    'format separated true check' => ['format', 'src', '--check', 'true'],
     'format short check' => ['format', 'src', '-c'],
     'format dry-run' => ['format', 'src', '--dry-run'],
     'format stdin input' => ['format', '--stdin-input'],
