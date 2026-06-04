@@ -32,6 +32,28 @@ it('normalizes skill catalog search results', function (): void {
     ]);
 });
 
+it('uses a safe fallback for catalog items without descriptions', function (): void {
+    $items = (new SkillCatalog())->normalize([
+        'items' => [
+            [
+                'name' => 'sift',
+                'source' => 'vitorsreis/sift',
+            ],
+        ],
+    ]);
+
+    expect($items)->toBe([
+        [
+            'name' => 'sift',
+            'description' => 'Use the sift skill.',
+            'source' => 'vitorsreis/sift',
+            'skills' => [],
+            'agents' => [],
+            'tags' => [],
+        ],
+    ]);
+});
+
 it('rejects unexpected catalog result formats', function (): void {
     try {
         (new SkillCatalog())->normalize(['items' => [['name' => 'missing-source']]]);

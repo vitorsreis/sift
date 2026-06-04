@@ -84,7 +84,7 @@ final readonly class SkillCatalog
 
         return [
             'name' => $name,
-            'description' => $this->requiredString($item, 'description'),
+            'description' => $this->optionalString($item, 'description') ?? sprintf('Use the %s skill.', $name),
             'source' => $this->requiredString($item, 'source'),
             'skills' => $this->stringList($item['skills'] ?? [], 'skills'),
             'agents' => $this->stringList($item['agents'] ?? [], 'agents'),
@@ -104,6 +104,26 @@ final readonly class SkillCatalog
         }
 
         return trim($value);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function optionalString(array $item, string $field): ?string
+    {
+        $value = $item[$field] ?? null;
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (! is_string($value)) {
+            $this->unavailable(sprintf('The skill catalog response field "%s" must be a string.', $field));
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
     }
 
     /**
