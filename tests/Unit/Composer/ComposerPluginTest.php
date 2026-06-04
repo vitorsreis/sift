@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Composer\Command\BaseCommand;
-use Composer\Console\Application as ComposerApplication;
 use Composer\Composer;
+use Composer\Console\Application as ComposerApplication;
 use Composer\IO\NullIO;
 use Composer\Plugin\Capability\CommandProvider;
 use Sift\Composer\Command\ComposerSkillsCommand;

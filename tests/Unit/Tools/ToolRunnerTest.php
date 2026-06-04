@@ -230,8 +230,7 @@ function toolRunnerAdapter(
     array $defaultArguments,
     array $temporaryFiles = [],
     bool $parseFailure = false,
-): AbstractCliToolAdapter
-{
+): AbstractCliToolAdapter {
     return new readonly class ($name, $aliases, $defaultArguments, $temporaryFiles, $parseFailure) extends AbstractCliToolAdapter {
         /**
          * @param  list<string>  $aliases

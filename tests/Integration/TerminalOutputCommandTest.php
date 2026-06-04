@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Sift\History\FileRunStore;
 use Sift\Config\ConfigDefaults;
+use Sift\History\FileRunStore;
 use Tests\Support\CliRunner;
 use Tests\Support\FixtureProject;
 
