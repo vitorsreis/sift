@@ -28,7 +28,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: sodium
+          extensions: intl, sodium
           coverage: none
 
       - name: Validate composer.json
