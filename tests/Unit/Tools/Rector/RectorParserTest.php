@@ -65,3 +65,29 @@ it('normalizes rector changed files diffs and errors', function (): void {
         ],
     ]);
 });
+
+it('uses changed file evidence when rector totals are inconsistent', function (): void {
+    $project = FixtureProject::create();
+    $source = $project->write('src/Checkout.php', '<?php');
+    $report = (new RectorParser())->parse(json_encode([
+        'totals' => [
+            'changed_files' => 0,
+            'errors' => 0,
+        ],
+        'changed_files' => [$source],
+        'file_diffs' => [
+            [
+                'file' => $source,
+                'diff' => "--- Original\n+++ New",
+                'applied_rectors' => ['Rector\\ExampleRector'],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR), '', $project->root());
+
+    expect($report->changedFiles())->toBe(1);
+    expect($report->findings())->toBe(1);
+    expect($report->summary())->toMatchArray([
+        'changed_files' => 1,
+        'diffs' => 1,
+    ]);
+});

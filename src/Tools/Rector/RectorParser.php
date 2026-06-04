@@ -27,11 +27,12 @@ final readonly class RectorParser
         }
 
         $totals = $this->object($document['totals'] ?? [], 'totals');
-        $changedFiles = $this->intValue($totals, 'changed_files');
+        $reportedChangedFiles = $this->intValue($totals, 'changed_files');
         $errors = $this->intValue($totals, 'errors');
         $changedFileItems = $this->changedFileItems($this->list($document['changed_files'] ?? [], 'changed_files'), $cwd);
         $diffItems = $this->diffItems($this->list($document['file_diffs'] ?? [], 'file_diffs'), $cwd);
         $errorItems = $this->errorItems($this->list($document['errors'] ?? [], 'errors'), $cwd);
+        $changedFiles = max($reportedChangedFiles, count($changedFileItems), count($diffItems));
 
         return new RectorReport(
             summary: [

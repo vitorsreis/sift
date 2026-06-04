@@ -66,6 +66,22 @@ it('parses rector changes as failed status', function (): void {
     expect($payload['summary'])->toMatchArray(['changed_files' => 1, 'errors' => 0]);
 });
 
+it('fails when rector lists changed files but reports a zero total', function (): void {
+    $project = FixtureProject::create();
+    $source = $project->write('src/Checkout.php', '<?php');
+    $adapter = new RectorToolAdapter();
+    $context = $adapter->context(new CliArguments('rector'), $project->root());
+
+    $payload = $adapter->parse(
+        execution: ExecutionResult::completed(0, rectorJsonWithInconsistentChangedFiles($source), '', 0.12),
+        context: $context,
+        command: rectorPreparedCommand($project),
+    )->toPayload();
+
+    expect($payload['status'])->toBe(RunStatus::Failed->value);
+    expect($payload['summary'])->toMatchArray(['changed_files' => 1, 'errors' => 0]);
+});
+
 it('parses rector errors as error status', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');
@@ -135,4 +151,22 @@ function rectorJson(?string $source, int $changedFiles, int $errors): string
     }
 
     return json_encode($document, JSON_THROW_ON_ERROR);
+}
+
+function rectorJsonWithInconsistentChangedFiles(string $source): string
+{
+    return json_encode([
+        'totals' => [
+            'changed_files' => 0,
+            'errors' => 0,
+        ],
+        'changed_files' => [$source],
+        'file_diffs' => [
+            [
+                'file' => $source,
+                'diff' => "--- Original\n+++ New",
+                'applied_rectors' => ['Rector\\ExampleRector'],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
 }
