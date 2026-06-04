@@ -44,3 +44,17 @@ Official releases publish:
 - signature or provenance attestation
 
 Release tags use `vX.Y.Z` and must match `Sift::VERSION`.
+
+Validate the checksum after downloading both assets:
+
+```bash
+sha256sum -c sift.phar.sha256
+```
+
+GitHub releases also include provenance attestation for the PHAR. Verify it with the GitHub CLI:
+
+```bash
+gh attestation verify sift.phar --repo vitorsreis/sift
+```
+
+Release CI also exports the Composer package, validates its `composer.json`, installs it in a temporary project, and smoke-tests `vendor/bin/sift`.
