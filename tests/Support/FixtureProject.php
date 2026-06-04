@@ -20,7 +20,13 @@ final readonly class FixtureProject
             throw new RuntimeException(sprintf('Could not create fixture project "%s".', $root));
         }
 
-        return new self($root);
+        $canonicalRoot = realpath($root);
+
+        if ($canonicalRoot === false) {
+            throw new RuntimeException(sprintf('Could not resolve fixture project "%s".', $root));
+        }
+
+        return new self($canonicalRoot);
     }
 
     public function root(): string
