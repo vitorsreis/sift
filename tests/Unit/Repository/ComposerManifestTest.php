@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Sift\Composer\SiftPlugin;
+
 /**
  * @return array{
  *     name: string,
@@ -149,6 +151,6 @@ it('declares the package contract required for the rebuild', function (): void {
     expect($manifest['autoload']['psr-4']['Sift\\'] ?? null)->toBe('src/');
     expect($manifest['autoload-dev']['psr-4']['Tests\\'] ?? null)->toBe('tests/');
     expect($manifest['bin'])->toBe(['bin/sift']);
-    expect($manifest['extra']['class'])->toBe('Sift\\Composer\\SiftPlugin');
+    expect($manifest['extra']['class'])->toBe(SiftPlugin::class);
     expect(array_keys($manifest['scripts']))->toContain('test', 'analyse', 'format', 'rector', 'quality');
 });
