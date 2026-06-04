@@ -49,6 +49,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Pint parsing follows the real JSON `files[].{path,fixers}` structure.
 - Native test runner errors are surfaced instead of being hidden behind parser failures.
 - Composer command bridge satisfies Composer's command contract and preserves the project manifest.
+- Installed `vendor/bin/sift` now uses Composer's injected autoload path, with source-tree fallback for local execution.
 - Quality scripts run through Sift entrypoints where possible.
 - Rector results distinguish real diffs from inconsistent changed-file list noise.
 - Codex skill installs validate source trees and replace targets from restricted staging directories.
