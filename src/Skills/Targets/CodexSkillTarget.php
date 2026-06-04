@@ -35,9 +35,15 @@ final readonly class CodexSkillTarget implements InstructionTarget
     {
         $targetDirectory = $this->targetDirectory($skill->name());
         $exists = is_dir($targetDirectory);
+        $stagingDirectory = $this->stagingDirectory($targetDirectory);
 
-        $this->copySkillDirectory($skill->path(), $targetDirectory);
-        $this->writeMetadata($targetDirectory, $metadata);
+        try {
+            $this->copySkillDirectory($skill->path(), $stagingDirectory);
+            $this->writeMetadata($stagingDirectory, $metadata);
+            $this->replaceTarget($stagingDirectory, $targetDirectory);
+        } finally {
+            $this->deleteTree($stagingDirectory);
+        }
 
         return new SkillTargetInstallResult(
             skillName: $skill->name(),
@@ -118,7 +124,9 @@ final readonly class CodexSkillTarget implements InstructionTarget
             );
         }
 
+        $this->assertSourceTreeHasNoSymlinks($source);
         $this->ensureDirectory($target);
+        $targetGuard = new PathGuard($target);
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST,
@@ -130,7 +138,7 @@ final readonly class CodexSkillTarget implements InstructionTarget
             }
 
             $relative = substr($item->getPathname(), strlen($source) + 1);
-            $destination = Path::join($target, $relative);
+            $destination = $this->guardedDestination($targetGuard, Path::join($target, $relative));
 
             if ($item->isDir()) {
                 $this->ensureDirectory($destination);
@@ -147,6 +155,61 @@ final readonly class CodexSkillTarget implements InstructionTarget
                     context: ['path' => $item->getPathname()],
                 );
             }
+        }
+    }
+
+    private function assertSourceTreeHasNoSymlinks(string $source): void
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            if ($item instanceof SplFileInfo && $item->isLink()) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::FilesystemError,
+                    message: sprintf('Skill source symlink "%s" is not allowed.', $item->getPathname()),
+                    context: ['path' => $item->getPathname()],
+                );
+            }
+        }
+    }
+
+    private function stagingDirectory(string $targetDirectory): string
+    {
+        $parent = dirname($targetDirectory);
+        $this->ensureDirectory($parent);
+
+        return $this->guardedDestination(
+            new PathGuard($parent),
+            Path::join($parent, '.sift-' . basename($targetDirectory) . '-' . bin2hex(random_bytes(8))),
+        );
+    }
+
+    private function replaceTarget(string $stagingDirectory, string $targetDirectory): void
+    {
+        $this->deleteTree($targetDirectory);
+
+        if (! rename($stagingDirectory, $targetDirectory)) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: sprintf('Could not install Codex skill target "%s".', $targetDirectory),
+                context: ['path' => $targetDirectory],
+            );
+        }
+    }
+
+    private function guardedDestination(PathGuard $guard, string $path): string
+    {
+        try {
+            return $guard->assertInside($path);
+        } catch (FilesystemException $filesystemException) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: $filesystemException->getMessage(),
+                context: ['path' => $path],
+            );
         }
     }
 

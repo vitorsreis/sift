@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Sift\Exceptions\UserFacingException;
 use Sift\Skills\Skill;
 use Sift\Skills\SkillSource;
 use Sift\Skills\Targets\SkillTargetInstaller;
@@ -84,6 +85,70 @@ MD);
         'targets' => ['codex'],
     ]);
 });
+
+if (PHP_OS_FAMILY !== 'Windows') {
+    it('rejects nested symlinks in codex skill sources', function (): void {
+        $project = FixtureProject::create();
+        $codexHome = FixtureProject::create('sift-codex-home-');
+        $source = FixtureProject::create('sift-skill-source-');
+        $outside = FixtureProject::create('sift-skill-outside-');
+        $skillFile = $source->write('SKILL.md', "# PHP Review\n");
+        $outsideFile = $outside->write('secret.txt', 'secret');
+        $source->write('references/.keep', '');
+
+        if (! @symlink($outsideFile, $source->path('references/secret.txt'))) {
+            return;
+        }
+
+        $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
+        putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+        try {
+            expect(fn(): array => (new SkillTargetInstaller())->install(
+                $project->root(),
+                [$skill],
+                ['codex'],
+                new SkillSource('vendor/source', 'local', $source->root()),
+            ))->toThrow(UserFacingException::class, 'symlink');
+        } finally {
+            putenv('SIFT_CODEX_HOME');
+        }
+
+        expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
+    });
+
+    it('replaces existing codex targets without following nested symlinks', function (): void {
+        $project = FixtureProject::create();
+        $codexHome = FixtureProject::create('sift-codex-home-');
+        $source = FixtureProject::create('sift-skill-source-');
+        $outside = FixtureProject::create('sift-skill-outside-');
+        $skillFile = $source->write('SKILL.md', "# PHP Review\n");
+        $source->write('references/escaped.md', 'must not escape');
+        $codexHome->write('skills/php-review/SKILL.md', '# Existing');
+        $codexHome->write('skills/php-review/.keep', '');
+
+        if (! @symlink($outside->root(), $codexHome->path('skills/php-review/references'))) {
+            return;
+        }
+
+        $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
+        putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+
+        try {
+            (new SkillTargetInstaller())->install(
+                $project->root(),
+                [$skill],
+                ['codex'],
+                new SkillSource('vendor/source', 'local', $source->root()),
+            );
+        } finally {
+            putenv('SIFT_CODEX_HOME');
+        }
+
+        expect($outside->path('escaped.md'))->not->toBeFile();
+        expect($codexHome->path('skills/php-review/references/escaped.md'))->toBeFile();
+    });
+}
 
 it('writes cursor rules with escaped frontmatter and managed metadata', function (): void {
     $project = FixtureProject::create();
