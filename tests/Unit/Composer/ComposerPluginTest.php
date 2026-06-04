@@ -129,7 +129,7 @@ it('runs the real application through composer sift', function (): void {
 it('runs the real application through composer skills', function (): void {
     $tester = composerCommandTester(new ComposerSkillsCommand());
     $exitCode = $tester->execute([
-        'arguments' => ['--json', '--no-pretty', 'list'],
+        'arguments' => ['--json', '--no-pretty', '--compact', 'list'],
     ]);
 
     $payload = decodeComposerCommandPayload($tester->getDisplay());

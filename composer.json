@@ -69,7 +69,7 @@
     }
   },
   "scripts": {
-    "sift": "@php bin/sift --full -- @additional_args",
+    "sift": "@php bin/sift -- @additional_args",
     "composer:validate": "@sift composer validate --strict",
     "test": "@sift pest --parallel",
     "test:coverage": "@sift -dzend_extension=xdebug -dxdebug.mode=coverage pest --coverage --min=80",

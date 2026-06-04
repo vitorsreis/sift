@@ -2,7 +2,7 @@
   "$schema": "resources/schema.json",
   "output": {
     "format": "json",
-    "size": "compact",
+    "size": "full",
     "pretty": false,
     "show_process": false
   },
