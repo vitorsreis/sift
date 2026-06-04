@@ -66,7 +66,7 @@ it('parses rector changes as failed status', function (): void {
     expect($payload['summary'])->toMatchArray(['changed_files' => 1, 'errors' => 0]);
 });
 
-it('fails when rector lists changed files but reports a zero total', function (): void {
+it('fails when rector includes diffs but reports a zero total', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');
     $adapter = new RectorToolAdapter();

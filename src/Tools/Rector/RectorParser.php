@@ -32,7 +32,7 @@ final readonly class RectorParser
         $changedFileItems = $this->changedFileItems($this->list($document['changed_files'] ?? [], 'changed_files'), $cwd);
         $diffItems = $this->diffItems($this->list($document['file_diffs'] ?? [], 'file_diffs'), $cwd);
         $errorItems = $this->errorItems($this->list($document['errors'] ?? [], 'errors'), $cwd);
-        $changedFiles = max($reportedChangedFiles, count($changedFileItems), count($diffItems));
+        $changedFiles = max($reportedChangedFiles, count($diffItems));
 
         return new RectorReport(
             summary: [

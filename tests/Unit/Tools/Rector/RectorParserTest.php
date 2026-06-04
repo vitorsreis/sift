@@ -91,3 +91,19 @@ it('uses changed file evidence when rector totals are inconsistent', function ()
         'diffs' => 1,
     ]);
 });
+
+it('does not count changed file list entries without totals or diffs', function (): void {
+    $project = FixtureProject::create();
+    $source = $project->write('src/Checkout.php', '<?php');
+    $report = (new RectorParser())->parse(json_encode([
+        'totals' => [
+            'changed_files' => 0,
+            'errors' => 0,
+        ],
+        'changed_files' => [$source],
+    ], JSON_THROW_ON_ERROR), '', $project->root());
+
+    expect($report->changedFiles())->toBe(0);
+    expect($report->findings())->toBe(0);
+    expect($report->items())->toHaveCount(1);
+});

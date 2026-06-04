@@ -8,7 +8,7 @@ use Sift\Sift;
 
 final class ConfigDefaults
 {
-    public const TOOL_TIMEOUT = 1800;
+    public const int TOOL_TIMEOUT = 1800;
 
     public static function schemaUrl(): string
     {
