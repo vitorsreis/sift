@@ -96,6 +96,11 @@ final readonly class SecretRedactor
             '$1$2$3' . self::REDACTED,
             $value,
         ) ?? $value;
+        $value = preg_replace(
+            '/(?<![A-Za-z0-9\/\\\\])[A-Za-z0-9_.=-]*(?:token|secret|password|passwd|api[-_]?key)[A-Za-z0-9_.=-]{4,}(?![A-Za-z0-9\/\\\\])/i',
+            self::REDACTED,
+            $value,
+        ) ?? $value;
         $value = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=-]{10,}\b/i', 'Bearer ' . self::REDACTED, $value) ?? $value;
         $value = preg_replace('/\bgh[pousr]_\w{20,}\b/', self::REDACTED, $value) ?? $value;
 

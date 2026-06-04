@@ -78,3 +78,15 @@ it('redacts short secrets in flags urls query strings and paths', function (): v
         'path' => '/tmp/token=[REDACTED]/file.php',
     ]);
 });
+
+it('redacts short standalone values that identify themselves as secrets', function (): void {
+    $redactor = new SecretRedactor();
+
+    expect($redactor->redact([
+        'debug_option' => 'token-secret-123',
+        'normal_path' => 'config/sift.json',
+    ]))->toBe([
+        'debug_option' => '[REDACTED]',
+        'normal_path' => 'config/sift.json',
+    ]);
+});
