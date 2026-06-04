@@ -17,6 +17,7 @@ php sift.phar <command>
 --compact
 --full
 --pretty | --no-pretty
+--json | --no-json
 --raw
 --show-process | --no-show-process
 --debug
@@ -34,6 +35,8 @@ composer sift validate [--config=<path>]
 composer sift tools list [--config=<path>]
 ```
 
+`help`, `version`, and `tools list` always render terminal output and ignore `--json`. `tools list` streams each result as version checks finish.
+
 ## Tool Runs
 
 Pattern:
@@ -41,6 +44,7 @@ Pattern:
 ```bash
 composer sift --compact <tool> [tool-args]
 composer sift run <tool> [tool-args]
+composer sift --json composer validate
 ```
 
 Supported tool names:
@@ -63,6 +67,8 @@ composer sift history clear
 ```
 
 `history <run_id>` only aliases `history view` when the token matches a valid run id.
+
+History records are flat JSON files keyed by sortable `run_id`.
 
 ## Skill Commands
 

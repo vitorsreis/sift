@@ -24,7 +24,7 @@ Sift is a command layer for PHP projects that lets coding agents run tools, insp
 - **Runs PHP tools through one interface**: Pest, PHPUnit, Paratest, PHPStan, Psalm, PHPCS, Pint, Rector, Mago, Composer checks, and dependency tools.
 - **Keeps output agent-friendly**: compact terminal output by default, JSON only with `--json`, full detail in history when needed.
 - **Installs agent skills safely**: Codex, Cursor, Claude, Copilot, Gemini, generic `AGENTS.md`, and other documented targets.
-- **Blocks unsafe defaults**: read-only Composer, dry-run refactors, safe formatter modes, blocked arguments, and non-JSON machine output checks.
+- **Blocks unsafe defaults**: read-only Composer, dry-run refactors, safe formatter modes, blocked arguments, and required machine output checks.
 - **Works from every entrypoint**: Composer command, `vendor/bin/sift`, and standalone PHAR all call the same core.
 
 ## Installation
@@ -50,10 +50,12 @@ Inspect supported tools:
 composer sift tools list
 ```
 
+`tools list` streams terminal-only availability lines as tool versions are detected.
+
 Run common checks:
 
 ```bash
-composer sift --compact --pretty pest
+composer sift --compact pest
 composer sift --compact phpstan analyse src
 composer sift --compact pint
 composer sift --compact rector process --dry-run src
@@ -65,6 +67,8 @@ Use `--json` when another tool or agent needs the normalized payload:
 composer sift --json --compact pest
 composer sift --json --full history view <run_id>
 ```
+
+Use `--no-json` to force terminal output when `output.format` is configured as `json`.
 
 Inspect stored detail:
 
@@ -120,7 +124,7 @@ Accepted sources:
 }
 ```
 
-Omit `history.max_age_days` to disable age-based retention.
+Omit `history.max_age_days` to disable age-based retention. History records are flat JSON files keyed and sorted by `run_id`; there is no `payload` wrapper.
 
 ## Supported Tools
 

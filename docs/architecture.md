@@ -16,7 +16,7 @@ Entrypoint
   -> Tools\ToolAdapter
   -> Output\PayloadSizer
   -> History\RunStore
-  -> Output\Renderer
+  -> Output\TerminalRenderer | Output\JsonRenderer
 ```
 
 ## Boundaries
@@ -27,7 +27,7 @@ Entrypoint
 - `Execution`: binary resolution, process command building, supervision, raw streaming, and TTY behavior.
 - `Safety`: pure policies before process execution.
 - `Tools`: adapter definitions, command preparation, parsers, status decisions, and tool inspection.
-- `History`: one JSON file per run, retention, truncation, and secret redaction.
+- `History`: flat JSON run files, retention, truncation, run id ordering, and secret redaction.
 - `Skills`: source resolution, discovery, selection, target installers, managed blocks, and inventory.
 - `Composer`: Composer plugin bridge only.
 - `PHAR`: bootstrap and bundled resource access.
@@ -39,3 +39,6 @@ Entrypoint
 - Adapters do not build shell strings.
 - Arrays stay at JSON/input/output edges.
 - Critical writes are atomic.
+- Terminal output is the default; JSON is opt-in with `--json` or config.
+- `help`, `version`, and `tools list` always render terminal output.
+- History records keep run fields at the root and metadata under `meta`.

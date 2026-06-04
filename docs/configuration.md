@@ -14,7 +14,7 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 {
   "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
   "output": {
-    "format": "json",
+    "format": "terminal",
     "size": "compact",
     "pretty": true,
     "show_process": false
@@ -46,6 +46,10 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 - Runtime defaults such as history and locks resolve from the project root.
 - Global scope uses `SIFT_HOME` or `~/.sift`.
 - `history.max_age_days` is optional. `init` writes `30`; omitting the field disables age-based retention.
+- `output.format` accepts `terminal` or `json`. The default is `terminal`.
+- `--json` and `--no-json` override `output.format`.
+- `help`, `version`, and `tools list` always render terminal output.
+- `output.pretty` affects JSON output only.
 
 ## Validation
 

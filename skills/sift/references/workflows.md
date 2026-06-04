@@ -16,13 +16,14 @@ If running non-interactively, pass `--no-skill` or `--yes` to `init`.
 ## Failing Test
 
 ```bash
-composer sift --compact --pretty pest --filter=CheckoutTest
+composer sift --compact pest --filter=CheckoutTest
 composer sift history list
 composer sift history view <run_id> items
 composer sift history view <run_id> meta
 ```
 
 Use `--full` only when the history sections omit required detail.
+Use `--json` only when another program needs structured output.
 
 ## Static Analysis And Quality
 

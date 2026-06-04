@@ -18,13 +18,17 @@ composer sift init -y
 ## Run Tools
 
 ```bash
-composer sift --compact --pretty pest
+composer sift --compact pest
 composer sift --compact phpstan analyse src
 composer sift --compact pint
 composer sift --compact composer audit
 ```
 
 Output is terminal text by default. Use `--json` when you need the normalized payload, and `--full` only when compact output does not include enough information.
+
+```bash
+composer sift --json --compact pest
+```
 
 ## Inspect History
 
@@ -35,6 +39,7 @@ composer sift history view <run_id> items
 ```
 
 History is disabled in `--raw` mode.
+History records are flat JSON files keyed by sortable `run_id`.
 
 ## Install Agent Instructions
 

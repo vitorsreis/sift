@@ -18,7 +18,7 @@ Entrypoint
   -> Tools\ToolAdapter
   -> Output\PayloadSizer
   -> History\RunStore
-  -> Output\JsonRenderer
+  -> Output\TerminalRenderer | Output\JsonRenderer
 ```
 
 ## Modules
@@ -29,7 +29,7 @@ Entrypoint
 - `Tools`: supported tool definitions, adapters, parsing, status mapping.
 - `Safety`: policies that run before any process.
 - `Execution`: tool location, process supervision, raw streaming.
-- `History`: JSON run files, redaction, retention.
+- `History`: flat JSON run files, redaction, retention, run id ordering.
 - `Skills`: source policy, discovery, targets, managed metadata.
 - `Composer`: Composer command bridge only.
 - `PHAR`: standalone bootstrap and bundled resources.
@@ -45,10 +45,11 @@ Entrypoint
 
 ## Payload Contract
 
-Normal output:
+Full normalized run payload:
 
 ```json
 {
+  "run_id": "0tg3vz210sh8j5",
   "tool": "pest",
   "status": "failed",
   "summary": {},
@@ -72,4 +73,8 @@ Error output:
 }
 ```
 
-JSON is the only normalized output format. Native output belongs to `--raw`.
+Terminal output is the default human format. JSON is the normalized machine payload and is opt-in with `--json` or config. Native output belongs to `--raw`.
+
+History records are flat: `run_id`, payload fields, and `meta` are at the root level. Do not add a `payload` wrapper or `stored_at`.
+
+`help`, `version`, and `tools list` always render terminal output.

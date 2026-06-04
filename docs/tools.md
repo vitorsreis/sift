@@ -2,10 +2,12 @@
 
 `tools list` reports every supported adapter, not only installed binaries.
 
-Status:
+It always renders terminal output and ignores `--json`. Version checks run in bounded parallel batches and each result is printed as soon as it is available, so order may vary.
 
-- `ON`: installed and enabled
-- `OFF`: missing or disabled
+Terminal status:
+
+- `OK`: installed and enabled
+- `NO`: missing or disabled, with an install hint when available
 
 ## Supported Adapters
 
@@ -33,4 +35,4 @@ Status:
 
 Policies run before process execution and before raw mode. A blocked command exits with code `3`.
 
-Machine-readable output is required outside `--raw`; text output is not parsed as a fallback when the adapter contract requires JSON or XML.
+Machine-readable tool output is required outside `--raw`; native text output is not parsed as a fallback when the adapter contract requires JSON or XML.

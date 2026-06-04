@@ -25,7 +25,9 @@ The stub checks:
 - `ext-json`
 - `ext-simplexml`
 
-Bootstrap failures are JSON errors on `STDERR` with exit code `3` because they happen before the Sift renderer is available.
+Runtime commands use the same terminal and JSON renderers as the Composer and `vendor/bin/sift` entrypoints.
+
+Bootstrap failures exit with code `3` through the PHAR bootstrap error path because they happen before the Sift renderer is available.
 
 ## Runtime Paths
 

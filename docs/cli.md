@@ -18,6 +18,7 @@ All entrypoints call the same application core and should return the same output
 - `--pretty`, `-p`
 - `--no-pretty`, `-P`
 - `--json`
+- `--no-json`
 - `--raw`
 - `--show-process`
 - `--no-show-process`
@@ -59,12 +60,23 @@ command option > global option > config > default
 
 - Terminal result output goes to `STDOUT` by default.
 - `--json` writes normalized result payloads to `STDOUT`.
+- `--no-json` forces terminal output when config selects JSON.
 - Sift errors go to `STDERR`.
 - `--show-process` writes only to `STDERR`.
 - `--debug` writes diagnostics to `STDERR` and keeps `STDOUT` unchanged.
 - `--raw` passes through native stdout, stderr, and exit code.
 
-`--compact`, default size, and `--full` control detail level in both terminal and JSON output. `--json` and `--raw` cannot be used together.
+`--compact`, default size, and `--full` control detail level in both terminal and JSON output. `--pretty` and `--no-pretty` affect JSON only. `--json` and `--raw` cannot be used together.
+
+`help`, `version`, and `tools list` always render terminal output and ignore `--json`.
+
+`tools list` streams availability and version lines as checks finish, so order may vary.
+
+Sift global options can be placed before the tool name:
+
+```bash
+composer sift --json composer validate
+```
 
 ## Exit Codes
 

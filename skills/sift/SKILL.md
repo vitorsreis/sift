@@ -12,6 +12,7 @@ Sift is the project command layer for PHP tools and agent skills. Prefer it when
 - Run PHP quality tools through `composer sift`.
 - Manage agent skills through `composer skills`.
 - Read structured results from Sift history before rerunning noisy tools.
+- Use `--json` only when machine-readable output is needed.
 
 Do not install Sift unless the user asks. If Sift is unavailable or broken, use the native tool.
 
@@ -26,7 +27,7 @@ composer skills add vitorsreis/sift --skill sift
 Run a tool:
 
 ```bash
-composer sift --compact --pretty pest
+composer sift --compact pest
 ```
 
 ## Workflow
@@ -34,8 +35,12 @@ composer sift --compact --pretty pest
 1. Use the project entrypoint. Prefer `composer sift` and `composer skills`.
 2. Start tool runs with `--compact`.
 3. If compact output is not enough, inspect `history view <run_id> <section>`.
-4. Use `--full` only when history sections are not enough.
-5. Use `--raw` only when native output is required.
+4. Use `--json` only for structured automation or parsing.
+5. Use `--no-json` to force terminal output when config selects JSON.
+6. Use `--full` only when history sections are not enough.
+7. Use `--raw` only when native output is required.
+
+`help`, `version`, and `tools list` always render terminal output. `tools list` streams results as version checks finish.
 
 ## Safety
 
