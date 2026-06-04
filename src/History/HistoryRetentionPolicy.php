@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\History;
 
 use DateTimeImmutable;
+use LogicException;
 use Sift\Config\HistoryConfig;
 
 final readonly class HistoryRetentionPolicy
@@ -22,7 +23,7 @@ final readonly class HistoryRetentionPolicy
         foreach ($this->byTool($eligibleRuns) as $toolRuns) {
             usort(
                 $toolRuns,
-                static fn(array $left, array $right): int => strcmp($right['stored_at'], $left['stored_at']),
+                static fn(array $left, array $right): int => strcmp($right['run_id'], $left['run_id']),
             );
 
             foreach (array_slice($toolRuns, $config->maxFiles()) as $run) {
@@ -36,7 +37,7 @@ final readonly class HistoryRetentionPolicy
             $oldestAllowed = $now->modify(sprintf('-%d days', $maxAgeDays));
 
             foreach ($eligibleRuns as $run) {
-                if ($this->storedAt($run['stored_at']) < $oldestAllowed) {
+                if ($this->createdAt($run['run_id']) < $oldestAllowed) {
                     $removals[] = $run['run_id'];
                 }
             }
@@ -48,7 +49,7 @@ final readonly class HistoryRetentionPolicy
     /**
      * @param list<array<string, mixed>> $runs
      *
-     * @return list<array{run_id: string, tool: string, stored_at: string}>
+     * @return list<array{run_id: string, tool: string}>
      */
     private function eligibleRuns(array $runs): array
     {
@@ -61,8 +62,11 @@ final readonly class HistoryRetentionPolicy
 
             $runId = $run['run_id'] ?? null;
             $tool = $run['tool'] ?? null;
-            $storedAt = $run['stored_at'] ?? null;
             if (! is_string($runId)) {
+                continue;
+            }
+
+            if (! RunIdFormat::createdAt($runId) instanceof DateTimeImmutable) {
                 continue;
             }
 
@@ -70,14 +74,9 @@ final readonly class HistoryRetentionPolicy
                 continue;
             }
 
-            if (! is_string($storedAt)) {
-                continue;
-            }
-
             $eligible[] = [
                 'run_id' => $runId,
                 'tool' => $tool,
-                'stored_at' => $storedAt,
             ];
         }
 
@@ -85,9 +84,9 @@ final readonly class HistoryRetentionPolicy
     }
 
     /**
-     * @param list<array{run_id: string, tool: string, stored_at: string}> $runs
+     * @param list<array{run_id: string, tool: string}> $runs
      *
-     * @return array<string, list<array{run_id: string, tool: string, stored_at: string}>>
+     * @return array<string, list<array{run_id: string, tool: string}>>
      */
     private function byTool(array $runs): array
     {
@@ -100,8 +99,14 @@ final readonly class HistoryRetentionPolicy
         return $byTool;
     }
 
-    private function storedAt(string $storedAt): DateTimeImmutable
+    private function createdAt(string $runId): DateTimeImmutable
     {
-        return new DateTimeImmutable($storedAt);
+        $createdAt = RunIdFormat::createdAt($runId);
+
+        if (! $createdAt instanceof DateTimeImmutable) {
+            throw new LogicException('Eligible history run id must encode creation time.');
+        }
+
+        return $createdAt;
     }
 }

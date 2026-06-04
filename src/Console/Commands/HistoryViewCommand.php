@@ -41,7 +41,8 @@ final readonly class HistoryViewCommand extends AbstractHistoryCommand
         }
 
         $recordRunId = $this->stringValue($record['run_id'] ?? null, $runId);
-        $payload = $this->objectValue($record['payload'] ?? []);
+        $payload = $record;
+        unset($payload['run_id']);
 
         if ($section === null) {
             return [

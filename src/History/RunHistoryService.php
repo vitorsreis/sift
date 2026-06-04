@@ -42,9 +42,8 @@ final readonly class RunHistoryService
             return null;
         }
 
-        $storedAt = $this->clock->now()->format(DATE_ATOM);
         $redactedPayload = $config->redactSecrets() ? $this->redactor->redactPayload($payload) : $payload;
-        $document = $this->truncate($this->document($redactedPayload, $storedAt), $config->maxBytesPerRun());
+        $document = $this->truncate($this->document($redactedPayload), $config->maxBytesPerRun());
         $store = ($this->storeFactory)($config);
 
         $store->store($document);
@@ -58,38 +57,12 @@ final readonly class RunHistoryService
      *
      * @return array<string, mixed>
      */
-    private function document(array $payload, string $storedAt): array
+    private function document(array $payload): array
     {
-        $tool = $this->stringValue($payload['tool'] ?? null, 'unknown');
-        $status = $this->stringValue($payload['status'] ?? null, 'error');
-        $summary = $this->objectValue($payload['summary'] ?? []);
-        $createdAt = $this->createdAt($payload, $storedAt);
-
         return [
             'run_id' => $this->runIdGenerator->generateUniqueId(),
-            'stored_at' => $storedAt,
-            'created_at' => $createdAt,
-            'tool' => $tool,
-            'status' => $status,
-            'summary' => $summary,
-            'payload' => $payload,
+            ...$payload,
         ];
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function createdAt(array $payload, string $fallback): string
-    {
-        $meta = $payload['meta'] ?? null;
-
-        if (! is_array($meta) || array_is_list($meta)) {
-            return $fallback;
-        }
-
-        $createdAt = $meta['created_at'] ?? null;
-
-        return is_string($createdAt) && $createdAt !== '' ? $createdAt : $fallback;
     }
 
     /**
@@ -105,39 +78,35 @@ final readonly class RunHistoryService
             return $document;
         }
 
-        $payload = $this->objectValue($document['payload'] ?? []);
-        $meta = $this->objectValue($payload['meta'] ?? []);
-        $payload['items'] = [];
-        $payload['artifacts'] = [];
-        $payload['extra'] = [];
-        $payload['meta'] = [
+        $meta = $this->objectValue($document['meta'] ?? []);
+        $document['items'] = [];
+        $document['artifacts'] = [];
+        $document['extra'] = [];
+        $document['meta'] = [
             ...$meta,
             'truncated' => true,
             'original_bytes' => $originalBytes,
             'max_bytes' => $maxBytes,
         ];
-        $document['payload'] = $payload;
 
         if ($this->bytes($document) <= $maxBytes) {
             return $document;
         }
 
-        $document['payload'] = [
-            'tool' => $document['tool'],
-            'status' => $document['status'],
-            'summary' => $document['summary'],
+        return [
+            'run_id' => $document['run_id'],
+            'tool' => $this->stringValue($document['tool'] ?? null, 'unknown'),
+            'status' => $this->stringValue($document['status'] ?? null, 'error'),
+            'summary' => $this->objectValue($document['summary'] ?? []),
             'items' => [],
             'artifacts' => [],
             'extra' => [],
             'meta' => [
-                'created_at' => $document['created_at'],
                 'truncated' => true,
                 'original_bytes' => $originalBytes,
                 'max_bytes' => $maxBytes,
             ],
         ];
-
-        return $document;
     }
 
     /**

@@ -65,7 +65,7 @@ final readonly class FileRunStore implements RunStore
                 $runs[] = $this->jsonFile->readObject($file);
             } catch (FilesystemException $filesystemException) {
                 $runs[] = [
-                    'run_id' => RunIdFormat::core($fileId) ?? $fileId,
+                    'run_id' => RunIdFormat::fileCore($fileId) ?? $fileId,
                     'type' => ItemType::Error->value,
                     'tool' => 'history',
                     'status' => 'error',
@@ -149,13 +149,11 @@ final readonly class FileRunStore implements RunStore
             throw new InvalidArgumentException('History run id must match <time36><random36>.');
         }
 
-        $runId = RunIdFormat::core($value);
-
-        if ($runId === null) {
+        if (! RunIdFormat::isCore($value)) {
             throw new InvalidArgumentException('History run id must match <time36><random36>.');
         }
 
-        return $runId;
+        return $value;
     }
 
     private function tool(mixed $value): string
@@ -184,13 +182,7 @@ final readonly class FileRunStore implements RunStore
             throw new InvalidArgumentException('History run id must match <time36><random36>.');
         }
 
-        if (RunIdFormat::isCore($runId)) {
-            return $this->pathForCoreRunId($runId);
-        }
-
-        $path = $this->runPath($runId);
-
-        return is_file($path) ? $path : null;
+        return $this->pathForCoreRunId($runId);
     }
 
     private function pathForCoreRunId(string $runId): ?string

@@ -28,19 +28,22 @@ it('records a redacted normalized payload without mutating stdout payload', func
 
     expect($payload['extra']['token'])->toBe('secret-value');
     expect($record)->toMatchArray([
-        'stored_at' => '2026-05-31T10:00:00+00:00',
-        'created_at' => '2026-05-31T09:59:59+00:00',
         'tool' => 'pest',
         'status' => 'passed',
         'summary' => ['tests' => 12],
+        'items' => [],
+        'artifacts' => [],
+        'meta' => [
+            'created_at' => '2026-05-31T09:59:59+00:00',
+        ],
     ]);
     expect($record['run_id'] ?? null)->toMatch('/^[0-9a-z]{14}$/');
+    expect($record)->not->toHaveKeys(['payload', 'stored_at']);
     expect(is_file($project->path(sprintf('.sift/history/runs/sift_%s_pest.json', historyStringField($record, 'run_id')))))->toBeTrue();
 
     $stored = historyRecorded((new FileRunStore($project->path('.sift/history')))->read(historyStringField($record, 'run_id')));
     expect($stored['run_id'] ?? null)->toBe($record['run_id']);
-    $storedPayload = historyObjectField($stored, 'payload');
-    $storedExtra = historyObjectField($storedPayload, 'extra');
+    $storedExtra = historyObjectField($stored, 'extra');
 
     expect($storedExtra['token'] ?? null)->toBe('[REDACTED]');
 });
@@ -62,12 +65,12 @@ it('truncates oversized payloads while keeping summary and status', function ():
     ];
 
     $record = historyRecorded($service->record($payload, historyServiceConfig($project, maxBytesPerRun: 1200)));
-    $recordPayload = historyObjectField($record, 'payload');
-    $recordMeta = historyObjectField($recordPayload, 'meta');
+    $recordMeta = historyObjectField($record, 'meta');
 
+    expect($record)->not->toHaveKeys(['payload', 'stored_at']);
     expect($record['summary'])->toBe(['errors' => 5000]);
     expect($record['status'])->toBe('failed');
-    expect($recordPayload['items'] ?? null)->toBe([]);
+    expect($record['items'] ?? null)->toBe([]);
     expect($recordMeta['truncated'] ?? null)->toBeTrue();
 });
 

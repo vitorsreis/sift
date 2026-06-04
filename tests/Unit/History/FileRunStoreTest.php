@@ -13,14 +13,12 @@ it('stores one normalized run per json file and reads it back', function (): voi
 
     $document = $project->readJson('.sift/history/runs/sift_0td7j1a01z141z_pest.json');
 
-    expect($document)->toMatchArray([
-        'run_id' => '0td7j1a01z141z',
-        'tool' => 'pest',
-        'status' => 'passed',
-        'summary' => ['tests' => 12],
-    ]);
+    expect($document['run_id'] ?? null)->toBe('0td7j1a01z141z');
+    expect($document)->not->toHaveKeys(['payload', 'stored_at']);
+    expect($document['tool'] ?? null)->toBe('pest');
+    expect($document['status'] ?? null)->toBe('passed');
+    expect($document['summary'] ?? null)->toBe(['tests' => 12]);
     expect($store->read('0td7j1a01z141z'))->toMatchArray($document);
-    expect($store->read('sift_0td7j1a01z141z_pest'))->toMatchArray($document);
 });
 
 it('lists valid runs and keeps corrupted runs visible as error items', function (): void {
@@ -84,19 +82,14 @@ function historyRunDocument(string $runId, string $tool): array
 {
     return [
         'run_id' => $runId,
-        'stored_at' => '2026-05-31T10:00:00+00:00',
-        'created_at' => '2026-05-31T09:59:59+00:00',
         'tool' => $tool,
         'status' => 'passed',
         'summary' => ['tests' => 12],
-        'payload' => [
-            'tool' => $tool,
-            'status' => 'passed',
-            'summary' => ['tests' => 12],
-            'items' => [],
-            'artifacts' => [],
-            'extra' => [],
-            'meta' => ['created_at' => '2026-05-31T09:59:59+00:00'],
+        'items' => [],
+        'artifacts' => [],
+        'extra' => [],
+        'meta' => [
+            'created_at' => '2026-05-31T09:59:59+00:00',
         ],
     ];
 }

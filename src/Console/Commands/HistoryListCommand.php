@@ -26,7 +26,10 @@ final readonly class HistoryListCommand extends AbstractHistoryCommand
 
         usort(
             $runs,
-            fn(array $left, array $right): int => strcmp($this->storedAt($right), $this->storedAt($left)),
+            static fn(array $left, array $right): int => strcmp(
+                is_string($right['run_id'] ?? null) ? $right['run_id'] : '',
+                is_string($left['run_id'] ?? null) ? $left['run_id'] : '',
+            ),
         );
 
         $items = array_map(
@@ -71,8 +74,7 @@ final readonly class HistoryListCommand extends AbstractHistoryCommand
 
         return [
             'run_id' => $this->stringValue($run['run_id'] ?? null),
-            'stored_at' => $this->storedAt($run),
-            'created_at' => $this->stringValue($run['created_at'] ?? null),
+            'created_at' => $this->createdAt($run),
             'tool' => $this->stringValue($run['tool'] ?? null),
             'status' => $this->stringValue($run['status'] ?? null),
             'summary' => $this->objectValue($run['summary'] ?? []),
@@ -82,9 +84,12 @@ final readonly class HistoryListCommand extends AbstractHistoryCommand
     /**
      * @param array<string, mixed> $run
      */
-    private function storedAt(array $run): string
+    private function createdAt(array $run): string
     {
-        return $this->stringValue($run['stored_at'] ?? null);
+        $meta = $this->objectValue($run['meta'] ?? []);
+        $createdAt = $meta['created_at'] ?? null;
+
+        return $this->stringValue($createdAt);
     }
 
     private function stringValue(mixed $value): string

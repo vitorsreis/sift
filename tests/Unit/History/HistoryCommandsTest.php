@@ -14,7 +14,7 @@ use Sift\Exceptions\UserFacingException;
 use Sift\History\FileRunStore;
 use Tests\Support\FixtureProject;
 
-it('lists history runs sorted by stored_at with limit offset and corrupt run entries', function (): void {
+it('lists history runs sorted by run id with limit offset and corrupt run entries', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
     $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
@@ -34,8 +34,8 @@ it('lists history runs sorted by stored_at with limit offset and corrupt run ent
         'offset' => 0,
     ]);
     expect(array_column(historyCommandItems($payload), 'run_id'))->toBe([
+        '0td7j1c0zzzzzz',
         '0td7j1b0000001',
-        '0td7j1a01z141z',
     ]);
 
     $defaultPayload = (new HistoryListCommand())->handle(new CommandRoute('history.list'), $project->root());
@@ -45,7 +45,7 @@ it('lists history runs sorted by stored_at with limit offset and corrupt run ent
         'limit' => 20,
         'offset' => 0,
     ]);
-    expect(historyCommandItems($defaultPayload)[2])->toMatchArray([
+    expect(historyCommandItems($defaultPayload)[0])->toMatchArray([
         'run_id' => '0td7j1c0zzzzzz',
         'type' => 'error',
         'status' => 'error',
@@ -134,19 +134,14 @@ function historyCommandRun(string $runId, string $tool, string $storedAt): array
 {
     return [
         'run_id' => $runId,
-        'stored_at' => $storedAt,
-        'created_at' => $storedAt,
         'tool' => $tool,
         'status' => 'passed',
         'summary' => ['tests' => 12],
-        'payload' => [
-            'tool' => $tool,
-            'status' => 'passed',
-            'summary' => ['tests' => 12],
-            'items' => [['type' => 'test_failure', 'message' => 'failed']],
-            'artifacts' => [['path' => 'build/report.json']],
-            'extra' => ['note' => 'ok'],
-            'meta' => ['created_at' => $storedAt],
+        'items' => [['type' => 'test_failure', 'message' => 'failed']],
+        'artifacts' => [['path' => 'build/report.json']],
+        'extra' => ['note' => 'ok'],
+        'meta' => [
+            'created_at' => $storedAt,
         ],
     ];
 }
