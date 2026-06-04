@@ -43,4 +43,4 @@ jobs:
         run: composer build:phar
 
       - name: Smoke test PHAR
-        run: php build/phar/sift.phar --no-pretty help
+        run: php build/phar/sift.phar help
