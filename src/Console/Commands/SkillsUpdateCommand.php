@@ -10,10 +10,10 @@ use Sift\Console\InvalidUsageException;
 use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
 use Sift\Skills\SkillDiscovery;
-use Sift\Skills\SkillInventory;
 use Sift\Skills\SkillManagedMetadata;
 use Sift\Skills\SkillRepositoryCloner;
 use Sift\Skills\SkillSelector;
+use Sift\Skills\SkillService;
 use Sift\Skills\SkillSource;
 use Sift\Skills\SkillSourceResolver;
 use Sift\Skills\SkillTargetLock;
@@ -24,7 +24,7 @@ use Sift\Skills\Targets\SkillTargetInstallResult;
 final readonly class SkillsUpdateCommand implements CommandHandler
 {
     public function __construct(
-        private SkillInventory $inventory = new SkillInventory(),
+        private SkillService $skillService = new SkillService(),
         private SkillSourceResolver $sourceResolver = new SkillSourceResolver(),
         private SkillRepositoryCloner $repositoryCloner = new SkillRepositoryCloner(),
         private SkillDiscovery $discovery = new SkillDiscovery(),
@@ -49,7 +49,7 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         );
         $installed = [];
         $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, &$installed): array {
-            $installed = $this->selectedMetadata($this->inventory->list($cwd, $targets), $route);
+            $installed = $this->selectedMetadata($this->skillService->inventory($cwd, $targets), $route);
             $results = [];
 
             foreach ($installed as $metadata) {

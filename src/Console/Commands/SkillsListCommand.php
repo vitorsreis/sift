@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
-use Sift\Skills\SkillInventory;
 use Sift\Skills\SkillManagedMetadata;
+use Sift\Skills\SkillService;
 use Sift\Skills\Targets\InstructionTargetRegistry;
 
 final readonly class SkillsListCommand implements CommandHandler
 {
     public function __construct(
-        private SkillInventory $inventory = new SkillInventory(),
+        private SkillService $skillService = new SkillService(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
     {
         $targets = $this->targets($route);
-        $items = $this->filterBySkill($this->inventory->list($cwd, $targets), $route);
+        $items = $this->filterBySkill($this->skillService->inventory($cwd, $targets), $route);
 
         return [
             'tool' => 'sift',
@@ -74,10 +74,7 @@ final readonly class SkillsListCommand implements CommandHandler
             return $items;
         }
 
-        return array_values(array_filter(
-            $items,
-            static fn(SkillManagedMetadata $metadata): bool => in_array($metadata->name(), $names, true),
-        ));
+        return $this->skillService->selectByName($items, $names);
     }
 
     /**
