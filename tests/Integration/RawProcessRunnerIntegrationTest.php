@@ -62,3 +62,30 @@ it('applies timeout while streaming raw output', function (): void {
     expect($result->exitCode())->toBe(2);
     expect($result->errorCode())->toBe(ErrorCode::ProcessTimeout);
 });
+
+it('removes prepared temporary files after raw execution', function (): void {
+    $stdout = tmpfile();
+    $stderr = tmpfile();
+    $temporary = tempnam(sys_get_temp_dir(), 'sift-raw-runner-');
+
+    if ($stdout === false || $stderr === false || $temporary === false) {
+        throw new RuntimeException('Could not create temporary resources.');
+    }
+
+    file_put_contents($temporary, 'temporary report');
+
+    $result = (new RawProcessRunner())->run(
+        command: new PreparedCommand(
+            tool: 'php',
+            binary: PHP_BINARY,
+            arguments: ['-r', 'exit(0);'],
+            cwd: getcwd() ?: '.',
+            temporaryFiles: [$temporary],
+        ),
+        stdout: $stdout,
+        stderr: $stderr,
+    );
+
+    expect($result->exitCode())->toBe(0);
+    expect($temporary)->not->toBeFile();
+});

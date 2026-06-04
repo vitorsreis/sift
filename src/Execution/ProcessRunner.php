@@ -18,6 +18,22 @@ final readonly class ProcessRunner
         return $this->supervisor->run(
             command: $command,
             timeoutSeconds: (float) $command->timeout(),
+            cleanupCallbacks: $this->cleanupCallbacks($command),
+        );
+    }
+
+    /**
+     * @return list<callable(): void>
+     */
+    private function cleanupCallbacks(PreparedCommand $command): array
+    {
+        return array_map(
+            static fn(string $path): callable => static function () use ($path): void {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            },
+            $command->temporaryFiles(),
         );
     }
 }

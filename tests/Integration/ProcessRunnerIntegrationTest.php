@@ -46,3 +46,46 @@ it('treats timeout zero as no timeout', function (): void {
     expect($result->timedOut())->toBeFalse();
     expect($result->stdout())->toBe('done');
 });
+
+it('removes prepared temporary files after successful execution', function (): void {
+    $temporary = tempnam(sys_get_temp_dir(), 'sift-runner-success-');
+
+    if ($temporary === false) {
+        throw new RuntimeException('Could not create temporary file.');
+    }
+
+    file_put_contents($temporary, 'temporary report');
+
+    $result = (new ProcessRunner())->run(new PreparedCommand(
+        tool: 'php',
+        binary: PHP_BINARY,
+        arguments: ['-r', 'exit(0);'],
+        cwd: getcwd() ?: '.',
+        temporaryFiles: [$temporary],
+    ));
+
+    expect($result->exitCode())->toBe(0);
+    expect($temporary)->not->toBeFile();
+});
+
+it('removes prepared temporary files after timeout', function (): void {
+    $temporary = tempnam(sys_get_temp_dir(), 'sift-runner-timeout-');
+
+    if ($temporary === false) {
+        throw new RuntimeException('Could not create temporary file.');
+    }
+
+    file_put_contents($temporary, 'temporary report');
+
+    $result = (new ProcessRunner())->run(new PreparedCommand(
+        tool: 'php',
+        binary: PHP_BINARY,
+        arguments: ['-r', 'sleep(3);'],
+        cwd: getcwd() ?: '.',
+        timeout: 1,
+        temporaryFiles: [$temporary],
+    ));
+
+    expect($result->timedOut())->toBeTrue();
+    expect($temporary)->not->toBeFile();
+});
