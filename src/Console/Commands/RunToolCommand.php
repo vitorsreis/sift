@@ -15,9 +15,9 @@ use Sift\Core\ExecutionResult;
 use Sift\Core\PreparedCommand;
 use Sift\Core\RunStatus;
 use Sift\Exceptions\UserFacingException;
+use Sift\Execution\ProcessTailRenderer;
 use Sift\Filesystem\FilesystemException;
 use Sift\History\RunHistoryService;
-use Sift\History\SecretRedactor;
 use Sift\Output\ErrorPayload;
 use Sift\Registry\ToolRegistry;
 use Sift\Safety\BlockedArgumentsPolicy;
@@ -41,7 +41,7 @@ final readonly class RunToolCommand
         private OutputPreferencesResolver $outputPreferencesResolver = new OutputPreferencesResolver(),
         private RunHistoryService $historyService = new RunHistoryService(),
         private ?Closure $stderrWriter = null,
-        private SecretRedactor $redactor = new SecretRedactor(),
+        private ProcessTailRenderer $processTailRenderer = new ProcessTailRenderer(),
     ) {
         $this->toolRunner = $toolRunner ?? new ToolRunner(
             registry: ToolRegistry::builtIns(),
@@ -126,14 +126,7 @@ final readonly class RunToolCommand
         }
 
         return function (PreparedCommand $command): void {
-            $payload = [
-                'tool' => $command->tool(),
-                'type' => 'process',
-                'cwd' => $command->cwd(),
-                'command' => $command->displayCommand(),
-            ];
-
-            $this->writeStderr(json_encode($this->redactor->redactPayload($payload), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . PHP_EOL);
+            $this->writeStderr($this->processTailRenderer->render($command));
         };
     }
 

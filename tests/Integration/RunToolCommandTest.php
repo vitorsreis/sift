@@ -154,6 +154,7 @@ it('writes the prepared process to stderr when enabled by config', function (): 
     expect($process)->toMatchArray([
         'tool' => 'pest',
         'type' => 'process',
+        'tty' => false,
         'cwd' => $project->root(),
     ]);
     expect($command)->toContain('--filter', 'CheckoutTest', '--log-junit');
