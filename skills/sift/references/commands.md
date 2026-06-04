@@ -54,7 +54,7 @@ Supported tool names:
 - `pint`, `php-cs-fixer`, `rector`, `mago`
 - `infection`, `deptrac`, `phpmd`
 - `composer-unused`, `composer-require-checker`
-- `composer audit`, `composer licenses`, `composer outdated`, `composer show`
+- `composer audit`, `composer licenses`, `composer outdated`, `composer show`, `composer validate`
 
 ## History Commands
 
@@ -74,7 +74,7 @@ History records are flat JSON files keyed by sortable `run_id`.
 
 ```bash
 composer skills list
-composer skills add vitorsreis/sift --skill sift
+composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
 composer skills find <query>

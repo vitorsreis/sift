@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-Sift is pre-2.0 while the clean rebuild is in progress. Security fixes target:
+Sift 2.0.0 is the current release line. Security fixes target:
 
 | Version | Supported                                    |
 |---------|----------------------------------------------|
-| `2.x`   | Yes, after first stable release              |
+| `2.x`   | Yes                                         |
 | `1.x`   | No planned fixes unless explicitly announced |
 
 ## Reporting a Vulnerability

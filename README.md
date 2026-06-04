@@ -83,7 +83,7 @@ composer sift history view <run_id> meta
 
 ```bash
 composer skills add <source> --list
-composer skills add <source> --skill <skill>
+composer skills add <source> --skill <skill> --agent=<target> --yes
 composer skills update <skill> --yes
 composer skills remove <skill> --yes
 ```
@@ -144,7 +144,7 @@ Omit `history.max_age_days` to disable age-based retention. History records are 
 - `composer-unused`
 - `composer-require-checker`
 - `parallel-lint`
-- `composer audit|licenses|outdated|show`
+- `composer audit|licenses|outdated|show|validate`
 
 ## Entrypoints
 

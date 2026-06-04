@@ -44,7 +44,7 @@ History records are flat JSON files keyed by sortable `run_id`.
 ## Install Agent Instructions
 
 ```bash
-composer skills add vitorsreis/sift --skill sift
+composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills list
 ```
 

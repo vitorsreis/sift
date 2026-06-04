@@ -26,10 +26,10 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Streaming `tools list` availability output with bounded parallel version checks.
 - Bundled `sift` skill for agent workflows.
 - Skill source support for bundled skills, local paths, GitHub shorthand, and GitHub URLs.
-- Skill preview, install, list, find, update, remove, and scaffold commands.
+- Skill source listing with `skills add --list`, plus install, list, find, update, remove, and scaffold commands.
 - Managed skill targets for Codex, Cursor, Windsurf, Claude Code, GitHub Copilot, VS Code, Gemini, and generic `AGENTS.md`.
 - Recognition of unstable read-only skill targets such as Antigravity and OpenCode.
-- Skill source policy checks for unsafe URLs, embedded credentials, path traversal, unsafe symlinks, and submodule-based sources.
+- Skill source policy checks for unsafe URLs, embedded credentials, path traversal, source symlinks, nested target escapes, and submodule-based sources.
 - Repeated skill selectors for skill installation.
 - Release automation for PHP 8.5, PHAR artifacts, checksums, and provenance.
 - Documentation for CLI usage, configuration, tools, skills, payloads, architecture, PHAR, and contributing.
@@ -50,6 +50,15 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Native test runner errors are surfaced instead of being hidden behind parser failures.
 - Composer command bridge satisfies Composer's command contract and preserves the project manifest.
 - Quality scripts run through Sift entrypoints where possible.
+- Rector results distinguish real diffs from inconsistent changed-file list noise.
+- Codex skill installs validate source trees and replace targets from restricted staging directories.
+- Windows batch argument escaping is covered by a real command-injection regression test.
+- Config validation checks the bundled JSON Schema and shares timeout defaults with runtime.
+- History redaction covers embedded short secrets in flags, URLs, queries, and paths.
+- Process timeouts terminate descendant processes best-effort.
+- Atomic writes preserve existing permissions and restrict new files.
+- Skill mutations request explicit confirmation in TTY and require `--yes` or `--all` otherwise.
+- Documentation reflects Composer `validate` support, PHAR bootstrap, and the supported 2.x security line.
 
 ### Removed
 

@@ -10,7 +10,7 @@ Sift installs agent instructions from bundled, local, or GitHub sources.
 - `owner/repo`.
 - `https://github.com/owner/repo`.
 
-Unsafe sources such as HTTP, SSH, Git protocol URLs, embedded credentials, path traversal, and unsafe symlinks are rejected before clone or copy.
+Unsafe sources such as HTTP, SSH, Git protocol URLs, embedded credentials, path traversal, source symlinks, nested target escapes, and submodule-based sources are rejected before clone or copy.
 
 ## Preview
 
@@ -23,14 +23,12 @@ Preview discovers skills and returns output without writing targets. Output is t
 ## Install
 
 ```bash
-composer skills add vitorsreis/sift --skill sift
+composer skills add vitorsreis/sift --skill sift --agent=codex
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills add owner/repo --all
 ```
 
-In TTY mode, Sift shows a preview and asks for confirmation before writing unless `--yes` or `--all` makes the action explicit.
-
-In non-TTY or CI, mutating skill commands require `--yes` and must not rely on prompts.
+In TTY mode, mutating skill commands show the selected skills and targets before requesting explicit confirmation. In non-TTY or CI, pass `--yes` or `--all`; Sift never relies on an unavailable prompt.
 
 ## Targets
 

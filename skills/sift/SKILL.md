@@ -21,7 +21,7 @@ Do not install Sift unless the user asks. If Sift is unavailable or broken, use 
 Install the bundled Sift skill:
 
 ```bash
-composer skills add vitorsreis/sift --skill sift
+composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 ```
 
 Run a tool:
@@ -44,7 +44,7 @@ composer sift --compact pest
 
 ## Safety
 
-- Keep Composer through Sift read-only: `audit`, `licenses`, `outdated`, `show`.
+- Keep Composer through Sift read-only: `audit`, `licenses`, `outdated`, `show`, `validate`.
 - Keep Rector and formatters in dry-run/check mode unless the user explicitly asks for write mode.
 - Do not bypass blocked arguments unless the user changes config.
 - Do not parse native text when Sift reports that machine output is unsupported.

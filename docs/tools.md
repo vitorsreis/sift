@@ -29,7 +29,7 @@ Terminal status:
 | `composer-unused` | JSON output |
 | `composer-require-checker` | `check --format=json` |
 | `parallel-lint` | JSON output |
-| `composer` | read-only `audit`, `licenses`, `outdated`, `show` |
+| `composer` | read-only `audit`, `licenses`, `outdated`, `show`, `validate` |
 
 ## Safety
 

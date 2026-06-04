@@ -13,7 +13,7 @@ The PHAR includes:
 - `src`
 - `resources`
 - `skills`
-- Composer autoload metadata
+- internal PSR-4 bootstrap for `Sift\` classes
 
 It must not depend on `vendor/autoload.php` next to the PHAR at runtime.
 

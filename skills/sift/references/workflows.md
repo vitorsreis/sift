@@ -7,7 +7,7 @@ Use this file for task recipes. Use `commands.md` for full syntax.
 ```bash
 composer sift init
 composer sift validate
-composer skills add vitorsreis/sift --skill sift
+composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer sift tools list
 ```
 

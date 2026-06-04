@@ -54,6 +54,6 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 
 ## Validation
 
-`composer sift validate` parses JSON and checks semantic rules. Missing config is valid because runtime defaults are valid.
+`composer sift validate` checks the document against the bundled JSON Schema and then applies semantic runtime rules. Missing config is valid because runtime defaults are valid.
 
 Invalid config exits with code `3`. Errors are terminal text by default and JSON with `--json`.
