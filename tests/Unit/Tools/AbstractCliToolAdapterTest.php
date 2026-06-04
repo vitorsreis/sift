@@ -92,6 +92,53 @@ it('consumes repair pseudo flag only for compatible adapters', function (): void
     expect($safeCommand->arguments())->toBe(['--repair', 'src']);
 });
 
+it('exposes shared adapter hooks for config machine output meta and status', function (): void {
+    $adapter = testCliAdapter();
+    $context = $adapter->context(new CliArguments('pint', ['--filter=UserTest', '--coverage', '--dry-run']), '/repo');
+
+    expect($adapter->exposedInitialConfig())->toBe([]);
+    expect($adapter->exposedMachineOutputRules())->toBe([]);
+    expect($adapter->exposedCommonMeta($context))->toMatchArray([
+        'filter' => 'UserTest',
+        'coverage' => true,
+        'dry_run' => true,
+    ]);
+    expect($adapter->exposedResolveStatus(ExecutionResult::completed(0, '', '', 0.1))->value)->toBe('passed');
+    expect($adapter->exposedResolveStatus(ExecutionResult::completed(1, '', '', 0.1))->value)->toBe('error');
+});
+
+abstract readonly class TestExposedCliAdapter extends AbstractCliToolAdapter
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function exposedInitialConfig(): array
+    {
+        return $this->initialConfig();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function exposedMachineOutputRules(): array
+    {
+        return $this->machineOutputRules();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function exposedCommonMeta(ToolContext $context): array
+    {
+        return $this->commonMeta($context);
+    }
+
+    public function exposedResolveStatus(ExecutionResult $execution): \Sift\Core\RunStatus
+    {
+        return $this->resolveStatus($execution);
+    }
+}
+
 /**
  * @param  list<string>  $defaultArguments
  * @param  list<string>  $repairCommand
@@ -100,8 +147,8 @@ function testCliAdapter(
     array $defaultArguments = [],
     MutationPolicy $mutationPolicy = MutationPolicy::RepairFlag,
     array $repairCommand = ['--write'],
-): AbstractCliToolAdapter {
-    return new readonly class ($defaultArguments, $mutationPolicy, $repairCommand) extends AbstractCliToolAdapter {
+): TestExposedCliAdapter {
+    return new readonly class ($defaultArguments, $mutationPolicy, $repairCommand) extends TestExposedCliAdapter {
         /**
          * @param  list<string>  $defaultArguments
          * @param  list<string>  $repairCommand

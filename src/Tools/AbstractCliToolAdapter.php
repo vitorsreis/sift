@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Sift\Tools;
 
 use Sift\Config\ToolConfig;
+use Sift\Core\ErrorCode;
+use Sift\Core\ExecutionResult;
 use Sift\Core\PreparedCommand;
+use Sift\Core\RunStatus;
 use Sift\Execution\LocatedTool;
 
 abstract readonly class AbstractCliToolAdapter implements ToolAdapter
@@ -118,6 +121,47 @@ abstract readonly class AbstractCliToolAdapter implements ToolAdapter
     protected function defaultArguments(ToolContext $context): array
     {
         return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function initialConfig(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function machineOutputRules(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array{filter: string|null, coverage: bool, coverage_min: float|null, mode: string|null, dry_run: bool, subcommand: string|null, warnings: list<string>}
+     */
+    protected function commonMeta(ToolContext $context): array
+    {
+        return [
+            'filter' => $context->filter(),
+            'coverage' => $context->coverage(),
+            'coverage_min' => $context->coverageMin(),
+            'mode' => $context->mode(),
+            'dry_run' => $context->dryRun(),
+            'subcommand' => $context->subcommand(),
+            'warnings' => $context->warnings(),
+        ];
+    }
+
+    protected function resolveStatus(
+        ExecutionResult $execution,
+        int $findings = 0,
+        bool $changed = false,
+        ?ErrorCode $errorCode = null,
+    ): RunStatus {
+        return (new StatusDecider())->decide($execution, $findings, $changed, $errorCode);
     }
 
     private function repairRequested(CliArguments $arguments): bool
