@@ -153,7 +153,9 @@ final readonly class CliParser
             $token = $tokens[$index];
 
             if ($token === '--') {
-                return [$options, array_slice($tokens, $index + 1)];
+                ++$index;
+
+                continue;
             }
 
             if ($this->isCommandAlias($token) || ! str_starts_with($token, '-')) {

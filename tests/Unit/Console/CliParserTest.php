@@ -82,6 +82,22 @@ it('parses repeatable php ini settings before the command', function (): void {
     expect($request->arguments())->toBe(['pest', '--coverage']);
 });
 
+it('parses php ini settings after a leading composer end-of-options marker', function (): void {
+    $request = CliParser::forSift()->parse([
+        '--',
+        '-dxdebug.mode=coverage',
+        'pest',
+        '--parallel',
+        '--coverage',
+    ]);
+
+    expect($request->command())->toBe('run');
+    expect($request->globalOptions())->toBe([
+        'd' => ['xdebug.mode=coverage'],
+    ]);
+    expect($request->arguments())->toBe(['pest', '--parallel', '--coverage']);
+});
+
 it('does not consume the next token as a boolean flag value', function (): void {
     $request = CliParser::forSift()->parse(['--compact', 'pest', '--filter=CheckoutTest']);
 
