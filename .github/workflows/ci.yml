@@ -54,9 +54,15 @@ jobs:
           mkdir -p build/composer-package/export build/composer-package/install
           composer archive --format=zip --dir=build/composer-package/export
           unzip -q build/composer-package/export/*.zip -d build/composer-package/source
-          package_dir="$(find build/composer-package/source -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          package_dir="build/composer-package/source"
+          if [ ! -f "$package_dir/composer.json" ]; then
+            package_dir="$(find build/composer-package/source -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          fi
+          test -f "$package_dir/composer.json"
           composer --working-dir "$package_dir" validate --strict
           composer --working-dir build/composer-package/install init --name=fixture/project --no-interaction
+          composer config --working-dir build/composer-package/install minimum-stability dev
+          composer config --working-dir build/composer-package/install prefer-stable true
           composer config --working-dir build/composer-package/install repositories.sift path "$(pwd)/$package_dir"
           composer config --working-dir build/composer-package/install allow-plugins.vitorsreis/sift true
           composer --working-dir build/composer-package/install require vitorsreis/sift:* --no-interaction --no-progress
