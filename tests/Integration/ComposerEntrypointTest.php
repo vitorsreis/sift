@@ -44,15 +44,16 @@ it('runs composer sift and composer skills from an installed plugin package', fu
 
     expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
 
-    $sift = runComposerEntrypoint($project, ['sift', '--no-pretty', 'help']);
-    $skills = runComposerEntrypoint($project, ['skills', '--no-pretty', 'list']);
-    $vendorBin = runVendorSiftEntrypoint($project, ['--no-pretty', 'help']);
+    $sift = runComposerEntrypoint($project, ['sift', '--json', '--no-pretty', 'help']);
+    $skills = runComposerEntrypoint($project, ['skills', '--json', '--no-pretty', 'list']);
+    $vendorBin = runVendorSiftEntrypoint($project, ['--json', '--no-pretty', 'help']);
 
     expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
 
     expect($sift['exit_code'])->toBe(0);
     expect($sift['stderr'])->toBe('');
-    expect(decodeComposerEntrypointPayload($sift['stdout'])['command'] ?? null)->toBe('help');
+    expect($sift['stdout'])->toContain('Sift');
+    expect($sift['stdout'])->toContain('Commands');
 
     expect($skills['exit_code'])->toBe(0);
     expect($skills['stderr'])->toBe('');

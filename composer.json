@@ -69,13 +69,13 @@
     }
   },
   "scripts": {
-    "sift": "@php -dxdebug.mode=off bin/sift",
-    "composer:validate": "@sift composer validate --strict",
-    "test": "@sift pest --parallel",
+    "sift": "Sift\\Composer\\Command\\SiftCommand",
+    "composer:validate": "@php -dxdebug.mode=off bin/sift composer validate --strict",
+    "test": "@php -dxdebug.mode=off bin/sift pest --parallel",
     "test:coverage": "@php -dxdebug.mode=coverage bin/sift pest --parallel --coverage --min=80",
-    "analyse": "@sift phpstan analyse --memory-limit=1G",
-    "format": "@sift pint --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
-    "rector": "@sift rector process --dry-run",
+    "analyse": "@php -dxdebug.mode=off bin/sift phpstan analyse --memory-limit=1G",
+    "format": "@php -dxdebug.mode=off bin/sift pint --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
+    "rector": "@php -dxdebug.mode=off bin/sift rector process --dry-run",
     "quality": [
       "@composer:validate",
       "@test",
@@ -83,6 +83,13 @@
       "@format",
       "@rector"
     ],
-    "build:phar": "@php -d phar.readonly=0 bin/phar"
+    "build:phar": "@php -d phar.readonly=0 bin/phar",
+    "quality:unuse-sift": [
+      "@php -dxdebug.mode=off vendor/bin/composer validate --strict",
+      "@php -dxdebug.mode=off vendor/bin/pest",
+      "@php vendor/bin/phpstan analyse --memory-limit=1G",
+      "@php vendor/bin/pint --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
+      "@php vendor/bin/rector process --dry-run"
+    ]
   }
 }

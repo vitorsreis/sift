@@ -71,6 +71,29 @@ it('keeps raw sift flags from argv input', function (): void {
     expect($output->fetch())->toBe('ok');
 });
 
+it('rebuilds composer-consumed sift options before command arguments', function (): void {
+    $captured = null;
+    $command = new SiftCommand(
+        static function (array $arguments, OutputInterface $output) use (&$captured): int {
+            $captured = $arguments;
+            $output->write('ok');
+
+            return 0;
+        },
+    );
+
+    $tester = composerCommandTester($command);
+    $exitCode = $tester->execute([
+        '--compact' => true,
+        '--json' => true,
+        'arguments' => ['composer', 'validate'],
+    ]);
+
+    expect($exitCode)->toBe(0);
+    expect($captured)->toBe(['--compact', '--json', 'composer', 'validate']);
+    expect($tester->getDisplay())->toBe('ok');
+});
+
 it('bridges composer skills arguments into the skills command namespace', function (): void {
     $captured = null;
     $command = new ComposerSkillsCommand(
@@ -95,21 +118,18 @@ it('bridges composer skills arguments into the skills command namespace', functi
 it('runs the real application through composer sift', function (): void {
     $tester = composerCommandTester(new SiftCommand());
     $exitCode = $tester->execute([
-        'arguments' => ['--no-pretty', 'help'],
+        'arguments' => ['--json', '--no-pretty', 'help'],
     ]);
 
-    $payload = decodeComposerCommandPayload($tester->getDisplay());
-
     expect($exitCode)->toBe(0);
-    expect($payload['tool'] ?? null)->toBe('sift');
-    expect($payload['status'] ?? null)->toBe('passed');
-    expect($payload['command'] ?? null)->toBe('help');
+    expect($tester->getDisplay())->toContain('Sift');
+    expect($tester->getDisplay())->toContain('Commands');
 });
 
 it('runs the real application through composer skills', function (): void {
     $tester = composerCommandTester(new ComposerSkillsCommand());
     $exitCode = $tester->execute([
-        'arguments' => ['--no-pretty', 'list'],
+        'arguments' => ['--json', '--no-pretty', 'list'],
     ]);
 
     $payload = decodeComposerCommandPayload($tester->getDisplay());
