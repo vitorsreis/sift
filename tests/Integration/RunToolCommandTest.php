@@ -23,7 +23,7 @@ it('runs a direct tool command and records history by default', function (): voi
         'tools' => ['pest' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['pest', '--filter', 'CheckoutTest'], $project->root());
+    $result = CliRunner::run(['--json', 'pest', '--filter', 'CheckoutTest'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $history = runToolCommandHistoryDocuments($project);
 
@@ -35,9 +35,62 @@ it('runs a direct tool command and records history by default', function (): voi
     expect(runToolCommandObject($payload, 'meta')['filter'] ?? null)->toBe('CheckoutTest');
     expect($fake->argv())->toContain('--filter', 'CheckoutTest', '--log-junit');
     expect($history)->toHaveCount(1);
+    expect($history[0])->not->toHaveKeys(['payload', 'stored_at']);
     expect($history[0]['tool'] ?? null)->toBe('pest');
     expect($history[0]['status'] ?? null)->toBe('passed');
-    expect(runToolCommandObject($history[0], 'payload')['tool'] ?? null)->toBe('pest');
+    expect(runToolCommandObject($history[0], 'summary'))->toMatchArray(['tests' => 1, 'passed' => 1]);
+});
+
+it('renders direct tool output as terminal text by default', function (): void {
+    $project = FixtureProject::create();
+    $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'pest',
+        writes: [
+            '--log-junit' => runToolCommandJunitReport($test),
+        ],
+    );
+    runToolCommandConfig($project, [
+        'history' => ['enabled' => false],
+        'output' => ['size' => 'compact', 'pretty' => false, 'show_process' => false],
+        'tools' => ['pest' => ['binary' => $fake->binary()]],
+    ]);
+
+    $result = CliRunner::run(['pest', '--filter', 'CheckoutTest'], $project->root());
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toBe('pest passed tests=1 passed=1 failures=0 errors=0 skipped=0' . PHP_EOL);
+});
+
+it('exposes the history run id in compact json output', function (): void {
+    $project = FixtureProject::create();
+    $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'pest',
+        writes: [
+            '--log-junit' => runToolCommandJunitReport($test),
+        ],
+    );
+    runToolCommandConfig($project, [
+        'history' => ['enabled' => true],
+        'output' => ['size' => 'normal', 'pretty' => false, 'show_process' => false],
+        'tools' => ['pest' => ['binary' => $fake->binary()]],
+    ]);
+
+    $result = CliRunner::run(['--json', '--compact', 'pest'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $history = runToolCommandHistoryDocuments($project);
+
+    expect($result['exit_code'])->toBe(0);
+    expect(array_keys($payload))->toBe(['run_id', 'tool', 'status', 'tests', 'passed', 'failures', 'errors', 'skipped']);
+    expect($payload['tool'] ?? null)->toBe('pest');
+    expect($payload['status'] ?? null)->toBe('passed');
+    expect($payload['run_id'] ?? null)->toBeString();
+    expect($payload['run_id'] ?? null)->toMatch('/^[0-9a-z]{14}$/');
+    expect($history[0]['run_id'] ?? null)->toBe($payload['run_id']);
 });
 
 it('streams raw tool output, preserves native exit code and skips history', function (): void {
@@ -64,6 +117,19 @@ it('streams raw tool output, preserves native exit code and skips history', func
     expect(runToolCommandHistoryDocuments($project))->toBe([]);
 });
 
+it('rejects json together with raw mode', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--json', '--raw', 'composer', 'audit'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = runToolCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+    expect($error['message'] ?? null)->toBe('Options "--json" and "--raw" cannot be used together.');
+});
+
 it('writes the prepared process to stderr when enabled by config', function (): void {
     $project = FixtureProject::create();
     $test = $project->write('tests/Feature/CheckoutTest.php', '<?php');
@@ -78,7 +144,7 @@ it('writes the prepared process to stderr when enabled by config', function (): 
         'tools' => ['pest' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['pest', '--filter', 'CheckoutTest'], $project->root());
+    $result = CliRunner::run(['--json', 'pest', '--filter', 'CheckoutTest'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $process = CliRunner::decode($result['stderr']);
     $command = runToolCommandList($process, 'command');
@@ -107,7 +173,7 @@ it('writes the prepared process to stderr when enabled by option', function (): 
         'tools' => ['pest' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['--show-process', 'pest'], $project->root());
+    $result = CliRunner::run(['--json', '--show-process', 'pest'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $process = CliRunner::decode($result['stderr']);
 
@@ -130,7 +196,7 @@ it('applies history overrides with no-history taking precedence', function (): v
         'tools' => ['pest' => ['binary' => $recordingFake->binary()]],
     ]);
 
-    $recordingResult = CliRunner::run(['--history', 'pest'], $recordingProject->root());
+    $recordingResult = CliRunner::run(['--json', '--history', 'pest'], $recordingProject->root());
 
     $skippingProject = FixtureProject::create();
     $skippingTest = $skippingProject->write('tests/Feature/CheckoutTest.php', '<?php');
@@ -148,7 +214,7 @@ it('applies history overrides with no-history taking precedence', function (): v
         'tools' => ['pest' => ['binary' => $skippingFake->binary()]],
     ]);
 
-    $skippingResult = CliRunner::run(['--history', '--no-history', 'pest'], $skippingProject->root());
+    $skippingResult = CliRunner::run(['--json', '--history', '--no-history', 'pest'], $skippingProject->root());
 
     expect($recordingResult['exit_code'])->toBe(0);
     expect(runToolCommandHistoryDocuments($recordingProject))->toHaveCount(1);
@@ -171,7 +237,7 @@ it('records tool errors and exposes the run id when history is enabled', functio
         'tools' => ['composer' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['composer', 'audit'], $project->root());
+    $result = CliRunner::run(['--json', 'composer', 'audit'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = runToolCommandObject($payload, 'error');
     $history = runToolCommandHistoryDocuments($project);
@@ -184,9 +250,10 @@ it('records tool errors and exposes the run id when history is enabled', functio
     expect($runId)->toMatch('/^[0-9a-z]{14}$/');
     expect($history)->toHaveCount(1);
     expect($history[0]['run_id'] ?? null)->toBe($runId);
+    expect($history[0])->not->toHaveKeys(['payload', 'stored_at']);
     expect($history[0]['tool'] ?? null)->toBe('composer');
     expect(runToolCommandHistoryFileNames($project))->toBe([sprintf('sift_%s_composer.json', $runId)]);
-    expect(runToolCommandObject(runToolCommandObject($history[0], 'payload'), 'error')['code'] ?? null)->toBe('parse_failure');
+    expect(runToolCommandObject($history[0], 'error')['code'] ?? null)->toBe('parse_failure');
 });
 
 it('returns a history write error when required history cannot be stored', function (): void {
@@ -206,7 +273,7 @@ it('returns a history write error when required history cannot be stored', funct
         'tools' => ['pest' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['pest'], $project->root());
+    $result = CliRunner::run(['--json', 'pest'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = runToolCommandObject($payload, 'error');
 
@@ -233,7 +300,7 @@ it('returns a history write error when history is forced and cannot be stored', 
         'tools' => ['pest' => ['binary' => $fake->binary()]],
     ]);
 
-    $result = CliRunner::run(['--history', 'pest'], $project->root());
+    $result = CliRunner::run(['--json', '--history', 'pest'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = runToolCommandObject($payload, 'error');
 

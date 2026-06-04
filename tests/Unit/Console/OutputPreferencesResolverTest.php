@@ -7,10 +7,11 @@ use Sift\Config\OutputConfig;
 use Sift\Config\SiftConfig;
 use Sift\Console\CommandRoute;
 use Sift\Console\InvalidUsageException;
+use Sift\Console\OutputFormat;
 use Sift\Console\OutputPreferencesResolver;
 use Sift\Console\OutputSize;
 
-function outputResolverConfig(string $size, bool $pretty, bool $showProcess): SiftConfig
+function outputResolverConfig(string $size, bool $pretty, bool $showProcess, string $format = 'terminal'): SiftConfig
 {
     return new SiftConfig(
         schema: 'https://example.com/schema.json',
@@ -24,7 +25,7 @@ function outputResolverConfig(string $size, bool $pretty, bool $showProcess): Si
             maxBytesPerRun: 1048576,
             redactSecrets: true,
         ),
-        output: new OutputConfig($size, $pretty, $showProcess),
+        output: new OutputConfig($size, $pretty, $showProcess, $format),
         tools: [],
     );
 }
@@ -50,6 +51,7 @@ it('resolves command options before global options and config', function (): voi
     );
 
     expect($preferences->size())->toBe(OutputSize::Full);
+    expect($preferences->format())->toBe(OutputFormat::Terminal);
     expect($preferences->pretty())->toBeTrue();
     expect($preferences->showProcess())->toBeTrue();
 });
@@ -71,18 +73,31 @@ it('resolves global options before config and defaults', function (): void {
     );
 
     expect($preferences->size())->toBe(OutputSize::Compact);
+    expect($preferences->format())->toBe(OutputFormat::Terminal);
     expect($preferences->pretty())->toBeFalse();
     expect($preferences->showProcess())->toBeFalse();
     expect($preferences->debug())->toBeTrue();
 });
 
+it('uses terminal output by default and json when requested', function (): void {
+    $resolver = new OutputPreferencesResolver();
+
+    expect($resolver->resolve(new CommandRoute('validate'))->format())->toBe(OutputFormat::Terminal);
+    expect($resolver->resolve(new CommandRoute('validate', globalOptions: ['json' => true]))->format())->toBe(OutputFormat::Json);
+    expect($resolver->resolve(
+        new CommandRoute('validate', globalOptions: ['no-json' => true]),
+        outputResolverConfig('normal', false, false, 'json'),
+    )->format())->toBe(OutputFormat::Terminal);
+});
+
 it('uses config before defaults', function (): void {
     $preferences = (new OutputPreferencesResolver())->resolve(
         route: new CommandRoute('validate'),
-        config: outputResolverConfig('normal', false, false),
+        config: outputResolverConfig('normal', false, false, 'json'),
     );
 
     expect($preferences->size())->toBe(OutputSize::Normal);
+    expect($preferences->format())->toBe(OutputFormat::Json);
     expect($preferences->pretty())->toBeFalse();
     expect($preferences->showProcess())->toBeFalse();
 });
@@ -105,4 +120,12 @@ it('rejects conflicting output flags in the same scope', function (): void {
     expect(fn(): mixed => (new OutputPreferencesResolver())->resolve(
         new CommandRoute('validate', globalOptions: ['pretty' => true, 'no-pretty' => true]),
     ))->toThrow(InvalidUsageException::class, 'Options "--pretty" and "--no-pretty" cannot be used together.');
+
+    expect(fn(): mixed => (new OutputPreferencesResolver())->resolve(
+        new CommandRoute('run.tool', globalOptions: ['json' => true, 'raw' => true]),
+    ))->toThrow(InvalidUsageException::class, 'Options "--json" and "--raw" cannot be used together.');
+
+    expect(fn(): mixed => (new OutputPreferencesResolver())->resolve(
+        new CommandRoute('validate', globalOptions: ['json' => true, 'no-json' => true]),
+    ))->toThrow(InvalidUsageException::class, 'Options "--json" and "--no-json" cannot be used together.');
 });

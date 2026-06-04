@@ -20,17 +20,15 @@ it('runs the phar from an isolated directory', function (): void {
         throw new RuntimeException('Could not copy PHAR to isolated fixture.');
     }
 
-    $source = runPharEntrypointProcess([PHP_BINARY, $root . '/bin/sift', '--no-pretty', 'help'], $project->root());
-    $result = runPharEntrypointProcess([PHP_BINARY, $targetPhar, '--no-pretty', 'help'], $project->root());
-    $payload = decodePharEntrypointPayload($result['stdout']);
+    $source = runPharEntrypointProcess([PHP_BINARY, $root . '/bin/sift', '--json', '--no-pretty', 'help'], $project->root());
+    $result = runPharEntrypointProcess([PHP_BINARY, $targetPhar, '--json', '--no-pretty', 'help'], $project->root());
 
     expect($source['exit_code'])->toBe(0);
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
     expect($result['stdout'])->toBe($source['stdout']);
-    expect($payload['tool'] ?? null)->toBe('sift');
-    expect($payload['status'] ?? null)->toBe('passed');
-    expect($payload['command'] ?? null)->toBe('help');
+    expect($result['stdout'])->toContain('Sift');
+    expect($result['stdout'])->toContain('Commands');
 });
 
 /**

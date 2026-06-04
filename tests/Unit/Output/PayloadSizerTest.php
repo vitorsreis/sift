@@ -22,6 +22,7 @@ function payloadSizerPreferences(OutputSize $size): OutputPreferences
 function payloadSizerPayload(): array
 {
     return [
+        'run_id' => '0td7j1a01z141z',
         'tool' => 'pest',
         'status' => 'failed',
         'summary' => [
@@ -64,6 +65,7 @@ it('keeps full payloads unchanged', function (): void {
 
 it('renders compact payloads as tool, status, and flattened summary', function (): void {
     expect((new PayloadSizer())->resize(payloadSizerPayload(), payloadSizerPreferences(OutputSize::Compact)))->toBe([
+        'run_id' => '0td7j1a01z141z',
         'tool' => 'pest',
         'status' => 'failed',
         'tests' => 12,
@@ -73,6 +75,7 @@ it('renders compact payloads as tool, status, and flattened summary', function (
 
 it('renders normal payloads without verbose item fields or extra artifacts', function (): void {
     expect((new PayloadSizer())->resize(payloadSizerPayload(), payloadSizerPreferences(OutputSize::Normal)))->toBe([
+        'run_id' => '0td7j1a01z141z',
         'tool' => 'pest',
         'status' => 'failed',
         'summary' => [

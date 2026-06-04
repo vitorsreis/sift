@@ -30,6 +30,7 @@ final readonly class OutputPreferencesResolver
         $defaults = ConfigDefaults::output();
         $output = $config?->output();
         $size = $output instanceof OutputConfig ? OutputSize::from($output->size()) : OutputSize::from($defaults['size']);
+        $format = $output instanceof OutputConfig ? OutputFormat::from($output->format()) : OutputFormat::from($defaults['format']);
         $pretty = $output instanceof OutputConfig ? $output->pretty() : ($this->runningInCi ? false : $defaults['pretty']);
         $showProcess = $output instanceof OutputConfig ? $output->showProcess() : $defaults['show_process'];
 
@@ -38,6 +39,7 @@ final readonly class OutputPreferencesResolver
             pretty: $pretty,
             showProcess: $showProcess,
             debug: false,
+            format: $format,
         );
     }
 
@@ -58,8 +60,33 @@ final readonly class OutputPreferencesResolver
         $pretty = $this->boolFromOptions($options, 'pretty', 'no-pretty', $current->pretty());
         $showProcess = $this->boolFromOptions($options, 'show-process', 'no-show-process', $current->showProcess());
         $debug = $this->optionEnabled($options, 'debug') || $current->debug();
+        $format = $this->formatFromOptions($options) ?? $current->format();
 
-        return new OutputPreferences($size, $pretty, $showProcess, $debug);
+        return new OutputPreferences($size, $pretty, $showProcess, $debug, $format);
+    }
+
+    /**
+     * @param array<string, ParsedOption> $options
+     */
+    private function formatFromOptions(array $options): ?OutputFormat
+    {
+        if ($this->optionEnabled($options, 'json') && $this->optionEnabled($options, 'raw')) {
+            throw new InvalidUsageException('Options "--json" and "--raw" cannot be used together.');
+        }
+
+        if ($this->optionEnabled($options, 'json') && $this->optionEnabled($options, 'no-json')) {
+            throw new InvalidUsageException('Options "--json" and "--no-json" cannot be used together.');
+        }
+
+        if ($this->optionEnabled($options, 'json')) {
+            return OutputFormat::Json;
+        }
+
+        if ($this->optionEnabled($options, 'no-json')) {
+            return OutputFormat::Terminal;
+        }
+
+        return null;
     }
 
     /**

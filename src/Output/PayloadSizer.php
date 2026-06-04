@@ -45,7 +45,7 @@ final class PayloadSizer
     {
         $compact = [];
 
-        foreach (['tool', 'status'] as $key) {
+        foreach (['run_id', 'tool', 'status'] as $key) {
             if (array_key_exists($key, $payload)) {
                 $compact[$key] = $payload[$key];
             }
@@ -75,7 +75,7 @@ final class PayloadSizer
     {
         $normal = [];
 
-        foreach (['tool', 'status', 'summary'] as $key) {
+        foreach (['run_id', 'tool', 'status', 'summary'] as $key) {
             if (array_key_exists($key, $payload)) {
                 $normal[$key] = $payload[$key];
             }

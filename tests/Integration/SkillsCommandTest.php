@@ -12,6 +12,7 @@ it('lists discovered skills without writing targets', function (): void {
     skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
 
     $result = CliRunner::run([
+        '--json',
         '--full',
         '--no-pretty',
         'skills',
@@ -42,7 +43,7 @@ it('lists discovered skills without writing targets', function (): void {
 it('lists the bundled sift skill', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'add', 'sift', '--list'], $project->root());
+    $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'add', 'sift', '--list'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
 
     expect($result['exit_code'])->toBe(0);
@@ -53,7 +54,7 @@ it('lists the bundled sift skill', function (): void {
 it('renders skills command usage errors as json', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['--no-pretty', 'skills', 'add', 'sift'], $project->root());
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'add', 'sift'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = skillsCommandObject($payload, 'error');
 
@@ -72,6 +73,7 @@ it('installs a selected skill into the generic agents file', function (): void {
     $project->write('AGENTS.md', "Manual instructions\n");
 
     $result = CliRunner::run([
+        '--json',
         '--full',
         '--no-pretty',
         'skills',
@@ -102,6 +104,7 @@ it('installs a single skill source without an explicit skill selector', function
     skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
 
     $result = CliRunner::run([
+        '--json',
         '--full',
         '--no-pretty',
         'skills',
@@ -125,6 +128,7 @@ it('installs every discovered skill with the wildcard selector', function (): vo
     skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
 
     $result = CliRunner::run([
+        '--json',
         '--full',
         '--no-pretty',
         'skills',
@@ -151,6 +155,7 @@ it('installs repeated skill selectors', function (): void {
     skillsCommandFixture($repository, 'skills/security-review/SKILL.md', 'security-review', 'Use when reviewing security.');
 
     $result = CliRunner::run([
+        '--json',
         '--full',
         '--no-pretty',
         'skills',
@@ -178,10 +183,11 @@ it('lists installed generic skills from managed blocks only', function (): void 
     skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
     $project->write('AGENTS.md', "Manual mention of php-review without managed metadata\n");
 
-    $emptyList = CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
+    $emptyList = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
     $emptyPayload = CliRunner::decode($emptyList['stdout']);
 
     CliRunner::run([
+        '--json',
         '--no-pretty',
         'skills',
         'add',
@@ -190,7 +196,7 @@ it('lists installed generic skills from managed blocks only', function (): void 
         '--yes',
     ], $project->root());
 
-    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
+    $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $items = skillsCommandItems($payload);
 
@@ -209,6 +215,7 @@ it('removes only managed generic skill blocks', function (): void {
     $project->write('AGENTS.md', "Manual instructions\n");
 
     CliRunner::run([
+        '--json',
         '--no-pretty',
         'skills',
         'add',
@@ -217,10 +224,10 @@ it('removes only managed generic skill blocks', function (): void {
         '--yes',
     ], $project->root());
 
-    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic', '--yes'], $project->root());
+    $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic', '--yes'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $agents = (string) file_get_contents($project->path('AGENTS.md'));
-    $list = CliRunner::decode(CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root())['stdout']);
+    $list = CliRunner::decode(CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'list', '--agent=generic'], $project->root())['stdout']);
 
     expect($result['exit_code'])->toBe(0);
     expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(1);
@@ -239,6 +246,7 @@ it('removes managed codex skill directories', function (): void {
 
     try {
         CliRunner::run([
+            '--json',
             '--no-pretty',
             'skills',
             'add',
@@ -247,10 +255,10 @@ it('removes managed codex skill directories', function (): void {
             '--yes',
         ], $project->root());
 
-        $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
+        $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
         $payload = CliRunner::decode($result['stdout']);
         $items = skillsCommandItems($payload);
-        $list = CliRunner::decode(CliRunner::run(['--full', '--no-pretty', 'skills', 'list', '--agent=codex'], $project->root())['stdout']);
+        $list = CliRunner::decode(CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'list', '--agent=codex'], $project->root())['stdout']);
     } finally {
         putenv($previousCodexHome === false ? 'SIFT_CODEX_HOME' : 'SIFT_CODEX_HOME=' . $previousCodexHome);
     }
@@ -272,7 +280,7 @@ it('does not remove unmanaged codex skill directories', function (): void {
     putenv('SIFT_CODEX_HOME=' . $codexHome->root());
 
     try {
-        $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
+        $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
         $payload = CliRunner::decode($result['stdout']);
         $items = skillsCommandItems($payload);
     } finally {
@@ -289,7 +297,7 @@ it('does not remove unmanaged codex skill directories', function (): void {
 it('requires confirmation before removing skills', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic'], $project->root());
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=generic'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = skillsCommandObject($payload, 'error');
 
@@ -304,6 +312,7 @@ it('updates an installed generic skill from managed source metadata', function (
     $project->write('AGENTS.md', "Manual instructions\n");
 
     CliRunner::run([
+        '--json',
         '--no-pretty',
         'skills',
         'add',
@@ -314,7 +323,7 @@ it('updates an installed generic skill from managed source metadata', function (
 
     skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Updated guidance');
 
-    $result = CliRunner::run(['--full', '--no-pretty', 'skills', 'update', 'php-review', '--agent=generic', '--yes'], $project->root());
+    $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'update', 'php-review', '--agent=generic', '--yes'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $agents = (string) file_get_contents($project->path('AGENTS.md'));
 
@@ -329,7 +338,7 @@ it('updates an installed generic skill from managed source metadata', function (
 it('requires confirmation before updating skills', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['--no-pretty', 'skills', 'update', 'php-review', '--agent=generic'], $project->root());
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'update', 'php-review', '--agent=generic'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = skillsCommandObject($payload, 'error');
 
@@ -351,7 +360,7 @@ it('fails mutating skill commands when the target lock is held', function (): vo
     flock($handle, LOCK_EX);
 
     try {
-        $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
+        $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
     } finally {
         flock($handle, LOCK_UN);
         fclose($handle);
@@ -369,7 +378,7 @@ it('requires confirmation before writing skills in non interactive mode', functi
     $repository = FixtureProject::create('sift-skills-repo-');
     skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
 
-    $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic'], $project->root());
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = skillsCommandObject($payload, 'error');
 
@@ -385,7 +394,7 @@ it('does not install ambiguous multi skill sources without an explicit skill sel
     skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
     skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
 
-    $result = CliRunner::run(['--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'add', $repository->root(), '--agent=generic', '--yes'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = skillsCommandObject($payload, 'error');
 

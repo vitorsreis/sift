@@ -35,7 +35,7 @@ function initValidateObject(array $payload, string $key): array
 it('validates defaults when config is absent', function (): void {
     $project = FixtureProject::create();
 
-    $result = CliRunner::run(['--full', 'validate'], $project->root());
+    $result = CliRunner::run(['--json', '--full', 'validate'], $project->root());
     $payload = CliRunner::decode($result['stdout']);
     $summary = initValidateObject($payload, 'summary');
     $meta = initValidateObject($payload, 'meta');
@@ -56,11 +56,11 @@ it('validates defaults when config is absent', function (): void {
 it('initializes a minimal config and validates it', function (): void {
     $project = FixtureProject::create();
 
-    $init = CliRunner::run(['--full', 'init', '--no-skill'], $project->root());
+    $init = CliRunner::run(['--json', '--full', 'init', '--no-skill'], $project->root());
     $initPayload = CliRunner::decode($init['stdout']);
     $initSummary = initValidateObject($initPayload, 'summary');
     $document = $project->readJson('sift.json');
-    $validate = CliRunner::run(['--full', 'validate'], $project->root());
+    $validate = CliRunner::run(['--json', '--full', 'validate'], $project->root());
     $validatePayload = CliRunner::decode($validate['stdout']);
     $validateSummary = initValidateObject($validatePayload, 'summary');
     $output = initValidateObject($document, 'output');
@@ -85,7 +85,7 @@ it('keeps init idempotent without force', function (): void {
     $project = FixtureProject::create();
 
     CliRunner::run(['init', '--no-skill'], $project->root());
-    $again = CliRunner::run(['--full', 'init', '--no-skill'], $project->root());
+    $again = CliRunner::run(['--json', '--full', 'init', '--no-skill'], $project->root());
     $payload = CliRunner::decode($again['stdout']);
     $summary = initValidateObject($payload, 'summary');
 
@@ -96,8 +96,8 @@ it('keeps init idempotent without force', function (): void {
 it('supports command-level custom config path', function (): void {
     $project = FixtureProject::create();
 
-    $init = CliRunner::run(['--full', 'init', '--no-skill', '--config=custom/sift.json'], $project->root());
-    $validate = CliRunner::run(['--full', 'validate', '--config=custom/sift.json'], $project->root());
+    $init = CliRunner::run(['--json', '--full', 'init', '--no-skill', '--config=custom/sift.json'], $project->root());
+    $validate = CliRunner::run(['--json', '--full', 'validate', '--config=custom/sift.json'], $project->root());
     $payload = CliRunner::decode($validate['stdout']);
     $summary = initValidateObject($payload, 'summary');
 
@@ -128,7 +128,7 @@ it('preserves known config overrides when forcing init', function (): void {
         ],
     ]);
 
-    $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
+    $result = CliRunner::run(['--json', 'init', '--force', '--no-skill'], $project->root());
     $document = $project->readJson('sift.json');
 
     expect($result['exit_code'])->toBe(0);
@@ -155,7 +155,7 @@ it('does not overwrite invalid JSON during init', function (): void {
     $project = FixtureProject::create();
     $project->write('sift.json', '{');
 
-    $result = CliRunner::run(['init', '--force', '--no-skill'], $project->root());
+    $result = CliRunner::run(['--json', 'init', '--force', '--no-skill'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = initValidateObject($payload, 'error');
 
@@ -197,7 +197,7 @@ it('returns config errors as JSON on stderr', function (): void {
         ],
     ]);
 
-    $result = CliRunner::run(['validate'], $project->root());
+    $result = CliRunner::run(['--json', 'validate'], $project->root());
     $payload = CliRunner::decode($result['stderr']);
     $error = initValidateObject($payload, 'error');
 
@@ -205,4 +205,62 @@ it('returns config errors as JSON on stderr', function (): void {
     expect($result['stdout'])->toBe('');
     expect($payload['status'] ?? null)->toBe('error');
     expect($error['code'] ?? null)->toBe('invalid_config');
+});
+
+it('renders validate as terminal text by default', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--compact', 'validate'], $project->root());
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toContain('sift passed');
+    expect($result['stdout'])->toContain('using_defaults=true');
+});
+
+it('uses json output when configured without requiring the json flag', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'format' => 'json',
+            'size' => 'full',
+            'pretty' => false,
+            'show_process' => false,
+        ],
+    ]);
+
+    $result = CliRunner::run(['validate'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $summary = $payload['summary'] ?? null;
+    $meta = $payload['meta'] ?? null;
+
+    if (! is_array($summary) || ! is_array($meta)) {
+        throw new RuntimeException('Expected validate payload summary and meta objects.');
+    }
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($payload['tool'] ?? null)->toBe('sift');
+    expect($payload['status'] ?? null)->toBe('passed');
+    expect($summary['config_path'] ?? null)->toBe($project->path('sift.json'));
+    expect($meta['subcommand'] ?? null)->toBe('validate');
+});
+
+it('renders config errors as terminal text by default', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'history' => [
+            'max_files' => 0,
+        ],
+    ]);
+
+    $result = CliRunner::run(['validate'], $project->root());
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($result['stderr'])->toContain('error invalid_config');
+    expect($result['stderr'])->toContain('message:');
+    expect($result['stderr'])->toContain('path: ' . $project->path('sift.json'));
 });

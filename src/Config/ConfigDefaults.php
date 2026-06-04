@@ -29,11 +29,12 @@ final class ConfigDefaults
     }
 
     /**
-     * @return array{size: string, pretty: bool, show_process: bool}
+     * @return array{format: string, size: string, pretty: bool, show_process: bool}
      */
     public static function output(): array
     {
         return [
+            'format' => 'terminal',
             'size' => 'compact',
             'pretty' => true,
             'show_process' => false,

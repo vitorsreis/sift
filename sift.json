@@ -1,6 +1,7 @@
 {
   "$schema": "resources/schema.json",
   "output": {
+    "format": "json",
     "size": "compact",
     "pretty": false,
     "show_process": false

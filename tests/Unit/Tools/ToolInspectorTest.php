@@ -40,37 +40,38 @@ it('inspects every registered tool with installed state and config state', funct
         cwd: $project->root(),
     );
 
-    expect($items)->toMatchArray([
-        [
-            'tool' => 'installed',
-            'enabled' => true,
-            'installed' => true,
-            'status' => 'ON',
-            'version' => 'Installed 1.0',
-            'path' => PHP_BINARY,
-            'configured_binary' => null,
-            'install_hint' => 'Install installed.',
-        ],
-        [
-            'tool' => 'disabled',
-            'enabled' => false,
-            'installed' => true,
-            'status' => 'OFF',
-            'version' => 'Disabled 1.0',
-            'path' => PHP_BINARY,
-            'configured_binary' => PHP_BINARY,
-            'install_hint' => 'Install disabled.',
-        ],
-        [
-            'tool' => 'missing',
-            'enabled' => true,
-            'installed' => false,
-            'status' => 'OFF',
-            'version' => null,
-            'path' => null,
-            'configured_binary' => null,
-            'install_hint' => 'Install missing.',
-        ],
+    expect($items[0])->toMatchArray([
+        'tool' => 'installed',
+        'description' => 'Inspectable tool.',
+        'enabled' => true,
+        'installed' => true,
+        'status' => 'ON',
+        'version' => 'Installed 1.0',
+        'path' => PHP_BINARY,
+        'configured_binary' => null,
+        'install_hint' => 'Install installed.',
+    ]);
+    expect($items[1])->toMatchArray([
+        'tool' => 'disabled',
+        'description' => 'Inspectable tool.',
+        'enabled' => false,
+        'installed' => true,
+        'status' => 'OFF',
+        'version' => 'Disabled 1.0',
+        'path' => PHP_BINARY,
+        'configured_binary' => PHP_BINARY,
+        'install_hint' => 'Install disabled.',
+    ]);
+    expect($items[2])->toMatchArray([
+        'tool' => 'missing',
+        'description' => 'Inspectable tool.',
+        'enabled' => true,
+        'installed' => false,
+        'status' => 'OFF',
+        'version' => null,
+        'path' => null,
+        'configured_binary' => null,
+        'install_hint' => 'Install missing.',
     ]);
 });
 
@@ -89,6 +90,53 @@ it('caches detected versions for the current inspector instance', function (): v
     expect($inspector->inspect($config, $project->root())[0]['version'])->toBe('Cached 1.0');
     expect($inspector->inspect($config, $project->root())[0]['version'])->toBe('Cached 1.0');
     expect((string) file_get_contents($counter))->toBe('1');
+});
+
+it('can inspect versions with bounded parallelism', function (): void {
+    $project = FixtureProject::create();
+    $inspector = new ToolInspector(new ToolRegistry(
+        toolInspectorAdapter(
+            name: 'slow',
+            candidates: [PHP_BINARY],
+            versionCommand: ['-r', 'usleep(200000); fwrite(STDOUT, "Slow 1.0");'],
+        ),
+        toolInspectorAdapter(
+            name: 'fast',
+            candidates: [PHP_BINARY],
+            versionCommand: ['-r', 'fwrite(STDOUT, "Fast 2.0");'],
+        ),
+    ));
+    $items = iterator_to_array($inspector->inspectEach(toolInspectorConfig(), $project->root(), 2));
+    $byTool = [];
+
+    foreach ($items as $item) {
+        $byTool[$item['tool']] = $item;
+    }
+
+    expect($byTool['slow']['version'] ?? null)->toBe('Slow 1.0');
+    expect($byTool['fast']['version'] ?? null)->toBe('Fast 2.0');
+});
+
+it('ignores version output from failed version commands', function (): void {
+    $project = FixtureProject::create();
+    $inspector = new ToolInspector(new ToolRegistry(toolInspectorAdapter(
+        name: 'failing-version',
+        candidates: [PHP_BINARY],
+        versionCommand: ['-r', 'fwrite(STDERR, "Download failed"); exit(1);'],
+    )));
+
+    expect($inspector->inspect(toolInspectorConfig(), $project->root())[0]['version'])->toBeNull();
+});
+
+it('keeps detected versions from failed version commands', function (): void {
+    $project = FixtureProject::create();
+    $inspector = new ToolInspector(new ToolRegistry(toolInspectorAdapter(
+        name: 'mago-proxy',
+        candidates: [PHP_BINARY],
+        versionCommand: ['-r', 'fwrite(STDERR, "Downloading mago 1.29.0..."); exit(1);'],
+    )));
+
+    expect($inspector->inspect(toolInspectorConfig(), $project->root())[0]['version'])->toBe('Downloading mago 1.29.0...');
 });
 
 /**

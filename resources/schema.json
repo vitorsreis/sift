@@ -62,6 +62,15 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "format": {
+          "description": "Default output format. Use `json` for normalized machine-readable output; `--json` also enables JSON for one command.",
+          "type": "string",
+          "enum": [
+            "terminal",
+            "json"
+          ],
+          "default": "terminal"
+        },
         "size": {
           "description": "Default output detail level for tool results.",
           "type": "string",

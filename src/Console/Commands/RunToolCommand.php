@@ -81,9 +81,7 @@ final readonly class RunToolCommand
         $payload = $result->toPayload();
         $history = $this->recordHistory($payload, $historyConfig);
 
-        if ($payload['status'] === RunStatus::Error->value) {
-            $payload = $this->withPayloadRunId($payload, $this->runId($history));
-        }
+        $payload = $this->withPayloadRunId($payload, $this->runId($history));
 
         return RunToolCommandResult::normalized($payload, $preferences);
     }
@@ -208,18 +206,24 @@ final readonly class RunToolCommand
             return $payload;
         }
 
-        $meta = $payload['meta'] ?? [];
+        if (($payload['status'] ?? null) === RunStatus::Error->value) {
+            $error = $payload['error'] ?? [];
 
-        if (! is_array($meta) || array_is_list($meta)) {
-            $meta = [];
+            if (! is_array($error) || array_is_list($error)) {
+                $error = [];
+            }
+
+            return [
+                ...$payload,
+                'error' => [
+                    ...$error,
+                ],
+            ];
         }
 
         return [
+            'run_id' => $runId,
             ...$payload,
-            'meta' => [
-                ...$meta,
-                'run_id' => $runId,
-            ],
         ];
     }
 

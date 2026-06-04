@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Console;
 
 use Closure;
+use Sift\Config\ConfigLoader;
 use Sift\Config\ConfigValidationException;
 use Sift\Console\Commands\HelpCommand;
 use Sift\Console\Commands\HistoryClearCommand;
@@ -29,15 +30,20 @@ use Sift\Exceptions\UserFacingException;
 use Sift\History\SecretRedactor;
 use Sift\Output\ErrorPayload;
 use Sift\Output\JsonRenderer;
+use Sift\Output\TerminalRenderer;
+use Sift\Workspace\WorkspaceResolver;
 
 final readonly class Application
 {
     public function __construct(
         private JsonRenderer $renderer = new JsonRenderer(),
+        private TerminalRenderer $terminalRenderer = new TerminalRenderer(),
         private ?CliParser $parser = null,
         private ?CommandRouter $router = null,
         private ?OutputPreferencesResolver $outputPreferencesResolver = null,
         private ?ExitCodeResolver $exitCodeResolver = null,
+        private ConfigLoader $configLoader = new ConfigLoader(),
+        private WorkspaceResolver $workspaceResolver = new WorkspaceResolver(),
         private ?Closure $stdoutWriter = null,
         private ?Closure $stderrWriter = null,
         private ?string $cwd = null,
@@ -53,16 +59,18 @@ final readonly class Application
             $preferences = $this->outputPreferencesResolver()->resolve($route);
             $this->writeDebug($route, $preferences);
         } catch (InvalidUsageException $invalidUsageException) {
-            return $this->renderUsageError($invalidUsageException, $this->outputPreferencesResolver()->defaults());
+            return $this->renderUsageError($invalidUsageException, $this->usageErrorPreferences($argv));
         }
 
         try {
+            $preferences = $this->routePreferences($route, $preferences);
+
             return match ($route->handler()) {
                 'help' => $this->renderPassed((new HelpCommand())->handle($route, $this->cwd()), $preferences),
                 'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd()), $preferences),
                 'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
                 'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
-                'tools.list' => $this->renderPassed((new ToolsListCommand())->handle($route, $this->cwd()), $preferences),
+                'tools.list' => $this->renderToolsList(new ToolsListCommand(), $route),
                 'skills.add' => $this->renderPassed((new SkillsAddCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.find' => $this->renderPassed((new SkillsFindCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.init' => $this->renderPassed((new SkillsInitCommand())->handle($route, $this->cwd()), $preferences),
@@ -99,6 +107,21 @@ final readonly class Application
         return $this->renderPassed($payload, $result->outputPreferences());
     }
 
+    private function renderToolsList(ToolsListCommand $command, CommandRoute $route): int
+    {
+        $payload = $command->streamTerminal(
+            route: $route,
+            cwd: $this->cwd(),
+            writer: $this->writeStdout(...),
+            renderer: $this->terminalRenderer,
+        );
+
+        $status = $payload['status'] ?? RunStatus::Passed->value;
+        $runStatus = is_string($status) ? RunStatus::tryFrom($status) : null;
+
+        return $this->exitCodeResolver()->resolve($runStatus ?? RunStatus::Passed)->value;
+    }
+
     private function parser(): CliParser
     {
         return $this->parser ?? CliParser::forSift();
@@ -119,6 +142,26 @@ final readonly class Application
         return $this->exitCodeResolver ?? new ExitCodeResolver();
     }
 
+    /**
+     * @param list<string> $argv
+     */
+    private function usageErrorPreferences(array $argv): OutputPreferences
+    {
+        $defaults = $this->outputPreferencesResolver()->defaults();
+
+        if (! in_array('--json', array_slice($argv, 1), true)) {
+            return $defaults;
+        }
+
+        return new OutputPreferences(
+            size: $defaults->size(),
+            pretty: $defaults->pretty(),
+            showProcess: $defaults->showProcess(),
+            debug: $defaults->debug(),
+            format: OutputFormat::Json,
+        );
+    }
+
     private function cwd(): string
     {
         if ($this->cwd !== null) {
@@ -130,12 +173,48 @@ final readonly class Application
         return is_string($cwd) ? $cwd : '.';
     }
 
+    private function routePreferences(CommandRoute $route, OutputPreferences $fallback): OutputPreferences
+    {
+        if (in_array($route->handler(), ['help', 'version', 'tools.list'], true)) {
+            return $this->terminalPreferences($fallback);
+        }
+
+        if ($route->handler() === 'init') {
+            return $fallback;
+        }
+
+        $workspace = $this->workspaceResolver->resolve($this->cwd(), $this->configPath($route));
+        $config = $this->configLoader->load($workspace);
+
+        return $this->outputPreferencesResolver()->resolve($route, $config);
+    }
+
+    private function terminalPreferences(OutputPreferences $preferences): OutputPreferences
+    {
+        return new OutputPreferences(
+            size: $preferences->size(),
+            pretty: $preferences->pretty(),
+            showProcess: $preferences->showProcess(),
+            debug: $preferences->debug(),
+            format: OutputFormat::Terminal,
+        );
+    }
+
+    private function configPath(CommandRoute $route): ?string
+    {
+        $options = $route->options();
+        $globalOptions = $route->globalOptions();
+        $config = $options['config'] ?? $globalOptions['config'] ?? null;
+
+        return is_string($config) ? $config : null;
+    }
+
     /**
      * @param array<string, mixed> $payload
      */
     private function renderPassed(array $payload, OutputPreferences $preferences): int
     {
-        $this->writeStdout($this->renderer->render($payload, $preferences));
+        $this->writeStdout($this->renderPayload($payload, $preferences));
         $status = $payload['status'] ?? RunStatus::Passed->value;
         $runStatus = is_string($status) ? RunStatus::tryFrom($status) : null;
 
@@ -144,14 +223,14 @@ final readonly class Application
 
     private function renderUsageError(InvalidUsageException $exception, OutputPreferences $preferences): int
     {
-        $this->writeStderr($this->renderer->render(ErrorPayload::fromInvalidUsage($exception), $preferences));
+        $this->writeStderr($this->renderPayload(ErrorPayload::fromInvalidUsage($exception), $preferences));
 
         return $this->exitCodeResolver()->resolve(RunStatus::Error, ErrorCode::InvalidUsage)->value;
     }
 
     private function renderConfigError(ConfigValidationException $exception, OutputPreferences $preferences): int
     {
-        $this->writeStderr($this->renderer->render(ErrorPayload::fromConfigValidation($exception), $preferences));
+        $this->writeStderr($this->renderPayload(ErrorPayload::fromConfigValidation($exception), $preferences));
         $errorCode = ErrorCode::tryFrom($exception->errorCode()) ?? ErrorCode::InvalidConfig;
 
         return $this->exitCodeResolver()->resolve(RunStatus::Error, $errorCode)->value;
@@ -159,20 +238,32 @@ final readonly class Application
 
     private function renderUserFacingError(UserFacingException $exception, OutputPreferences $preferences): int
     {
-        $this->writeStderr($this->renderer->render(ErrorPayload::fromUserFacing($exception), $preferences));
+        $this->writeStderr($this->renderPayload(ErrorPayload::fromUserFacing($exception), $preferences));
 
         return $this->exitCodeResolver()->resolve(RunStatus::Error, $exception->errorCode())->value;
     }
 
     private function renderNotImplemented(CommandRoute $route, OutputPreferences $preferences): int
     {
-        $this->writeStderr($this->renderer->render(ErrorPayload::make(
+        $this->writeStderr($this->renderPayload(ErrorPayload::make(
             errorCode: ErrorCode::InvalidUsage,
             message: sprintf('Command "%s" is not implemented yet.', $route->handler()),
             hint: 'Run "sift help" to list available commands.',
         ), $preferences));
 
         return $this->exitCodeResolver()->resolve(RunStatus::Error, ErrorCode::InvalidUsage)->value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function renderPayload(array $payload, OutputPreferences $preferences): string
+    {
+        if ($preferences->format() === OutputFormat::Json) {
+            return $this->renderer->render($payload, $preferences);
+        }
+
+        return $this->terminalRenderer->render($payload, $preferences);
     }
 
     private function writeStdout(string $contents): void
@@ -184,6 +275,7 @@ final readonly class Application
         }
 
         fwrite(STDOUT, $contents);
+        fflush(STDOUT);
     }
 
     private function writeStderr(string $contents): void
@@ -212,6 +304,7 @@ final readonly class Application
             'options' => $route->options(),
             'global_options' => $route->globalOptions(),
             'output' => [
+                'format' => $preferences->format()->value,
                 'size' => $preferences->size()->value,
                 'pretty' => $preferences->pretty(),
                 'show_process' => $preferences->showProcess(),

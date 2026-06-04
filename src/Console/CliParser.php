@@ -27,6 +27,8 @@ final readonly class CliParser
             CliOption::boolean('full'),
             CliOption::boolean('pretty', 'p'),
             CliOption::boolean('no-pretty', 'P'),
+            CliOption::boolean('json'),
+            CliOption::boolean('no-json'),
             CliOption::boolean('raw'),
             CliOption::boolean('show-process'),
             CliOption::boolean('no-show-process'),

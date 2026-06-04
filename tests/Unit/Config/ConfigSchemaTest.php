@@ -58,6 +58,7 @@ it('keeps schema, defaults and documentation on the same contract url and fields
         'redact_secrets',
     ]);
     expect($outputProperties)->toHaveKeys([
+        'format',
         'size',
         'pretty',
         'show_process',

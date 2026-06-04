@@ -10,7 +10,13 @@ final readonly class OutputConfig
         private string $size,
         private bool $pretty,
         private bool $showProcess,
+        private string $format = 'terminal',
     ) {}
+
+    public function format(): string
+    {
+        return $this->format;
+    }
 
     public function size(): string
     {

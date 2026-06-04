@@ -20,6 +20,7 @@ it('loads defaults when config is absent', function (): void {
     expect($config->schema())->toBe(ConfigDefaults::schemaUrl());
     expect($config->history()->enabled())->toBeTrue();
     expect($config->history()->path())->toBe($project->path('.sift/history'));
+    expect($config->output()->format())->toBe('terminal');
     expect($config->output()->size())->toBe('compact');
     expect($config->output()->pretty())->toBeTrue();
     expect($config->output()->showProcess())->toBeFalse();
@@ -64,6 +65,36 @@ it('loads partial supported config and resolves config-relative paths', function
     expect($pest->enabled())->toBeTrue();
     expect($pest->binary())->toBeNull();
     expect($pest->timeout())->toBe(120);
+});
+
+it('loads output format from config', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'format' => 'json',
+        ],
+    ]);
+
+    $workspace = (new WorkspaceResolver(homeDirectory: $project->path('home')))->resolve($project->root());
+    $config = (new ConfigLoader())->load($workspace);
+
+    expect($config->output()->format())->toBe('json');
+});
+
+it('rejects invalid output format values', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'format' => 'xml',
+        ],
+    ]);
+
+    $workspace = (new WorkspaceResolver(homeDirectory: $project->path('home')))->resolve($project->root());
+
+    expect(fn(): mixed => (new ConfigLoader())->load($workspace))
+        ->toThrow(ConfigValidationException::class, 'The `output.format` value must be `terminal` or `json`.');
 });
 
 it('keeps path binaries as command names', function (): void {

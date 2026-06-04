@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Sift\Config\ConfigDefaults;
+
 /**
  * @param list<string> $arguments
  *
@@ -128,60 +130,107 @@ function listField(array $payload, string $key): array
     return $value;
 }
 
-it('renders help as a normalized JSON payload', function (): void {
-    $result = runSift(['help']);
-    $payload = decodeSiftPayload($result['stdout']);
-    $rawPayload = json_decode($result['stdout'], true, 512, JSON_THROW_ON_ERROR);
+it('renders help as terminal text by default', function (): void {
+    $result = runSift(['--compact', 'help']);
 
-    if (! is_array($rawPayload)) {
-        throw new RuntimeException('Sift payload must be an object.');
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toContain('Sift');
+    expect($result['stdout'])->toContain('Usage');
+    expect($result['stdout'])->toContain('Commands');
+    expect($result['stdout'])->toContain('Options');
+    expect($result['stdout'])->toContain('composer sift [options] <command>');
+    expect($result['stdout'])->toContain('tools list');
+    expect($result['stdout'])->toContain('--json');
+    expect($result['stdout'])->toContain('--no-json');
+    expect($result['stdout'])->toContain('Terminal-only commands');
+    expect($result['stdout'])->toContain('help, version, tools list');
+    expect($result['stdout'])->toContain('--compact');
+});
+
+it('renders help as terminal text even when json is requested', function (): void {
+    $result = runSift(['--json', 'help']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toContain('Sift');
+    expect($result['stdout'])->toContain('<tool> [args]');
+    expect($result['stdout'])->toContain('run <tool> [args]');
+});
+
+it('renders version as terminal text by default', function (): void {
+    $result = runSift(['version']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toStartWith('Sift ');
+});
+
+it('renders version as terminal text even when json is requested', function (): void {
+    $result = runSift(['--json', 'version']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toStartWith('Sift ');
+});
+
+it('renders tools list as terminal text by default', function (): void {
+    $root = dirname(__DIR__, 2);
+    $config = $root . '/.sift-test-terminal.json';
+    file_put_contents($config, json_encode([
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'format' => 'terminal',
+            'size' => 'compact',
+            'pretty' => false,
+            'show_process' => false,
+        ],
+    ], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+
+    try {
+        $result = runSift(['--config=' . $config, '--compact', 'tools', 'list']);
+    } finally {
+        @unlink($config);
     }
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($payload['tool'])->toBe('sift');
-    expect($payload['status'])->toBe('passed');
-    expect($rawPayload['command'] ?? null)->toBe('help');
-    expect(array_key_exists('summary', $rawPayload))->toBeFalse();
-    expect($payload['summary'])->toBe([]);
-    expect($payload['items'])->toBe([]);
-    expect($payload['meta'])->toBe([]);
+    expect($result['stdout'])->toContain('Tools');
+    expect($result['stdout'])->toContain('Supported tools and local availability.');
+    expect($result['stdout'])->toContain('Pest');
+    expect($result['stdout'])->toContain('PHPUnit');
 });
 
-it('renders full output when requested', function (): void {
-    $result = runSift(['--full', 'help']);
-    $payload = decodeSiftPayload($result['stdout']);
+it('keeps help terminal text when full json is requested', function (): void {
+    $result = runSift(['--json', '--full', 'help']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($payload['tool'])->toBe('sift');
-    expect($payload['status'])->toBe('passed');
-    expect($payload['summary']['command'] ?? null)->toBe('help');
-    expect($payload['items'])->toBeArray();
-    expect($payload['meta']['subcommand'] ?? null)->toBe('help');
+    expect($result['stdout'])->toContain('Commands');
 });
 
-it('renders tools list from the cli', function (): void {
-    $result = runSift(['--full', '--no-pretty', 'tools', 'list']);
-    $payload = decodeSiftPayload($result['stdout']);
-    $tools = array_map(
-        static fn(mixed $item): mixed => is_array($item) ? ($item['tool'] ?? null) : null,
-        $payload['items'],
-    );
+it('renders tools list from the cli as terminal text even when json is requested', function (): void {
+    $result = runSift(['--json', '--full', '--no-pretty', 'tools', 'list']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($payload['tool'])->toBe('sift');
-    expect($payload['status'])->toBe('passed');
-    expect($payload['summary']['supported'] ?? null)->toBeGreaterThanOrEqual(3);
-    expect($tools)->toContain('pest');
-    expect($tools)->toContain('phpunit');
-    expect($tools)->toContain('paratest');
-    expect($payload['meta']['subcommand'] ?? null)->toBe('tools list');
+    expect($result['stdout'])->toContain('Tools');
+    expect($result['stdout'])->toContain('Supported tools and local availability.');
+    expect($result['stdout'])->toContain('OK');
+    expect($result['stdout'])->not->toStartWith('{');
+});
+
+it('forces terminal output with no-json even when config requests json', function (): void {
+    $result = runSift(['--no-json', 'validate']);
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toContain('sift passed');
+    expect($result['stdout'])->not->toStartWith('{');
 });
 
 it('renders invalid usage errors as JSON on stderr', function (): void {
-    $result = runSift(['tools', 'add']);
+    $result = runSift(['--json', 'tools', 'add']);
     $payload = json_decode($result['stderr'], true, 512, JSON_THROW_ON_ERROR);
 
     if (! is_array($payload)) {
@@ -202,8 +251,8 @@ it('renders invalid usage errors as JSON on stderr', function (): void {
 });
 
 it('respects pretty and no-pretty output flags', function (): void {
-    $pretty = runSift(['--pretty', 'help']);
-    $compact = runSift(['--no-pretty', 'help']);
+    $pretty = runSift(['--json', '--pretty', 'validate']);
+    $compact = runSift(['--json', '--no-pretty', 'validate']);
 
     expect($pretty['exit_code'])->toBe(0);
     expect($compact['exit_code'])->toBe(0);

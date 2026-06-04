@@ -136,15 +136,21 @@ final readonly class ConfigLoader
         $this->rejectUnknownKeys($output, array_keys($defaults), $path, 'output');
 
         $size = $this->stringValue($output, 'size', $defaults['size'], $path, 'output.size');
+        $format = $this->stringValue($output, 'format', $defaults['format'], $path, 'output.format');
 
         if (! in_array($size, ['compact', 'normal', 'full'], true)) {
             throw ConfigValidationException::invalidConfig($path, 'The `output.size` value must be `compact`, `normal`, or `full`.');
+        }
+
+        if (! in_array($format, ['terminal', 'json'], true)) {
+            throw ConfigValidationException::invalidConfig($path, 'The `output.format` value must be `terminal` or `json`.');
         }
 
         return new OutputConfig(
             size: $size,
             pretty: $this->boolValue($output, 'pretty', $defaults['pretty'], $path, 'output.pretty'),
             showProcess: $this->boolValue($output, 'show_process', $defaults['show_process'], $path, 'output.show_process'),
+            format: $format,
         );
     }
 

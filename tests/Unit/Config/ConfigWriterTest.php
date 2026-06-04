@@ -17,6 +17,7 @@ it('writes the minimal default config document', function (): void {
     expect($document)->toBe([
         '$schema' => ConfigDefaults::schemaUrl(),
         'output' => [
+            'format' => 'terminal',
             'size' => 'compact',
             'pretty' => true,
             'show_process' => false,
@@ -45,6 +46,7 @@ it('preserves known overrides when rewriting defaults', function (): void {
     $path = $project->writeJson('sift.json', [
         '$schema' => ConfigDefaults::schemaUrl(),
         'output' => [
+            'format' => 'json',
             'size' => 'full',
             'pretty' => false,
         ],
@@ -64,6 +66,7 @@ it('preserves known overrides when rewriting defaults', function (): void {
     (new ConfigWriter())->writeDefaults($path, [
         '$schema' => ConfigDefaults::schemaUrl(),
         'output' => [
+            'format' => 'json',
             'size' => 'full',
             'pretty' => false,
         ],
@@ -84,6 +87,7 @@ it('preserves known overrides when rewriting defaults', function (): void {
 
     expect($document['$schema'])->toBe(ConfigDefaults::schemaUrl());
     expect($document['output'])->toMatchArray([
+        'format' => 'json',
         'size' => 'full',
         'pretty' => false,
         'show_process' => false,

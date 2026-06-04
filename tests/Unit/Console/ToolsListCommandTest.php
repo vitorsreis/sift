@@ -8,6 +8,7 @@ use Sift\Console\Commands\ToolsListCommand;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
+use Sift\Output\TerminalRenderer;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\AbstractCliToolAdapter;
 use Sift\Tools\ToolContext;
@@ -51,6 +52,32 @@ it('lists every supported tool with installed and enabled state', function (): v
         'status' => 'OFF',
     ]);
     expect($payload['meta'])->toBe(['subcommand' => 'tools list']);
+});
+
+it('streams terminal tools list lines while building the payload', function (): void {
+    $project = FixtureProject::create();
+    $command = new ToolsListCommand(
+        toolInspector: new ToolInspector(new ToolRegistry(
+            toolsListCommandAdapter('installed', [PHP_BINARY]),
+            toolsListCommandAdapter('missing', ['missing-tool-binary']),
+        )),
+    );
+    $chunks = [];
+
+    $payload = $command->streamTerminal(
+        new CommandRoute('tools.list'),
+        $project->root(),
+        static function (string $chunk) use (&$chunks): void {
+            $chunks[] = $chunk;
+        },
+        new TerminalRenderer(),
+    );
+
+    expect($payload['summary'])->toMatchArray(['supported' => 2, 'installed' => 1]);
+    expect($chunks)->toHaveCount(3);
+    expect($chunks[0])->toContain('Supported tools and local availability.');
+    expect($chunks[1])->toContain('OK');
+    expect($chunks[2])->toContain('NO');
 });
 
 /**
