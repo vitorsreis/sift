@@ -168,6 +168,28 @@ it('parses composer validate success output', function (): void {
     expect($payload['summary'])->toMatchArray(['valid' => true, 'findings' => 0]);
 });
 
+it('parses composer validate warnings as normalized items', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ComposerToolAdapter();
+    $context = $adapter->context(new CliArguments('composer', ['validate', '--strict']), $project->root());
+
+    $payload = $adapter->parse(
+        execution: ExecutionResult::completed(1, "Warning: The package has warnings\n- license : The property license is required", '', 0.12),
+        context: $context,
+        command: composerToolPreparedCommand($project, ['validate', '--strict']),
+    )->toPayload();
+
+    expect($payload['status'])->toBe(RunStatus::Failed->value);
+    expect($payload['summary'])->toMatchArray(['valid' => true, 'warnings' => 1, 'findings' => 1]);
+    expect($payload['items'])->toBe([
+        [
+            'type' => 'warning',
+            'severity' => 'warning',
+            'message' => 'license : The property license is required',
+        ],
+    ]);
+});
+
 /**
  * @param list<string> $arguments
  */

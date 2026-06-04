@@ -53,7 +53,7 @@ final readonly class ComposerValidateParser
     /**
      * @param list<string> $lines
      *
-     * @return list<array{severity: string, message: string}>
+     * @return list<array{type: string, severity: string, message: string}>
      */
     private function items(array $lines): array
     {
@@ -78,6 +78,7 @@ final readonly class ComposerValidateParser
             }
 
             $items[] = [
+                'type' => $severity === 'error' ? 'error' : 'warning',
                 'severity' => $severity,
                 'message' => substr($line, 2),
             ];
@@ -87,7 +88,7 @@ final readonly class ComposerValidateParser
     }
 
     /**
-     * @param list<array{severity: string, message: string}> $items
+     * @param list<array{type: string, severity: string, message: string}> $items
      */
     private function countSeverity(array $items, string $severity): int
     {
