@@ -34,9 +34,11 @@ it('records a redacted normalized payload without mutating stdout payload', func
         'status' => 'passed',
         'summary' => ['tests' => 12],
     ]);
-    expect($record['run_id'] ?? null)->toMatch('/^run_[a-f0-9]{32}$/');
+    expect($record['run_id'] ?? null)->toMatch('/^[0-9a-z]{14}$/');
+    expect(is_file($project->path(sprintf('.sift/history/runs/sift_%s_pest.json', historyStringField($record, 'run_id')))))->toBeTrue();
 
     $stored = historyRecorded((new FileRunStore($project->path('.sift/history')))->read(historyStringField($record, 'run_id')));
+    expect($stored['run_id'] ?? null)->toBe($record['run_id']);
     $storedPayload = historyObjectField($stored, 'payload');
     $storedExtra = historyObjectField($storedPayload, 'extra');
 

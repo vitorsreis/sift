@@ -67,7 +67,7 @@ it('builds user-facing exception payloads', function (): void {
         errorCode: ErrorCode::RunNotFound,
         message: 'Run not found.',
         hint: 'List available runs.',
-        context: ['run_id' => 'run_123'],
+        context: ['run_id' => '0td7j1a01z141z'],
     ));
 
     expect($payload)->toBe([
@@ -76,7 +76,7 @@ it('builds user-facing exception payloads', function (): void {
             'code' => 'run_not_found',
             'message' => 'Run not found.',
             'hint' => 'List available runs.',
-            'run_id' => 'run_123',
+            'run_id' => '0td7j1a01z141z',
         ],
     ]);
 });

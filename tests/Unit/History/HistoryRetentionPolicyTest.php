@@ -17,16 +17,16 @@ it('calculates removals by max files per tool and max age', function (): void {
     );
 
     $removals = $policy->expiredRunIds([
-        historyRetentionRun('run_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'pest', '2026-05-31T12:00:00+00:00'),
-        historyRetentionRun('run_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'pest', '2026-05-30T12:00:00+00:00'),
-        historyRetentionRun('run_cccccccccccccccccccccccccccccccc', 'pest', '2026-05-29T12:00:00+00:00'),
-        historyRetentionRun('run_dddddddddddddddddddddddddddddddd', 'phpunit', '2026-04-01T12:00:00+00:00'),
-        ['run_id' => 'run_corrupt', 'type' => 'error', 'status' => 'error'],
+        historyRetentionRun('0td7j1a01z141z', 'pest', '2026-05-31T12:00:00+00:00'),
+        historyRetentionRun('0td7j1b0000001', 'pest', '2026-05-30T12:00:00+00:00'),
+        historyRetentionRun('0td7j1c0zzzzzz', 'pest', '2026-05-29T12:00:00+00:00'),
+        historyRetentionRun('0td7j1d0abcdef', 'phpunit', '2026-04-01T12:00:00+00:00'),
+        ['run_id' => 'corrupt', 'type' => 'error', 'status' => 'error'],
     ], $config, new DateTimeImmutable('2026-05-31T12:00:00+00:00'));
 
     expect($removals)->toBe([
-        'run_cccccccccccccccccccccccccccccccc',
-        'run_dddddddddddddddddddddddddddddddd',
+        '0td7j1c0zzzzzz',
+        '0td7j1d0abcdef',
     ]);
 });
 
@@ -42,7 +42,7 @@ it('skips age retention when max age days is absent', function (): void {
     );
 
     $removals = $policy->expiredRunIds([
-        historyRetentionRun('run_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'pest', '2026-04-01T12:00:00+00:00'),
+        historyRetentionRun('0td7j1a01z141z', 'pest', '2026-04-01T12:00:00+00:00'),
     ], $config, new DateTimeImmutable('2026-05-31T12:00:00+00:00'));
 
     expect($removals)->toBe([]);

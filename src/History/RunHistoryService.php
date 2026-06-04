@@ -66,7 +66,7 @@ final readonly class RunHistoryService
         $createdAt = $this->createdAt($payload, $storedAt);
 
         return [
-            'run_id' => $this->runIdGenerator->generate(),
+            'run_id' => $this->runIdGenerator->generateUniqueId(),
             'stored_at' => $storedAt,
             'created_at' => $createdAt,
             'tool' => $tool,

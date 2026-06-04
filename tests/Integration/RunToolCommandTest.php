@@ -175,17 +175,17 @@ it('records tool errors and exposes the run id when history is enabled', functio
     $payload = CliRunner::decode($result['stderr']);
     $error = runToolCommandObject($payload, 'error');
     $history = runToolCommandHistoryDocuments($project);
-    $runId = $error['run_id'] ?? null;
+    $runId = runToolCommandString($error, 'run_id');
 
     expect($result['exit_code'])->toBe(2);
     expect($result['stdout'])->toBe('');
     expect($payload['status'] ?? null)->toBe('error');
     expect($error['code'] ?? null)->toBe('parse_failure');
-    expect($runId)->toBeString();
-    expect($runId)->toStartWith('run_');
+    expect($runId)->toMatch('/^[0-9a-z]{14}$/');
     expect($history)->toHaveCount(1);
     expect($history[0]['run_id'] ?? null)->toBe($runId);
     expect($history[0]['tool'] ?? null)->toBe('composer');
+    expect(runToolCommandHistoryFileNames($project))->toBe([sprintf('sift_%s_composer.json', $runId)]);
     expect(runToolCommandObject(runToolCommandObject($history[0], 'payload'), 'error')['code'] ?? null)->toBe('parse_failure');
 });
 
@@ -287,6 +287,20 @@ function runToolCommandObject(array $payload, string $key): array
 
 /**
  * @param array<string, mixed> $payload
+ */
+function runToolCommandString(array $payload, string $key): string
+{
+    $value = $payload[$key] ?? null;
+
+    if (! is_string($value) || $value === '') {
+        throw new RuntimeException(sprintf('Expected non-empty string field "%s".', $key));
+    }
+
+    return $value;
+}
+
+/**
+ * @param array<string, mixed> $payload
  *
  * @return list<mixed>
  */
@@ -326,6 +340,22 @@ function runToolCommandHistoryDocuments(FixtureProject $project): array
     }
 
     return $documents;
+}
+
+/**
+ * @return list<string>
+ */
+function runToolCommandHistoryFileNames(FixtureProject $project): array
+{
+    $files = glob($project->path('.sift/history/runs/*.json'));
+
+    if ($files === false) {
+        throw new RuntimeException('Could not scan history fixtures.');
+    }
+
+    sort($files);
+
+    return array_map(basename(...), $files);
 }
 
 /**

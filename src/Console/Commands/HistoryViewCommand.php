@@ -40,6 +40,7 @@ final readonly class HistoryViewCommand extends AbstractHistoryCommand
             );
         }
 
+        $recordRunId = $this->stringValue($record['run_id'] ?? null, $runId);
         $payload = $this->objectValue($record['payload'] ?? []);
 
         if ($section === null) {
@@ -54,7 +55,7 @@ final readonly class HistoryViewCommand extends AbstractHistoryCommand
             ];
         }
 
-        return $this->sectionPayload($runId, $section, $payload);
+        return $this->sectionPayload($recordRunId, $section, $payload);
     }
 
     /**

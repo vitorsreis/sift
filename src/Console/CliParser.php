@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Sift\Console;
 
+use Sift\History\RunIdFormat;
+
 /**
  * @phpstan-import-type ParsedOption from CliRequest
  */
@@ -267,7 +269,7 @@ final readonly class CliParser
 
     private function isRunId(string $token): bool
     {
-        return preg_match('/^run_[a-f0-9]{32}$/', $token) === 1;
+        return RunIdFormat::isValid($token);
     }
 
     /**

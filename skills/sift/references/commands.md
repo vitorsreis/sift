@@ -62,7 +62,7 @@ composer sift history remove <run_id>...
 composer sift history clear
 ```
 
-`history <run_id>` only aliases `history view` when the token matches `run_` plus 32 lowercase hex characters.
+`history <run_id>` only aliases `history view` when the token matches a valid run id.
 
 ## Skill Commands
 

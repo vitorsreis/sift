@@ -19,9 +19,12 @@ final readonly class FileRunStore implements RunStore
 
     public function store(array $document): void
     {
-        $runId = $this->runId($document['run_id'] ?? null);
+        $runId = $this->coreRunId($document['run_id'] ?? null);
+        $tool = $this->tool($document['tool'] ?? null);
+        $fileId = $this->fileId($runId, $tool);
+        $document['run_id'] = $runId;
         $this->ensureDirectory($this->runsPath());
-        $path = $this->runPath($runId);
+        $path = $this->runPath($fileId);
 
         $this->jsonFile->writeObject($path, $document);
         $this->restrictFile($path);
@@ -29,10 +32,9 @@ final readonly class FileRunStore implements RunStore
 
     public function read(string $runId): ?array
     {
-        $runId = $this->runId($runId);
-        $path = $this->runPath($runId);
+        $path = $this->existingRunPath($runId);
 
-        if (! is_file($path)) {
+        if ($path === null) {
             return null;
         }
 
@@ -57,13 +59,13 @@ final readonly class FileRunStore implements RunStore
         $runs = [];
 
         foreach ($files as $file) {
-            $runId = basename($file, '.json');
+            $fileId = basename($file, '.json');
 
             try {
                 $runs[] = $this->jsonFile->readObject($file);
             } catch (FilesystemException $filesystemException) {
                 $runs[] = [
-                    'run_id' => $runId,
+                    'run_id' => RunIdFormat::core($fileId) ?? $fileId,
                     'type' => ItemType::Error->value,
                     'tool' => 'history',
                     'status' => 'error',
@@ -79,10 +81,9 @@ final readonly class FileRunStore implements RunStore
 
     public function remove(string $runId): bool
     {
-        $runId = $this->runId($runId);
-        $path = $this->runPath($runId);
+        $path = $this->existingRunPath($runId);
 
-        if (! is_file($path)) {
+        if ($path === null) {
             return false;
         }
 
@@ -142,13 +143,67 @@ final readonly class FileRunStore implements RunStore
         @chmod($path, 0600);
     }
 
-    private function runId(mixed $value): string
+    private function coreRunId(mixed $value): string
     {
-        if (! is_string($value) || preg_match('/^run_[a-f0-9]{32}$/', $value) !== 1) {
-            throw new InvalidArgumentException('History run id must match run_[a-f0-9]{32}.');
+        if (! is_string($value)) {
+            throw new InvalidArgumentException('History run id must match <time36><random36>.');
+        }
+
+        $runId = RunIdFormat::core($value);
+
+        if ($runId === null) {
+            throw new InvalidArgumentException('History run id must match <time36><random36>.');
+        }
+
+        return $runId;
+    }
+
+    private function tool(mixed $value): string
+    {
+        if (! is_string($value) || $value === '') {
+            return 'unknown';
         }
 
         return $value;
+    }
+
+    private function fileId(string $runId, string $tool): string
+    {
+        $fileId = RunIdFormat::fileId($runId, $tool);
+
+        if ($fileId === null) {
+            throw new InvalidArgumentException('History run id must match <time36><random36>.');
+        }
+
+        return $fileId;
+    }
+
+    private function existingRunPath(string $runId): ?string
+    {
+        if (! RunIdFormat::isValid($runId)) {
+            throw new InvalidArgumentException('History run id must match <time36><random36>.');
+        }
+
+        if (RunIdFormat::isCore($runId)) {
+            return $this->pathForCoreRunId($runId);
+        }
+
+        $path = $this->runPath($runId);
+
+        return is_file($path) ? $path : null;
+    }
+
+    private function pathForCoreRunId(string $runId): ?string
+    {
+        $files = glob($this->runsPath() . DIRECTORY_SEPARATOR . 'sift_' . $runId . '_*.json');
+
+        if ($files === false || $files === []) {
+            return null;
+        }
+
+        sort($files);
+
+        return $files[0];
     }
 
     private function removeTree(string $path): int

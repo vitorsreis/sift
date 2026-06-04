@@ -17,10 +17,10 @@ use Tests\Support\FixtureProject;
 it('lists history runs sorted by stored_at with limit offset and corrupt run entries', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
-    $store->store(historyCommandRun('run_11111111111111111111111111111111', 'pest', '2026-05-31T10:00:00+00:00'));
-    $store->store(historyCommandRun('run_22222222222222222222222222222222', 'phpunit', '2026-05-31T11:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1b0000001', 'phpunit', '2026-05-31T11:00:00+00:00'));
 
-    $project->write('.sift/history/runs/run_33333333333333333333333333333333.json', '{');
+    $project->write('.sift/history/runs/sift_0td7j1c0zzzzzz_pest.json', '{');
 
     $payload = (new HistoryListCommand())->handle(
         new CommandRoute('history.list', options: ['limit' => 2, 'offset' => 0]),
@@ -34,8 +34,8 @@ it('lists history runs sorted by stored_at with limit offset and corrupt run ent
         'offset' => 0,
     ]);
     expect(array_column(historyCommandItems($payload), 'run_id'))->toBe([
-        'run_22222222222222222222222222222222',
-        'run_11111111111111111111111111111111',
+        '0td7j1b0000001',
+        '0td7j1a01z141z',
     ]);
 
     $defaultPayload = (new HistoryListCommand())->handle(new CommandRoute('history.list'), $project->root());
@@ -46,7 +46,7 @@ it('lists history runs sorted by stored_at with limit offset and corrupt run ent
         'offset' => 0,
     ]);
     expect(historyCommandItems($defaultPayload)[2])->toMatchArray([
-        'run_id' => 'run_33333333333333333333333333333333',
+        'run_id' => '0td7j1c0zzzzzz',
         'type' => 'error',
         'status' => 'error',
     ]);
@@ -55,16 +55,16 @@ it('lists history runs sorted by stored_at with limit offset and corrupt run ent
 it('views a full run payload and individual payload sections', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
-    $store->store(historyCommandRun('run_11111111111111111111111111111111', 'pest', '2026-05-31T10:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
 
     $command = new HistoryViewCommand();
 
-    $full = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111']), $project->root());
-    $items = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'items']), $project->root());
-    $summary = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'summary']), $project->root());
-    $meta = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'meta']), $project->root());
-    $artifacts = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'artifacts']), $project->root());
-    $extra = $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'extra']), $project->root());
+    $full = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z']), $project->root());
+    $items = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'items']), $project->root());
+    $summary = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'summary']), $project->root());
+    $meta = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'meta']), $project->root());
+    $artifacts = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'artifacts']), $project->root());
+    $extra = $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'extra']), $project->root());
 
     expect($full['tool'])->toBe('pest');
     expect($full['status'])->toBe('passed');
@@ -79,47 +79,47 @@ it('returns run_not_found for missing history view ids and rejects invalid secti
     $project = FixtureProject::create();
     $command = new HistoryViewCommand();
 
-    expect(fn(): mixed => $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111']), $project->root()))
+    expect(fn(): mixed => $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z']), $project->root()))
         ->toThrow(UserFacingException::class, 'History run was not found.');
 
     try {
-        $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111']), $project->root());
+        $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z']), $project->root());
     } catch (UserFacingException $userFacingException) {
         expect($userFacingException->errorCode())->toBe(ErrorCode::RunNotFound);
     }
 
     $store = new FileRunStore($project->path('.sift/history'));
-    $store->store(historyCommandRun('run_11111111111111111111111111111111', 'pest', '2026-05-31T10:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
 
-    expect(fn(): mixed => $command->handle(new CommandRoute('history.view', ['run_11111111111111111111111111111111', 'bad']), $project->root()))
+    expect(fn(): mixed => $command->handle(new CommandRoute('history.view', ['0td7j1a01z141z', 'bad']), $project->root()))
         ->toThrow(InvalidUsageException::class, 'Unsupported history section "bad".');
 });
 
 it('removes requested runs while reporting missing ids', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
-    $store->store(historyCommandRun('run_11111111111111111111111111111111', 'pest', '2026-05-31T10:00:00+00:00'));
-    $store->store(historyCommandRun('run_22222222222222222222222222222222', 'phpunit', '2026-05-31T11:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1b0000001', 'phpunit', '2026-05-31T11:00:00+00:00'));
 
     $payload = (new HistoryRemoveCommand())->handle(
         new CommandRoute('history.remove', [
-            'run_11111111111111111111111111111111',
-            'run_33333333333333333333333333333333',
+            '0td7j1a01z141z',
+            '0td7j1c0zzzzzz',
         ]),
         $project->root(),
     );
 
     expect($payload['summary'])->toBe(['removed' => 1, 'missing' => 1]);
     expect(array_column(historyCommandItems($payload), 'status'))->toBe(['removed', 'missing']);
-    expect(is_file($project->path('.sift/history/runs/run_11111111111111111111111111111111.json')))->toBeFalse();
-    expect(is_file($project->path('.sift/history/runs/run_22222222222222222222222222222222.json')))->toBeTrue();
+    expect(is_file($project->path('.sift/history/runs/sift_0td7j1a01z141z_pest.json')))->toBeFalse();
+    expect(is_file($project->path('.sift/history/runs/sift_0td7j1b0000001_phpunit.json')))->toBeTrue();
 });
 
 it('clears all history runs', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
-    $store->store(historyCommandRun('run_11111111111111111111111111111111', 'pest', '2026-05-31T10:00:00+00:00'));
-    $store->store(historyCommandRun('run_22222222222222222222222222222222', 'phpunit', '2026-05-31T11:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1a01z141z', 'pest', '2026-05-31T10:00:00+00:00'));
+    $store->store(historyCommandRun('0td7j1b0000001', 'phpunit', '2026-05-31T11:00:00+00:00'));
 
     $payload = (new HistoryClearCommand())->handle(new CommandRoute('history.clear'), $project->root());
 

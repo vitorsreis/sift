@@ -9,33 +9,34 @@ it('stores one normalized run per json file and reads it back', function (): voi
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
 
-    $store->store(historyRunDocument('run_11111111111111111111111111111111', 'pest'));
+    $store->store(historyRunDocument('0td7j1a01z141z', 'pest'));
 
-    $document = $project->readJson('.sift/history/runs/run_11111111111111111111111111111111.json');
+    $document = $project->readJson('.sift/history/runs/sift_0td7j1a01z141z_pest.json');
 
     expect($document)->toMatchArray([
-        'run_id' => 'run_11111111111111111111111111111111',
+        'run_id' => '0td7j1a01z141z',
         'tool' => 'pest',
         'status' => 'passed',
         'summary' => ['tests' => 12],
     ]);
-    expect($store->read('run_11111111111111111111111111111111'))->toMatchArray($document);
+    expect($store->read('0td7j1a01z141z'))->toMatchArray($document);
+    expect($store->read('sift_0td7j1a01z141z_pest'))->toMatchArray($document);
 });
 
 it('lists valid runs and keeps corrupted runs visible as error items', function (): void {
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
 
-    $store->store(historyRunDocument('run_11111111111111111111111111111111', 'pest'));
+    $store->store(historyRunDocument('0td7j1a01z141z', 'pest'));
 
-    $project->write('.sift/history/runs/run_22222222222222222222222222222222.json', '{');
+    $project->write('.sift/history/runs/sift_0td7j1b0000001_pest.json', '{');
 
     $runs = $store->list();
 
     expect($runs)->toHaveCount(2);
-    expect($runs[0]['run_id'] ?? null)->toBe('run_11111111111111111111111111111111');
+    expect($runs[0]['run_id'] ?? null)->toBe('0td7j1a01z141z');
     expect($runs[1])->toMatchArray([
-        'run_id' => 'run_22222222222222222222222222222222',
+        'run_id' => '0td7j1b0000001',
         'type' => 'error',
         'status' => 'error',
     ]);
@@ -45,13 +46,13 @@ it('removes only requested runs and clears the history directory', function (): 
     $project = FixtureProject::create();
     $store = new FileRunStore($project->path('.sift/history'));
 
-    $store->store(historyRunDocument('run_11111111111111111111111111111111', 'pest'));
-    $store->store(historyRunDocument('run_22222222222222222222222222222222', 'phpunit'));
+    $store->store(historyRunDocument('0td7j1a01z141z', 'pest'));
+    $store->store(historyRunDocument('0td7j1b0000001', 'phpunit'));
 
-    expect($store->remove('run_11111111111111111111111111111111'))->toBeTrue();
-    expect($store->remove('run_33333333333333333333333333333333'))->toBeFalse();
-    expect(is_file($project->path('.sift/history/runs/run_11111111111111111111111111111111.json')))->toBeFalse();
-    expect(is_file($project->path('.sift/history/runs/run_22222222222222222222222222222222.json')))->toBeTrue();
+    expect($store->remove('0td7j1a01z141z'))->toBeTrue();
+    expect($store->remove('0td7j1c0zzzzzz'))->toBeFalse();
+    expect(is_file($project->path('.sift/history/runs/sift_0td7j1a01z141z_pest.json')))->toBeFalse();
+    expect(is_file($project->path('.sift/history/runs/sift_0td7j1b0000001_phpunit.json')))->toBeTrue();
 
     expect($store->clearAll())->toBe(1);
     expect(is_dir($project->path('.sift/history')))->toBeFalse();
@@ -63,9 +64,9 @@ it('removes only the empty default sift parent during clear', function (): void 
     $customStore = new FileRunStore($project->path('storage/history'));
     $customSiftStore = new FileRunStore($project->path('nested/.sift/history'));
 
-    $defaultStore->store(historyRunDocument('run_11111111111111111111111111111111', 'pest'));
-    $customStore->store(historyRunDocument('run_22222222222222222222222222222222', 'pest'));
-    $customSiftStore->store(historyRunDocument('run_33333333333333333333333333333333', 'pest'));
+    $defaultStore->store(historyRunDocument('0td7j1a01z141z', 'pest'));
+    $customStore->store(historyRunDocument('0td7j1b0000001', 'pest'));
+    $customSiftStore->store(historyRunDocument('0td7j1c0zzzzzz', 'pest'));
 
     expect($defaultStore->clearAll())->toBe(1);
     expect($customStore->clearAll())->toBe(1);

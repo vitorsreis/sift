@@ -11,6 +11,7 @@ use Sift\Config\SiftConfig;
 use Sift\Console\CommandRoute;
 use Sift\Console\InvalidUsageException;
 use Sift\History\FileRunStore;
+use Sift\History\RunIdFormat;
 use Sift\History\RunStore;
 use Sift\Workspace\WorkspaceResolver;
 
@@ -53,7 +54,7 @@ abstract readonly class AbstractHistoryCommand implements CommandHandler
 
     protected function runId(string $value): string
     {
-        if (preg_match('/^run_[a-f0-9]{32}$/', $value) !== 1) {
+        if (! RunIdFormat::isValid($value)) {
             throw new InvalidUsageException(sprintf('Invalid run id "%s".', $value));
         }
 

@@ -41,12 +41,13 @@ it('routes nested commands and aliases', function (): void {
     expectSiftRoute(['tools', 'ls'], 'tools.list');
     expectSiftRoute(['history', 'list'], 'history.list');
     expectSiftRoute(['history', 'ls'], 'history.list');
-    expectSiftRoute(['history', 'view', 'run_0123456789abcdef0123456789abcdef'], 'history.view');
-    expectSiftRoute(['history', 'run_0123456789abcdef0123456789abcdef'], 'history.view');
-    expectSiftRoute(['history', 'view', 'run_0123456789abcdef0123456789abcdef', 'items'], 'history.view');
+    expectSiftRoute(['history', 'view', '0td7j1a01z141z'], 'history.view');
+    expectSiftRoute(['history', '0td7j1a01z141z'], 'history.view');
+    expectSiftRoute(['history', 'view', 'sift_0td7j1a01z141z_pest'], 'history.view');
+    expectSiftRoute(['history', 'view', '0td7j1a01z141z', 'items'], 'history.view');
     expectSiftRoute(['history', 'clear'], 'history.clear');
-    expectSiftRoute(['history', 'remove', 'run_0123456789abcdef0123456789abcdef'], 'history.remove');
-    expectSiftRoute(['history', 'rm', 'run_0123456789abcdef0123456789abcdef'], 'history.remove');
+    expectSiftRoute(['history', 'remove', '0td7j1a01z141z'], 'history.remove');
+    expectSiftRoute(['history', 'rm', '0td7j1a01z141z'], 'history.remove');
 });
 
 it('routes direct tool aliases and explicit run commands', function (): void {
