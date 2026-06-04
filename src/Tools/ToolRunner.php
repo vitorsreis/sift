@@ -20,6 +20,8 @@ use Sift\Safety\PolicyPipeline;
 
 final readonly class ToolRunner
 {
+    private const int DEBUG_SNIPPET_LIMIT = 4000;
+
     public function __construct(
         private ToolRegistryInterface $registry,
         private ToolConfigResolver $configResolver = new ToolConfigResolver(),
@@ -64,7 +66,12 @@ final readonly class ToolRunner
         }
 
         $execution = $this->processRunner->run($command);
-        $parsed = $adapter->parse($execution, $context, $command);
+
+        try {
+            $parsed = $adapter->parse($execution, $context, $command);
+        } catch (UserFacingException $userFacingException) {
+            throw $this->withDebugSnippets($userFacingException, $context, $execution);
+        }
 
         return $this->resultBuilder->build($parsed, $execution, $command, $context);
     }
@@ -111,5 +118,41 @@ final readonly class ToolRunner
         }
 
         $processReporter($command);
+    }
+
+    private function withDebugSnippets(
+        UserFacingException $exception,
+        ToolContext $context,
+        ExecutionResult $execution,
+    ): UserFacingException {
+        if ($exception->errorCode() !== ErrorCode::ParseFailure || ! $context->debug()) {
+            return $exception;
+        }
+
+        $exceptionContext = $exception->context();
+
+        return UserFacingException::withContext(
+            errorCode: $exception->errorCode(),
+            message: $exception->getMessage(),
+            hint: $exception->hint(),
+            context: [
+                ...$exceptionContext,
+                'stdout' => is_string($exceptionContext['stdout'] ?? null)
+                    ? $exceptionContext['stdout']
+                    : $this->snippet($execution->stdout()),
+                'stderr' => is_string($exceptionContext['stderr'] ?? null)
+                    ? $exceptionContext['stderr']
+                    : $this->snippet($execution->stderr()),
+            ],
+        );
+    }
+
+    private function snippet(string $raw): string
+    {
+        if (strlen($raw) <= self::DEBUG_SNIPPET_LIMIT) {
+            return $raw;
+        }
+
+        return substr($raw, 0, self::DEBUG_SNIPPET_LIMIT);
     }
 }

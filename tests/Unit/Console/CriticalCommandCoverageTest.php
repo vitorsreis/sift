@@ -6,9 +6,11 @@ use Sift\Console\CommandRoute;
 use Sift\Console\Commands\RunToolCommand;
 use Sift\Console\Commands\SkillsAddCommand;
 use Sift\Console\Commands\SkillsUpdateCommand;
+use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
+use Sift\Exceptions\UserFacingException;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\AbstractCliToolAdapter;
 use Sift\Tools\ToolContext;
@@ -63,6 +65,33 @@ it('runs a normalized tool handler directly with process reporting and history d
     expect($project->path('.sift/history'))->not->toBeDirectory();
 });
 
+it('adds limited raw snippets to debug parse failures', function (): void {
+    $project = FixtureProject::create();
+    $runner = new ToolRunner(new ToolRegistry(criticalCommandParseFailureAdapter()));
+    $command = new RunToolCommand(toolRunner: $runner);
+
+    try {
+        $command->handle(
+            new CommandRoute(
+                'run.tool',
+                ['critical-parse-failure'],
+                globalOptions: ['no-history' => true, 'debug' => true],
+            ),
+            $project->root(),
+        );
+    } catch (UserFacingException $userFacingException) {
+        $context = $userFacingException->context();
+
+        expect($userFacingException->errorCode())->toBe(ErrorCode::ParseFailure);
+        expect($context['stdout'] ?? null)->toBe(str_repeat('o', 4000));
+        expect($context['stderr'] ?? null)->toBe(str_repeat('e', 4000));
+
+        return;
+    }
+
+    throw new RuntimeException('Expected parse failure.');
+});
+
 function criticalCommandSkill(FixtureProject $source, string $body): void
 {
     $source->write('SKILL.md', sprintf(
@@ -107,6 +136,57 @@ function criticalCommandAdapter(): AbstractCliToolAdapter
         public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
             return NormalizedResult::passed($context->toolName());
+        }
+    };
+}
+
+function criticalCommandParseFailureAdapter(): AbstractCliToolAdapter
+{
+    return new readonly class extends AbstractCliToolAdapter {
+        protected function name(): string
+        {
+            return 'critical-parse-failure';
+        }
+
+        protected function description(): string
+        {
+            return 'Critical parse failure tool.';
+        }
+
+        protected function binaryCandidates(): array
+        {
+            return [PHP_BINARY];
+        }
+
+        protected function installHint(): string
+        {
+            return 'Install PHP.';
+        }
+
+        protected function defaultContext(): string
+        {
+            return 'test';
+        }
+
+        protected function defaultArguments(ToolContext $context): array
+        {
+            return [
+                '-r',
+                sprintf(
+                    'fwrite(STDOUT, %s); fwrite(STDERR, %s);',
+                    var_export(str_repeat('o', 4100), true),
+                    var_export(str_repeat('e', 4100), true),
+                ),
+            ];
+        }
+
+        public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
+        {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::ParseFailure,
+                message: 'Could not parse critical output.',
+                context: ['reason' => 'invalid shape'],
+            );
         }
     };
 }
