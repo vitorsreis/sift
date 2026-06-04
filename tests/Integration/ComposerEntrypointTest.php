@@ -112,6 +112,48 @@ it('installs the composer package as a copied distribution', function (): void {
     expect($project->path('vendor/vitorsreis/sift/src/Sift.php'))->toBeFile();
 });
 
+it('runs vendor bin when the composer plugin is disabled', function (): void {
+    $project = FixtureProject::create('sift-composer-plugin-disabled-');
+    $repoRoot = str_replace('\\', '/', dirname(__DIR__, 2));
+
+    $project->writeJson('composer.json', [
+        'name' => 'fixture/plugin-disabled-project',
+        'type' => 'project',
+        'require' => [
+            'vitorsreis/sift' => '*',
+        ],
+        'repositories' => [
+            [
+                'type' => 'path',
+                'url' => $repoRoot,
+                'options' => [
+                    'symlink' => true,
+                ],
+            ],
+        ],
+        'config' => [
+            'allow-plugins' => [
+                'vitorsreis/sift' => false,
+            ],
+            'platform' => [
+                'php' => '8.3',
+            ],
+        ],
+        'minimum-stability' => 'dev',
+        'prefer-stable' => true,
+    ]);
+
+    $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
+    $vendorBin = runVendorSiftEntrypoint($project, ['--json', '--no-pretty', 'validate']);
+
+    if ($install['exit_code'] !== 0) {
+        throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
+    }
+
+    expect($vendorBin['exit_code'])->toBe(0);
+    expect(decodeComposerEntrypointPayload($vendorBin['stdout'])['status'] ?? null)->toBe('passed');
+});
+
 /**
  * @param list<string> $arguments
  *

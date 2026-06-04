@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Composer\Command\BaseCommand;
 use Composer\Console\Application as ComposerApplication;
+use Composer\Composer;
+use Composer\IO\NullIO;
 use Composer\Plugin\Capability\CommandProvider;
 use Sift\Composer\Command\ComposerSkillsCommand;
 use Sift\Composer\Command\SiftCommand;
@@ -17,6 +19,20 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 it('exposes only the command provider capability', function (): void {
     expect((new SiftPlugin())->getCapabilities())->toBe([
+        CommandProvider::class => SiftCommandProvider::class,
+    ]);
+});
+
+it('keeps composer lifecycle hooks as no-ops', function (): void {
+    $composer = new Composer();
+    $io = new NullIO();
+    $plugin = new SiftPlugin();
+
+    $plugin->activate($composer, $io);
+    $plugin->deactivate($composer, $io);
+    $plugin->uninstall($composer, $io);
+
+    expect($plugin->getCapabilities())->toBe([
         CommandProvider::class => SiftCommandProvider::class,
     ]);
 });
