@@ -24,7 +24,7 @@ final readonly class PhpCommandFactory
             return $command;
         }
 
-        $phpArguments = [...$this->runtimeArguments->arguments(), ...$phpArguments];
+        $phpArguments = $this->mergePhpArguments($this->runtimeArguments->arguments(), $phpArguments);
 
         if ($phpArguments === []) {
             return $command;
@@ -42,6 +42,41 @@ final readonly class PhpCommandFactory
             displayCommand: [$this->phpBinary, ...$phpArguments, $script, ...$command->arguments()],
             nativeOutputMode: $command->nativeOutputMode(),
         );
+    }
+
+    /**
+     * @param list<string> $runtimeArguments
+     * @param list<string> $toolArguments
+     *
+     * @return list<string>
+     */
+    private function mergePhpArguments(array $runtimeArguments, array $toolArguments): array
+    {
+        $toolArgumentKeys = array_flip(array_map($this->phpArgumentKey(...), $toolArguments));
+        $arguments = [];
+
+        foreach ($runtimeArguments as $argument) {
+            if (array_key_exists($this->phpArgumentKey($argument), $toolArgumentKeys)) {
+                continue;
+            }
+
+            $arguments[] = $argument;
+        }
+
+        return [...$arguments, ...$toolArguments];
+    }
+
+    private function phpArgumentKey(string $argument): string
+    {
+        if (! str_starts_with($argument, '-d') || strlen($argument) <= 2) {
+            return $argument;
+        }
+
+        $definition = substr($argument, 2);
+        $separator = strpos($definition, '=');
+        $name = $separator === false ? $definition : substr($definition, 0, $separator);
+
+        return '-d' . strtolower($name);
     }
 
     private function phpScript(string $binary): ?string

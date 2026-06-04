@@ -87,7 +87,7 @@ it('runs policies before starting the process', function (): void {
     throw new RuntimeException('Tool runner did not block execution.');
 });
 
-it('passes inherited and tool-only php ini settings to php composer proxy binaries', function (): void {
+it('passes php ini settings to php composer proxy binaries and lets tool values override inherited values', function (): void {
     $project = FixtureProject::create();
     $proxy = $project->write('vendor/bin/demo', <<<'PHP'
 #!/usr/bin/env php
@@ -100,6 +100,7 @@ PHP);
         phpCommandFactory: new PhpCommandFactory(PHP_BINARY, new PhpRuntimeArguments([
             PHP_BINARY,
             '-dmemory_limit=64M',
+            '-dxdebug.mode=off',
             $project->path('bin/sift'),
             'demo',
             'user-arg',
@@ -107,7 +108,11 @@ PHP);
     );
 
     $result = $runner->run(
-        arguments: new CliArguments('demo', ['user-arg'], ['d' => ['memory_limit=128M']]),
+        arguments: new CliArguments('demo', ['user-arg'], ['d' => [
+            'zend_extension=xdebug',
+            'xdebug.mode=coverage',
+            'memory_limit=128M',
+        ]]),
         config: toolRunnerConfig(new ToolConfig('demo', true, $batch, [], 30)),
         cwd: $project->root(),
     );
@@ -120,9 +125,23 @@ PHP);
 
     expect($payload['summary'])->toMatchArray([
         'stdout' => '128M|user-arg',
-        'parsed_command' => [PHP_BINARY, '-dmemory_limit=64M', '-dmemory_limit=128M', $proxy, 'user-arg'],
+        'parsed_command' => [
+            PHP_BINARY,
+            '-dzend_extension=xdebug',
+            '-dxdebug.mode=coverage',
+            '-dmemory_limit=128M',
+            $proxy,
+            'user-arg',
+        ],
     ]);
-    expect($payload['meta']['command'])->toBe([PHP_BINARY, '-dmemory_limit=64M', '-dmemory_limit=128M', $proxy, 'user-arg']);
+    expect($payload['meta']['command'])->toBe([
+        PHP_BINARY,
+        '-dzend_extension=xdebug',
+        '-dxdebug.mode=coverage',
+        '-dmemory_limit=128M',
+        $proxy,
+        'user-arg',
+    ]);
 });
 
 /**
