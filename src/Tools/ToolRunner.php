@@ -65,19 +65,23 @@ final readonly class ToolRunner
             return $this->rawProcessRunner->run($command, $rawStdout, $rawStderr);
         }
 
-        $execution = $this->processRunner->run($command);
-
-        if ($execution->interrupted()) {
-            return $execution;
-        }
-
         try {
-            $parsed = $adapter->parse($execution, $context, $command);
-        } catch (UserFacingException $userFacingException) {
-            throw $this->withDebugSnippets($userFacingException, $context, $execution);
-        }
+            $execution = $this->processRunner->run($command);
 
-        return $this->resultBuilder->build($parsed, $execution, $command, $context);
+            if ($execution->interrupted()) {
+                return $execution;
+            }
+
+            try {
+                $parsed = $adapter->parse($execution, $context, $command);
+            } catch (UserFacingException $userFacingException) {
+                throw $this->withDebugSnippets($userFacingException, $context, $execution);
+            }
+
+            return $this->resultBuilder->build($parsed, $execution, $command, $context);
+        } finally {
+            $this->cleanupTemporaryFiles($command);
+        }
     }
 
     /**
@@ -158,5 +162,14 @@ final readonly class ToolRunner
         }
 
         return substr($raw, 0, self::DEBUG_SNIPPET_LIMIT);
+    }
+
+    private function cleanupTemporaryFiles(PreparedCommand $command): void
+    {
+        foreach ($command->temporaryFiles() as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
     }
 }

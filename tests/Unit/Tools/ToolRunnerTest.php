@@ -167,21 +167,83 @@ it('returns interrupted executions without parsing partial output', function ():
     expect($result->errorCode())->toBe(ErrorCode::ProcessInterrupted);
 });
 
+it('removes prepared temporary files after parsing normalized output', function (): void {
+    $temporary = tempnam(sys_get_temp_dir(), 'sift-toolrunner-success-');
+
+    if ($temporary === false) {
+        throw new RuntimeException('Could not create temporary file.');
+    }
+
+    file_put_contents($temporary, 'temporary report');
+
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(toolRunnerAdapter('demo', [], ['-r', 'exit(0);'], [$temporary])),
+    );
+
+    $result = $runner->run(
+        arguments: new CliArguments('demo'),
+        config: toolRunnerConfig(new ToolConfig('demo', true, null, [], 30)),
+        cwd: getcwd() ?: '.',
+    );
+
+    expect($result)->toBeInstanceOf(NormalizedResult::class);
+    expect($temporary)->not->toBeFile();
+});
+
+it('removes prepared temporary files when parsing fails', function (): void {
+    $temporary = tempnam(sys_get_temp_dir(), 'sift-toolrunner-failure-');
+
+    if ($temporary === false) {
+        throw new RuntimeException('Could not create temporary file.');
+    }
+
+    file_put_contents($temporary, 'temporary report');
+
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(toolRunnerAdapter('demo', [], ['-r', 'exit(0);'], [$temporary], parseFailure: true)),
+    );
+
+    try {
+        $runner->run(
+            arguments: new CliArguments('demo'),
+            config: toolRunnerConfig(new ToolConfig('demo', true, null, [], 30)),
+            cwd: getcwd() ?: '.',
+        );
+    } catch (UserFacingException $userFacingException) {
+        expect($userFacingException->errorCode())->toBe(ErrorCode::ParseFailure);
+        expect($temporary)->not->toBeFile();
+
+        return;
+    }
+
+    throw new RuntimeException('Expected parse failure.');
+});
+
 /**
  * @param  list<string>  $aliases
  * @param  list<string>  $defaultArguments
+ * @param  list<string>  $temporaryFiles
  */
-function toolRunnerAdapter(string $name, array $aliases, array $defaultArguments): AbstractCliToolAdapter
+function toolRunnerAdapter(
+    string $name,
+    array $aliases,
+    array $defaultArguments,
+    array $temporaryFiles = [],
+    bool $parseFailure = false,
+): AbstractCliToolAdapter
 {
-    return new readonly class ($name, $aliases, $defaultArguments) extends AbstractCliToolAdapter {
+    return new readonly class ($name, $aliases, $defaultArguments, $temporaryFiles, $parseFailure) extends AbstractCliToolAdapter {
         /**
          * @param  list<string>  $aliases
          * @param  list<string>  $defaultArguments
+         * @param  list<string>  $temporaryFiles
          */
         public function __construct(
             private string $name,
             private array $aliases,
             private array $defaultArguments,
+            private array $temporaryFiles,
+            private bool $parseFailure,
         ) {}
 
         protected function name(): string
@@ -219,8 +281,36 @@ function toolRunnerAdapter(string $name, array $aliases, array $defaultArguments
             return $this->defaultArguments;
         }
 
+        public function prepare(
+            \Sift\Execution\LocatedTool $tool,
+            ToolContext $context,
+            ToolConfig $config,
+        ): PreparedCommand {
+            $command = parent::prepare($tool, $context, $config);
+
+            return new PreparedCommand(
+                tool: $command->tool(),
+                binary: $command->binary(),
+                arguments: $command->arguments(),
+                cwd: $command->cwd(),
+                environment: $command->environment(),
+                timeout: $command->timeout(),
+                temporaryFiles: $this->temporaryFiles,
+                artifacts: $command->artifacts(),
+                displayCommand: $command->displayCommand(),
+                nativeOutputMode: $command->nativeOutputMode(),
+            );
+        }
+
         public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
         {
+            if ($this->parseFailure) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::ParseFailure,
+                    message: 'Parse failed.',
+                );
+            }
+
             return NormalizedResult::passed($context->toolName(), [
                 'stdout' => $execution->stdout(),
                 'stderr' => $execution->stderr(),
