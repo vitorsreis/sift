@@ -14,6 +14,7 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 {
   "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
   "output": {
+    "format": "json",
     "size": "compact",
     "pretty": true,
     "show_process": false
@@ -50,4 +51,4 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 
 `composer sift validate` parses JSON and checks semantic rules. Missing config is valid because runtime defaults are valid.
 
-Invalid config exits with code `3` and a JSON error.
+Invalid config exits with code `3`. Errors are terminal text by default and JSON with `--json`.

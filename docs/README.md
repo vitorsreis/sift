@@ -16,6 +16,6 @@ This directory contains Sift's documentation.
 
 ## Contract Notes
 
-- Output is JSON unless `--raw` is explicitly used.
+- Output is terminal text by default. Use `--json` for normalized JSON payloads.
 - Policies run before both normalized and raw tool execution.
 - History stores one JSON file per run.

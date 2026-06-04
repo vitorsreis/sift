@@ -9,7 +9,7 @@ php vendor/bin/sift <command>
 php sift.phar <command>
 ```
 
-All entrypoints call the same application core and should return the same payload for the same arguments.
+All entrypoints call the same application core and should return the same output for the same arguments.
 
 ## Global Options
 
@@ -17,6 +17,7 @@ All entrypoints call the same application core and should return the same payloa
 - `--full`
 - `--pretty`, `-p`
 - `--no-pretty`, `-P`
+- `--json`
 - `--raw`
 - `--show-process`
 - `--no-show-process`
@@ -56,11 +57,14 @@ command option > global option > config > default
 
 ## Streams
 
-- Normalized result payloads go to `STDOUT`.
+- Terminal result output goes to `STDOUT` by default.
+- `--json` writes normalized result payloads to `STDOUT`.
 - Sift errors go to `STDERR`.
 - `--show-process` writes only to `STDERR`.
 - `--debug` writes diagnostics to `STDERR` and keeps `STDOUT` unchanged.
 - `--raw` passes through native stdout, stderr, and exit code.
+
+`--compact`, default size, and `--full` control detail level in both terminal and JSON output. `--json` and `--raw` cannot be used together.
 
 ## Exit Codes
 

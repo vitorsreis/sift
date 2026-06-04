@@ -25,7 +25,7 @@ The stub checks:
 - `ext-json`
 - `ext-simplexml`
 
-Failures are JSON errors on `STDERR` with exit code `3`.
+Bootstrap failures are JSON errors on `STDERR` with exit code `3` because they happen before the Sift renderer is available.
 
 ## Runtime Paths
 

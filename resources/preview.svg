@@ -22,39 +22,39 @@
     <text x="114" y="51" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="14" font-weight="700" style="white-space: pre;">sift preview</text>
     <text x="44" y="93" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15" style="white-space: pre; font-size: 15px;">$ composer skills add vitorsreis/sift --skill sift</text>
     <line x1="40" y1="112" x2="880" y2="112" stroke="#23324c" stroke-width="1"/>
-    <text x="44" y="140" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15" style="white-space: pre; font-size: 15px;">$ composer sift --compact --pretty pest</text>
+    <text x="44" y="140" fill="#f8fafc" font-family="'Courier New', monospace" font-size="15" style="white-space: pre; font-size: 15px;">$ composer sift --json --compact --pretty pest</text>
     <rect x="40" y="160" width="840" height="215.699" rx="10" fill="#0b1325" stroke="#23324c" style=""/>
     <text x="56" y="188" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">{</text>
-    <text x="72" y="207" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tool"</text>
-    <text x="120" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="132" y="207" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"pest"</text>
-    <text x="178" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="226" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"status"</text>
-    <text x="136" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="148" y="226" fill="#fca5a5" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failed"</text>
-    <text x="210" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="245" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tests"</text>
-    <text x="128" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="140" y="245" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">25</text>
-    <text x="156" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="264" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"passed"</text>
-    <text x="136" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="148" y="264" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">24</text>
-    <text x="164" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="283" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failures"</text>
-    <text x="152" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="164" y="283" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">1</text>
-    <text x="172" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="302" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"errors"</text>
-    <text x="136" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="148" y="302" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
-    <text x="156" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="321" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"skipped"</text>
-    <text x="144" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="156" y="321" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
-    <text x="164" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
-    <text x="72" y="340" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"run_id"</text>
-    <text x="136" y="340" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
-    <text x="148" y="340" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"run_aa30a4ab9e1c4b2f8d7e6c5a3b9f0d12"</text>
+    <text x="72" y="207" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"run_id"</text>
+    <text x="136" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="207" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"0tg3s8k0o82p40"</text>
+    <text x="271" y="207" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="226" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tool"</text>
+    <text x="120" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="132" y="226" fill="#86efac" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"pest"</text>
+    <text x="178" y="226" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="245" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"status"</text>
+    <text x="136" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="245" fill="#fca5a5" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failed"</text>
+    <text x="210" y="245" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="264" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"tests"</text>
+    <text x="128" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="140" y="264" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">25</text>
+    <text x="156" y="264" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="283" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"passed"</text>
+    <text x="136" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="283" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">24</text>
+    <text x="164" y="283" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="302" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"failures"</text>
+    <text x="152" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="164" y="302" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">1</text>
+    <text x="172" y="302" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="321" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"errors"</text>
+    <text x="136" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="148" y="321" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
+    <text x="156" y="321" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">,</text>
+    <text x="72" y="340" fill="#c4b5fd" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">"skipped"</text>
+    <text x="144" y="340" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">:</text>
+    <text x="156" y="340" fill="#fcd34d" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">0</text>
     <text x="56" y="357" fill="#e2e8f0" font-family="'Courier New', monospace" font-size="13" style="white-space: pre; font-size: 13px;">}</text>
 </svg>

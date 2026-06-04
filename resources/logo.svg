@@ -1,6 +1,6 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Sift logo</title>
-  <desc id="desc">A compact sieve mark with structured JSON lines, representing filtered PHP tooling output.</desc>
+  <desc id="desc">A compact sieve mark with structured lines, representing filtered PHP tooling output.</desc>
   <rect width="256" height="256" rx="48" fill="#0b1020"/>
   <rect x="38" y="38" width="180" height="180" rx="30" fill="#111827" stroke="#2dd4bf" stroke-width="6"/>
   <path d="M66 78h124l-48 54v42l-28 14v-56L66 78Z" fill="#e5e7eb"/>

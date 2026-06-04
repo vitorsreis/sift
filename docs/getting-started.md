@@ -24,7 +24,7 @@ composer sift --compact pint
 composer sift --compact composer audit
 ```
 
-Use `--full` only when the compact payload does not include enough information.
+Output is terminal text by default. Use `--json` when you need the normalized payload, and `--full` only when compact output does not include enough information.
 
 ## Inspect History
 

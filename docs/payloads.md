@@ -1,6 +1,8 @@
 # Payloads
 
-Full normalized payload:
+Terminal output is the default. Use `--json` to render the normalized payload.
+
+Full normalized JSON payload:
 
 ```json
 {
@@ -14,7 +16,7 @@ Full normalized payload:
 }
 ```
 
-Output sizes:
+Output sizes in terminal and JSON modes:
 
 - `compact`: renders `tool`, `status`, and flattened `summary` fields.
 - `normal`: renders `tool`, `status`, `summary`, non-verbose `items`, and `meta`.
@@ -28,6 +30,14 @@ Statuses:
 - `error`
 
 ## Errors
+
+Terminal errors use short labeled lines:
+
+```text
+error invalid_usage
+message: Unknown option "--bad".
+hint: Run "sift help" to list available commands.
+```
 
 ```json
 {

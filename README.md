@@ -22,7 +22,7 @@ Sift is a command layer for PHP projects that lets coding agents run tools, insp
 ## What Sift Does
 
 - **Runs PHP tools through one interface**: Pest, PHPUnit, Paratest, PHPStan, Psalm, PHPCS, Pint, Rector, Mago, Composer checks, and dependency tools.
-- **Keeps output agent-friendly**: compact JSON first, full detail in history only when needed.
+- **Keeps output agent-friendly**: compact terminal output by default, JSON only with `--json`, full detail in history when needed.
 - **Installs agent skills safely**: Codex, Cursor, Claude, Copilot, Gemini, generic `AGENTS.md`, and other documented targets.
 - **Blocks unsafe defaults**: read-only Composer, dry-run refactors, safe formatter modes, blocked arguments, and non-JSON machine output checks.
 - **Works from every entrypoint**: Composer command, `vendor/bin/sift`, and standalone PHAR all call the same core.
@@ -59,6 +59,13 @@ composer sift --compact pint
 composer sift --compact rector process --dry-run src
 ```
 
+Use `--json` when another tool or agent needs the normalized payload:
+
+```bash
+composer sift --json --compact pest
+composer sift --json --full history view <run_id>
+```
+
 Inspect stored detail:
 
 ```bash
@@ -92,6 +99,7 @@ Accepted sources:
 {
   "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
   "output": {
+    "format": "terminal",
     "size": "compact",
     "pretty": true,
     "show_process": false

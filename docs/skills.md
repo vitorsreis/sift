@@ -18,7 +18,7 @@ Unsafe sources such as HTTP, SSH, Git protocol URLs, embedded credentials, path 
 composer skills add owner/repo --list
 ```
 
-Preview discovers skills and returns JSON without writing targets.
+Preview discovers skills and returns output without writing targets. Use `--json` for the normalized payload.
 
 ## Install
 
