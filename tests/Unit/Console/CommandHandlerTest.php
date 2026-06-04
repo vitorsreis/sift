@@ -12,6 +12,7 @@ use Sift\Console\Commands\SkillsRemoveCommand;
 use Sift\Console\Commands\ToolsListCommand;
 use Sift\Console\Commands\ValidateCommand;
 use Sift\Console\Commands\VersionCommand;
+use Sift\Console\ConfirmationPrompt;
 use Sift\Console\OutputFormat;
 use Sift\Console\OutputPreferences;
 use Sift\Console\OutputSize;
@@ -140,4 +141,23 @@ it('reports missing skill removal for an empty generic target', function (): voi
         'subcommand' => 'skills remove',
         'targets' => ['generic'],
     ]);
+});
+
+it('allows interactive confirmation before removing skills', function (): void {
+    $project = FixtureProject::create();
+    $output = '';
+    $prompt = new ConfirmationPrompt(
+        interactive: static fn(): bool => true,
+        reader: static fn(): string => "y\n",
+        writer: static function (string $message) use (&$output): void {
+            $output .= $message;
+        },
+    );
+
+    $payload = (new SkillsRemoveCommand(confirmationPrompt: $prompt))->handle(
+        new CommandRoute('skills remove', arguments: ['sift'], options: ['agent' => 'generic']),
+        $project->root(),
+    );
+
+    expect($payload['summary'])->toBe(['removed' => 0]);
 });

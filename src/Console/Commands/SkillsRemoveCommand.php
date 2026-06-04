@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
+use Sift\Console\ConfirmationPrompt;
 use Sift\Console\InvalidUsageException;
 use Sift\Skills\SkillTargetLock;
 use Sift\Skills\Targets\InstructionTargetRegistry;
@@ -14,14 +15,14 @@ final readonly class SkillsRemoveCommand implements CommandHandler
     public function __construct(
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
+        private ConfirmationPrompt $confirmationPrompt = new ConfirmationPrompt(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $this->assertConfirmed($route);
-
         $skillName = $this->skillName($route);
         $targets = $this->targets($route);
+        $this->assertConfirmed($route, sprintf('Remove skill %s from target(s) %s?', $skillName, implode(', ', $targets)));
         $items = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $skillName, $targets): array {
             $items = [];
 
@@ -50,13 +51,13 @@ final readonly class SkillsRemoveCommand implements CommandHandler
         ];
     }
 
-    private function assertConfirmed(CommandRoute $route): void
+    private function assertConfirmed(CommandRoute $route, string $message): void
     {
         if (($route->options()['yes'] ?? false) === true || ($route->options()['all'] ?? false) === true) {
             return;
         }
 
-        throw new InvalidUsageException('Mutating skill commands require --yes or --all in non-interactive mode.');
+        $this->confirmationPrompt->confirm($message);
     }
 
     private function skillName(CommandRoute $route): string

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
+use Sift\Console\ConfirmationPrompt;
 use Sift\Console\InvalidUsageException;
 use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
@@ -31,13 +32,21 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
+        private ConfirmationPrompt $confirmationPrompt = new ConfirmationPrompt(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $this->assertConfirmed($route);
-
         $targets = $this->targets($route);
+        $names = $this->selectedNames($route);
+        $this->assertConfirmed(
+            $route,
+            sprintf(
+                'Update managed skill(s) %s for target(s) %s?',
+                $names === [] ? 'all' : implode(', ', $names),
+                implode(', ', $targets),
+            ),
+        );
         $installed = [];
         $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, &$installed): array {
             $installed = $this->selectedMetadata($this->inventory->list($cwd, $targets), $route);
@@ -212,13 +221,13 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         return array_values(array_unique($targets));
     }
 
-    private function assertConfirmed(CommandRoute $route): void
+    private function assertConfirmed(CommandRoute $route, string $message): void
     {
         if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
             return;
         }
 
-        throw new InvalidUsageException('Mutating skill commands require --yes or --all in non-interactive mode.');
+        $this->confirmationPrompt->confirm($message);
     }
 
     private function optionBool(CommandRoute $route, string $name): bool

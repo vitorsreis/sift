@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
+use Sift\Console\ConfirmationPrompt;
 use Sift\Console\InvalidUsageException;
 use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
@@ -28,6 +29,7 @@ final readonly class SkillsAddCommand implements CommandHandler
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
+        private ConfirmationPrompt $confirmationPrompt = new ConfirmationPrompt(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -38,8 +40,8 @@ final readonly class SkillsAddCommand implements CommandHandler
             throw new InvalidUsageException('skills add requires a source.');
         }
 
-        if (! $this->optionBool($route, 'list')) {
-            $this->assertConfirmed($route);
+        if (! $this->optionBool($route, 'list') && ! $this->optionBool($route, 'yes') && ! $this->optionBool($route, 'all')) {
+            $this->confirmationPrompt->assertInteractive();
         }
 
         $source = $this->sourceResolver->resolve($sourceArgument, $cwd);
@@ -65,6 +67,14 @@ final readonly class SkillsAddCommand implements CommandHandler
 
             $selectedSkills = $this->selector->select($skills, $this->skillSelector($route), $resolvedSource->source());
             $targets = $this->targets($route);
+            $this->assertConfirmed(
+                $route,
+                sprintf(
+                    'Install skill(s) %s into target(s) %s?',
+                    implode(', ', array_map(static fn(Skill $skill): string => $skill->name(), $selectedSkills)),
+                    implode(', ', $targets),
+                ),
+            );
             $results = $this->targetLock->synchronized(
                 $cwd,
                 $targets,
@@ -181,13 +191,13 @@ final readonly class SkillsAddCommand implements CommandHandler
         return ($route->options()[$name] ?? false) === true;
     }
 
-    private function assertConfirmed(CommandRoute $route): void
+    private function assertConfirmed(CommandRoute $route, string $message): void
     {
         if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
             return;
         }
 
-        throw new InvalidUsageException('Mutating skill commands require --yes or --all in non-interactive mode.');
+        $this->confirmationPrompt->confirm($message);
     }
 
     private function skillSelector(CommandRoute $route): ?string
