@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Sift\History\FileRunStore;
+use Sift\Config\ConfigDefaults;
 use Tests\Support\CliRunner;
 use Tests\Support\FixtureProject;
 
@@ -34,4 +35,26 @@ it('renders history list and view as terminal text by default', function (): voi
     expect($view['stdout'])->toContain('pest passed');
     expect($view['stdout'])->toContain('summary: tests=12');
     expect($view['stdout'])->toContain('- test_failure failed');
+});
+
+it('does not ignore invalid config for history commands', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'history' => [
+            'max_files' => 0,
+        ],
+    ]);
+
+    $result = CliRunner::run(['--json', '--no-pretty', 'history', 'list'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = $payload['error'] ?? null;
+
+    if (! is_array($error)) {
+        throw new RuntimeException('Expected error payload.');
+    }
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($error['code'] ?? null)->toBe('invalid_config');
 });
