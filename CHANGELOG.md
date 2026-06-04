@@ -32,6 +32,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Skill source policy checks for unsafe URLs, embedded credentials, path traversal, source symlinks, nested target escapes, and submodule-based sources.
 - Repeated skill selectors for skill installation.
 - Release automation for PHP 8.5, PHAR artifacts, checksums, and provenance.
+- CI and release validation for exported Composer packages, including rootless archives and dev branch installs.
 - Documentation for CLI usage, configuration, tools, skills, payloads, architecture, PHAR, and contributing.
 - Baseline quality scripts for Pest, PHPStan, Pint, Rector, and full quality checks through Sift.
 
