@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    <strong>Agent tooling and skills layer for PHP projects.</strong>
+    <strong>Composer-native skills and agent-friendly tooling for PHP projects.</strong>
 </p>
 
 <p align="center">
@@ -17,143 +17,78 @@
 
 ---
 
-Sift is a command layer for PHP projects that lets coding agents run tools, inspect structured results, and install reusable agent instructions without drowning the conversation in raw terminal output.
+Sift helps PHP teams make coding agents more useful with less repeated context.
 
-## What Sift Does
+It adds two Composer-first workflows:
 
-- **Runs PHP tools through one interface**: Pest, PHPUnit, Paratest, PHPStan, Psalm, PHPCS, Pint, Rector, Mago, Composer checks, and dependency tools.
-- **Keeps output agent-friendly**: compact terminal output by default, JSON only with `--json`, full detail in history when needed.
-- **Installs agent skills safely**: Codex, Cursor, Claude, Copilot, Gemini, generic `AGENTS.md`, and other documented targets.
-- **Blocks unsafe defaults**: read-only Composer, dry-run refactors, safe formatter modes, blocked arguments, and required machine output checks.
-- **Works from every entrypoint**: Composer command, `vendor/bin/sift`, and standalone PHAR all call the same core.
+- `composer skills`: install and manage reusable agent skills inside the project.
+- `composer sift <tool>`: run PHP tools with compact, normalized, agent-friendly output.
 
-## Installation
+Instead of pasting the same project rules, commands, testing conventions, and huge terminal logs into every session,
+Sift keeps instructions and tool results structured. Agents can start from a small summary and inspect stored history
+only when they need more detail.
 
-```bash
-composer require --dev vitorsreis/sift
-composer config allow-plugins.vitorsreis/sift true
-```
+## Why Sift
 
-PHAR releases are available from the [GitHub releases page](https://github.com/vitorsreis/sift/releases).
+- **Manage skills through Composer** for Codex, Cursor, Claude Code, GitHub Copilot, VS Code, Gemini, Windsurf, and
+  generic `AGENTS.md` targets.
+- **Reduce wasted tokens** by replacing raw tool output with compact summaries and paginated history.
+- **Run 15+ PHP tools** through one command layer.
+- **Keep automation safer** with read-only Composer reports, dry-run refactors, safe formatter modes, blocked arguments,
+  timeouts, and redacted history.
+- **Use the same core everywhere** through `composer sift`, `composer skills`, `vendor/bin/sift`, or the PHAR.
 
 ## Quick Start
 
-Initialize Sift:
+Install Sift in a PHP 8.3+ project:
 
 ```bash
+composer config allow-plugins.vitorsreis/sift true
+composer require --dev vitorsreis/sift
 composer sift init
 ```
 
-Inspect supported tools:
+## Skills
+
+Sift brings a Composer workflow for agent instructions:
 
 ```bash
-composer sift tools list
+composer skills add <source> --skill <skill>
 ```
 
-`tools list` streams terminal-only availability lines as tool versions are detected.
+Supported skill sources:
 
-Run common checks:
+- bundled skills, such as `sift`;
+- local paths;
+- GitHub shorthand, such as `owner/repo`;
+- GitHub URLs.
 
-```bash
-composer sift --compact pest
-composer sift --compact phpstan analyse src
-composer sift --compact pint
-composer sift --compact rector process --dry-run src
-```
+Others include commands: `init`, `list`, `find`, `update` and `remove` skills.
 
-Use `--json` when another tool or agent needs the normalized payload:
+## Tools
 
-```bash
-composer sift --json --compact pest
-composer sift --json --full history view <run_id>
-```
+Use `composer sift tools list` to check availability in your project and `composer sift <tool>` to run with compact
+output.
 
-Use `--no-json` to force terminal output when `output.format` is configured as `json`.
+#### Supported tools:
 
-Inspect stored detail:
-
-```bash
-composer sift history list
-composer sift history view <run_id>
-composer sift history view <run_id> items
-composer sift history view <run_id> meta
-```
-
-## Agent Skills
-
-```bash
-composer skills add <source> --list
-composer skills add <source> --skill <skill> --agent=<target> --yes
-composer skills update <skill> --yes
-composer skills remove <skill> --yes
-```
-
-Accepted sources:
-
-- `sift`: bundled Sift skill.
-- `./path/to/skill`: local skill or local repository.
-- `owner/repo`: GitHub shorthand.
-- `https://github.com/owner/repo`: GitHub URL.
-
-## Config Schema
-
-`sift.json` uses `$schema` as editor metadata. `init` writes a schema URL pinned to the installed Sift version, but runtime loading accepts older, future, relative, or missing schema references:
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.0.0/resources/schema.json",
-  "output": {
-    "format": "terminal",
-    "size": "compact",
-    "pretty": true,
-    "show_process": false
-  },
-  "history": {
-    "enabled": true,
-    "path": ".sift/history",
-    "max_files": 50,
-    "max_age_days": 30,
-    "max_bytes_per_run": 1048576,
-    "redact_secrets": true
-  },
-  "tools": {
-    "*": {
-      "enabled": true
-    }
-  }
-}
-```
-
-Omit `history.max_age_days` to disable age-based retention. History records are flat JSON files keyed and sorted by `run_id`; there is no `payload` wrapper.
-
-## Supported Tools
-
-- `phpunit`
 - `pest`
+- `phpunit`
 - `paratest`
 - `phpstan`
 - `psalm`
 - `phpcs`
-- `rector`
 - `pint`
+- `rector`
 - `mago`
 - `infection`
 - `deptrac`
 - `php-cs-fixer`
 - `phpmd`
-- `composer-unused`
-- `composer-require-checker`
+- `composer require-checker`
+- `composer unused`
 - `parallel-lint`
 - `composer audit|licenses|outdated|show|validate`
-
-## Entrypoints
-
-```bash
-composer sift <command>
-composer skills <command>
-php vendor/bin/sift <command>
-php sift.phar <command>
-```
 
 ## Documentation
 
