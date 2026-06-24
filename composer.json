@@ -85,7 +85,7 @@
     ],
     "quality:raw": [
       "@php vendor/bin/composer validate --strict",
-      "@php vendor/bin/pest --parallel",
+      "@php vendor/bin/pest",
       "@php vendor/bin/phpstan analyse --memory-limit=1G",
       "@php vendor/bin/pint --test src tests bin/sift bin/phar resources/box.stub.php rector.php",
       "@php vendor/bin/rector process --dry-run"
