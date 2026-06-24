@@ -11,7 +11,6 @@ it('exposes skill source values and clones with a resolved path', function (): v
     $source = new SkillSource(
         source: 'owner/repo',
         type: 'github',
-        path: null,
         repositoryUrl: 'https://github.com/owner/repo',
         warnings: ['using default branch'],
         resolvedRef: 'main',
