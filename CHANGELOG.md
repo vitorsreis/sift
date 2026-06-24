@@ -4,6 +4,19 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.0 - 2026-06-24
+
+### Added
+
+- `skills find` now supports an interactive typeahead search when no query is provided in a TTY.
+- Catalog search accepts `--owner` and installable `owner/repo@skill` shorthands.
+- `skills add` can prompt interactively for skills, target agents, and confirmation.
+
+### Changed
+
+- `skills find <query>` now renders compact terminal output like the public Skills CLI by default while preserving `--json`.
+- Skill catalog results preserve installs, slugs, and source URLs when returned by `skills.sh`.
+
 ## 2.0.0 - 2026-06-04
 
 Sift 2.0 is a new major version rebuilt around a simpler CLI, normalized result payloads, Composer-native entrypoints, managed skills, and safer tool execution. It does not keep compatibility with Sift 1.x runtime contracts.
