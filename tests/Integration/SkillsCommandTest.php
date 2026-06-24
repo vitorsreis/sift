@@ -65,6 +65,19 @@ it('renders skills command usage errors as json', function (): void {
     expect($error['message'] ?? null)->toBe('Mutating skill commands require --yes or --all in non-interactive mode.');
 });
 
+it('requires an explicit target when installing with yes', function (): void {
+    $project = FixtureProject::create();
+
+    $result = CliRunner::run(['--json', '--no-pretty', 'skills', 'add', 'sift', '--yes'], $project->root());
+    $payload = CliRunner::decode($result['stderr']);
+    $error = skillsCommandObject($payload, 'error');
+
+    expect($result['exit_code'])->toBe(3);
+    expect($result['stdout'])->toBe('');
+    expect($error['code'] ?? null)->toBe('invalid_usage');
+    expect($error['message'] ?? null)->toBe('skills add requires --agent or --all when installing.');
+});
+
 it('installs a selected skill into the generic agents file', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');

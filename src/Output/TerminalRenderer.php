@@ -12,6 +12,7 @@ final readonly class TerminalRenderer
         private PayloadSizer $payloadSizer = new PayloadSizer(),
         private HelpTerminalRenderer $helpRenderer = new HelpTerminalRenderer(),
         private ToolsListTerminalRenderer $toolsListRenderer = new ToolsListTerminalRenderer(),
+        private SkillsFindTerminalRenderer $skillsFindRenderer = new SkillsFindTerminalRenderer(),
     ) {}
 
     /**
@@ -35,6 +36,10 @@ final readonly class TerminalRenderer
 
         if ($subcommand === 'tools list') {
             return $this->toolsListRenderer->render($payload) . PHP_EOL;
+        }
+
+        if ($subcommand === 'skills find') {
+            return $this->skillsFindRenderer->render($payload) . PHP_EOL;
         }
 
         return $this->renderPayload($this->payloadSizer->resize($payload, $preferences)) . PHP_EOL;

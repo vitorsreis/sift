@@ -44,10 +44,16 @@ final readonly class SkillSourceResolver
             return new SkillSource($source, 'local', $directory, warnings: ['local_source']);
         }
 
-        $repositoryUrl = $this->repositoryUrl($source);
+        $repository = $this->repository($source);
 
-        if ($repositoryUrl !== null) {
-            return new SkillSource($source, 'github', repositoryUrl: $repositoryUrl, warnings: ['unpinned_source']);
+        if ($repository !== null) {
+            return new SkillSource(
+                source: $source,
+                type: 'github',
+                repositoryUrl: $repository['url'],
+                warnings: ['unpinned_source'],
+                requestedSkill: $repository['requested_skill'],
+            );
         }
 
         throw UserFacingException::withContext(
@@ -66,14 +72,30 @@ final readonly class SkillSourceResolver
         return Path::join($cwd, $source);
     }
 
-    private function repositoryUrl(string $source): ?string
+    /**
+     * @return null|array{url: string, requested_skill: string|null}
+     */
+    private function repository(string $source): ?array
     {
         if (preg_match('#^https://github\.com/(?P<owner>[A-Za-z0-9_.-]+)/(?P<repo>[A-Za-z0-9_.-]+?)(?:\.git)?/?$#', $source, $matches) === 1) {
-            return sprintf('https://github.com/%s/%s.git', $matches['owner'], $matches['repo']);
+            return [
+                'url' => sprintf('https://github.com/%s/%s.git', $matches['owner'], $matches['repo']),
+                'requested_skill' => null,
+            ];
         }
 
         if (preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $source) === 1) {
-            return 'https://github.com/' . $source . '.git';
+            return [
+                'url' => 'https://github.com/' . $source . '.git',
+                'requested_skill' => null,
+            ];
+        }
+
+        if (preg_match('#^(?P<source>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@(?P<skill>[a-z0-9][a-z0-9-]{0,63})$#', $source, $matches) === 1) {
+            return [
+                'url' => 'https://github.com/' . $matches['source'] . '.git',
+                'requested_skill' => $matches['skill'],
+            ];
         }
 
         return null;

@@ -7,6 +7,9 @@ namespace Sift\Skills;
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 
+/**
+ * @phpstan-type CatalogItem array{name: string, description: string, source: string, skills: list<string>, agents: list<string>, tags: list<string>, slug?: string, installs?: int}
+ */
 final readonly class SkillCatalog
 {
     public function __construct(
@@ -14,17 +17,17 @@ final readonly class SkillCatalog
     ) {}
 
     /**
-     * @return list<array{name: string, description: string, source: string, skills: list<string>, agents: list<string>, tags: list<string>}>
+     * @return list<CatalogItem>
      */
-    public function search(string $query): array
+    public function search(string $query, ?string $owner = null): array
     {
-        return $this->normalize($this->client->search($query));
+        return $this->normalize($this->client->search($query, owner: $owner));
     }
 
     /**
      * @param array<array-key, mixed> $payload
      *
-     * @return list<array{name: string, description: string, source: string, skills: list<string>, agents: list<string>, tags: list<string>}>
+     * @return list<CatalogItem>
      */
     public function normalize(array $payload): array
     {
@@ -35,13 +38,23 @@ final readonly class SkillCatalog
         }
 
         $normalized = [];
+        $hasInstalls = false;
 
         foreach ($items as $item) {
             if (! is_array($item) || array_is_list($item)) {
                 $this->unavailable('The skill catalog response contains an invalid item.');
             }
 
-            $normalized[] = $this->normalizeItem($this->objectItem($item));
+            $normalizedItem = $this->normalizeItem($this->objectItem($item));
+            $hasInstalls = $hasInstalls || array_key_exists('installs', $normalizedItem);
+            $normalized[] = $normalizedItem;
+        }
+
+        if ($hasInstalls) {
+            usort(
+                $normalized,
+                static fn(array $left, array $right): int => ($right['installs'] ?? 0) <=> ($left['installs'] ?? 0),
+            );
         }
 
         return $normalized;
@@ -72,7 +85,7 @@ final readonly class SkillCatalog
     /**
      * @param array<string, mixed> $item
      *
-     * @return array{name: string, description: string, source: string, skills: list<string>, agents: list<string>, tags: list<string>}
+     * @return CatalogItem
      */
     private function normalizeItem(array $item): array
     {
@@ -82,7 +95,7 @@ final readonly class SkillCatalog
             $this->unavailable('The skill catalog response contains an invalid skill name.', ['name' => $name]);
         }
 
-        return [
+        $normalized = [
             'name' => $name,
             'description' => $this->optionalString($item, 'description') ?? sprintf('Use the %s skill.', $name),
             'source' => $this->requiredString($item, 'source'),
@@ -90,6 +103,18 @@ final readonly class SkillCatalog
             'agents' => $this->stringList($item['agents'] ?? [], 'agents'),
             'tags' => $this->stringList($item['tags'] ?? [], 'tags'),
         ];
+
+        $slug = $this->optionalString($item, 'id') ?? $this->optionalString($item, 'slug');
+        if ($slug !== null) {
+            $normalized['slug'] = $slug;
+        }
+
+        $installs = $this->optionalNonNegativeInt($item, 'installs');
+        if ($installs !== null) {
+            $normalized['installs'] = $installs;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -124,6 +149,24 @@ final readonly class SkillCatalog
         $value = trim($value);
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function optionalNonNegativeInt(array $item, string $field): ?int
+    {
+        $value = $item[$field] ?? null;
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (! is_int($value) || $value < 0) {
+            $this->unavailable(sprintf('The skill catalog response field "%s" must be a non-negative integer.', $field));
+        }
+
+        return $value;
     }
 
     /**

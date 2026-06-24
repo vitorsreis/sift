@@ -144,6 +144,20 @@ it('parses repeated skill selectors', function (): void {
     ]);
 });
 
+it('parses skills find owner filters', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'find',
+        'react',
+        '--owner',
+        'vercel',
+    ]);
+
+    expect($request->command())->toBe('skills find');
+    expect($request->arguments())->toBe(['react']);
+    expect($request->options())->toBe(['owner' => 'vercel']);
+});
+
 it('parses every declared command option set', function (): void {
     expectParsedCommandOptions(['init', '-f', '-y', '--skill', '--no-skill', '-c', 'sift.json'], 'init', [
         'force' => true,
@@ -183,6 +197,7 @@ it('parses every declared command option set', function (): void {
         'yes' => true,
         'all' => true,
     ], ['sift']);
+    expectParsedCommandOptions(['skills', 'find', 'react', '--owner=vercel'], 'skills find', ['owner' => 'vercel'], ['react']);
     expectParsedCommandOptions(['skills', 'init', 'review', '-y'], 'skills init', ['yes' => true], ['review']);
     expectParsedCommandOptions(['history', 'list', '-l', '-1', '--offset=-2', '-c', 'sift.json'], 'history list', [
         'limit' => -1,

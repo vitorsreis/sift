@@ -16,6 +16,7 @@ final readonly class SkillSource
         private ?string $repositoryUrl = null,
         private array $warnings = [],
         private ?string $resolvedRef = null,
+        private ?string $requestedSkill = null,
     ) {}
 
     public function source(): string
@@ -51,6 +52,11 @@ final readonly class SkillSource
         return $this->resolvedRef;
     }
 
+    public function requestedSkill(): ?string
+    {
+        return $this->requestedSkill;
+    }
+
     public function withPath(string $path, ?string $resolvedRef = null): self
     {
         return new self(
@@ -60,6 +66,7 @@ final readonly class SkillSource
             repositoryUrl: $this->repositoryUrl,
             warnings: $this->warnings,
             resolvedRef: $resolvedRef ?? $this->resolvedRef,
+            requestedSkill: $this->requestedSkill,
         );
     }
 }

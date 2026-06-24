@@ -54,6 +54,50 @@ it('uses a safe fallback for catalog items without descriptions', function (): v
     ]);
 });
 
+it('normalizes skills.sh search fields and orders by installs', function (): void {
+    $items = (new SkillCatalog())->normalize([
+        'skills' => [
+            [
+                'id' => 'github/awesome-copilot/php-mcp-server-generator',
+                'skillId' => 'php-mcp-server-generator',
+                'name' => 'php-mcp-server-generator',
+                'installs' => 8621,
+                'source' => 'github/awesome-copilot',
+            ],
+            [
+                'id' => 'jeffallan/claude-skills/php-pro',
+                'skillId' => 'php-pro',
+                'name' => 'php-pro',
+                'installs' => 11353,
+                'source' => 'jeffallan/claude-skills',
+            ],
+        ],
+    ]);
+
+    expect($items)->toBe([
+        [
+            'name' => 'php-pro',
+            'description' => 'Use the php-pro skill.',
+            'source' => 'jeffallan/claude-skills',
+            'skills' => [],
+            'agents' => [],
+            'tags' => [],
+            'slug' => 'jeffallan/claude-skills/php-pro',
+            'installs' => 11353,
+        ],
+        [
+            'name' => 'php-mcp-server-generator',
+            'description' => 'Use the php-mcp-server-generator skill.',
+            'source' => 'github/awesome-copilot',
+            'skills' => [],
+            'agents' => [],
+            'tags' => [],
+            'slug' => 'github/awesome-copilot/php-mcp-server-generator',
+            'installs' => 8621,
+        ],
+    ]);
+});
+
 it('rejects unexpected catalog result formats', function (): void {
     try {
         (new SkillCatalog())->normalize(['items' => [['name' => 'missing-source']]]);

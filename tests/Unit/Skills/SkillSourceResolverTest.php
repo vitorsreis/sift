@@ -20,6 +20,7 @@ MD);
     $bundled = $resolver->resolve('sift', $project->root());
     $local = $resolver->resolve('custom', $project->root());
     $github = $resolver->resolve('owner/repo', $project->root());
+    $githubSkill = $resolver->resolve('owner/repo@php-review', $project->root());
     $githubUrl = $resolver->resolve('https://github.com/owner/repo', $project->root());
 
     expect($bundled->type())->toBe('bundled');
@@ -30,6 +31,10 @@ MD);
     expect($github->type())->toBe('github');
     expect($github->repositoryUrl())->toBe('https://github.com/owner/repo.git');
     expect($github->warnings())->toBe(['unpinned_source']);
+    expect($githubSkill->type())->toBe('github');
+    expect($githubSkill->source())->toBe('owner/repo@php-review');
+    expect($githubSkill->repositoryUrl())->toBe('https://github.com/owner/repo.git');
+    expect($githubSkill->requestedSkill())->toBe('php-review');
     expect($githubUrl->repositoryUrl())->toBe('https://github.com/owner/repo.git');
 });
 

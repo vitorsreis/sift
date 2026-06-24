@@ -107,6 +107,69 @@ it('renders tools list terminal output as status lines', function (): void {
     expect($output)->toContain('PHPUnit, use `composer require --dev phpunit/phpunit`');
 });
 
+it('renders skills find terminal output like the skills cli', function (): void {
+    $branch = "\u{2514}";
+    $output = (new TerminalRenderer())->render([
+        'tool' => 'sift',
+        'status' => 'passed',
+        'summary' => ['total' => 2],
+        'items' => [
+            [
+                'name' => 'php-pro',
+                'source' => 'jeffallan/claude-skills',
+                'slug' => 'jeffallan/claude-skills/php-pro',
+                'installs' => 11353,
+            ],
+            [
+                'name' => 'php-mcp-server-generator',
+                'source' => 'github/awesome-copilot',
+                'slug' => 'github/awesome-copilot/php-mcp-server-generator',
+                'installs' => 8621,
+            ],
+        ],
+        'artifacts' => [],
+        'extra' => [],
+        'meta' => [
+            'subcommand' => 'skills find',
+            'query' => 'php',
+        ],
+    ], terminalRendererPreferences(OutputSize::Compact));
+
+    expect($output)->toBe(str_replace("\n", PHP_EOL, <<<TEXT
+Install with composer skills add <owner/repo@skill>
+
+jeffallan/claude-skills@php-pro 11.4K installs
+{$branch} https://skills.sh/jeffallan/claude-skills/php-pro
+
+github/awesome-copilot@php-mcp-server-generator 8.6K installs
+{$branch} https://skills.sh/github/awesome-copilot/php-mcp-server-generator
+TEXT) . PHP_EOL);
+});
+
+it('renders skills find guidance instead of generic payload text without a query', function (): void {
+    $output = (new TerminalRenderer())->render([
+        'tool' => 'sift',
+        'status' => 'passed',
+        'summary' => ['total' => 0],
+        'items' => [],
+        'artifacts' => [],
+        'extra' => [],
+        'meta' => [
+            'subcommand' => 'skills find',
+            'query' => '',
+            'mode' => 'agent_tip',
+        ],
+    ], terminalRendererPreferences(OutputSize::Compact));
+
+    expect($output)->toBe(str_replace("\n", PHP_EOL, <<<'TEXT'
+Tip: if running in a coding agent, follow these steps:
+  1) composer skills find [query] [--owner <owner>]
+  2) composer skills add <owner/repo@skill>
+
+Usage: composer skills find <query> [--owner <owner>]
+TEXT) . PHP_EOL);
+});
+
 it('renders errors with code message hint and context', function (): void {
     $output = (new TerminalRenderer())->render([
         'status' => 'error',

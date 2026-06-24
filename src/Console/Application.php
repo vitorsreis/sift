@@ -185,8 +185,13 @@ final readonly class Application
 
         $workspace = $this->workspaceResolver->resolve($this->cwd(), $this->configPath($route));
         $config = $this->configLoader->load($workspace);
+        $resolved = $this->outputPreferencesResolver()->resolve($route, $config);
 
-        return $this->outputPreferencesResolver()->resolve($route, $config);
+        if (str_starts_with($route->handler(), 'skills.') && ! $this->jsonRequested($route)) {
+            return $this->terminalPreferences($resolved);
+        }
+
+        return $resolved;
     }
 
     private function terminalPreferences(OutputPreferences $preferences): OutputPreferences
@@ -207,6 +212,11 @@ final readonly class Application
         $config = $options['config'] ?? $globalOptions['config'] ?? null;
 
         return is_string($config) ? $config : null;
+    }
+
+    private function jsonRequested(CommandRoute $route): bool
+    {
+        return ($route->globalOptions()['json'] ?? false) === true || ($route->options()['json'] ?? false) === true;
     }
 
     /**

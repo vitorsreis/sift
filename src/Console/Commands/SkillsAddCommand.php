@@ -6,6 +6,7 @@ namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
 use Sift\Console\ConfirmationPrompt;
+use Sift\Console\InteractivePrompt;
 use Sift\Console\InvalidUsageException;
 use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
@@ -30,6 +31,7 @@ final readonly class SkillsAddCommand implements CommandHandler
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
         private ConfirmationPrompt $confirmationPrompt = new ConfirmationPrompt(),
+        private InteractivePrompt $interactivePrompt = new InteractivePrompt(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -65,7 +67,7 @@ final readonly class SkillsAddCommand implements CommandHandler
                 return $this->previewPayload($route, $resolvedSource, $skills);
             }
 
-            $selectedSkills = $this->selector->select($skills, $this->skillSelector($route), $resolvedSource->source());
+            $selectedSkills = $this->selectedSkills($route, $resolvedSource, $skills);
             $targets = $this->targets($route);
             $this->assertConfirmed(
                 $route,
@@ -191,16 +193,50 @@ final readonly class SkillsAddCommand implements CommandHandler
         return ($route->options()[$name] ?? false) === true;
     }
 
+    /**
+     * @param list<Skill> $skills
+     *
+     * @return list<Skill>
+     */
+    private function selectedSkills(CommandRoute $route, SkillSource $source, array $skills): array
+    {
+        $selector = $this->skillSelector($route, $source);
+
+        if ($selector !== null || count($skills) === 1 || $this->optionBool($route, 'yes')) {
+            return $this->selector->select($skills, $selector, $source->source());
+        }
+
+        $selected = $this->interactivePrompt->multiselect(
+            'Select skills to install',
+            array_map(
+                static fn(Skill $skill): array => [
+                    'value' => $skill->name(),
+                    'label' => $skill->name(),
+                    'hint' => $skill->description(),
+                ],
+                $skills,
+            ),
+        );
+
+        if ($selected === null) {
+            throw new InvalidUsageException('Skill command cancelled.');
+        }
+
+        return $this->selector->select($skills, implode(',', $selected), $source->source());
+    }
+
     private function assertConfirmed(CommandRoute $route, string $message): void
     {
         if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
             return;
         }
 
-        $this->confirmationPrompt->confirm($message);
+        if (! $this->interactivePrompt->confirm($message)) {
+            throw new InvalidUsageException('Skill command cancelled.');
+        }
     }
 
-    private function skillSelector(CommandRoute $route): ?string
+    private function skillSelector(CommandRoute $route, SkillSource $source): ?string
     {
         if ($this->optionBool($route, 'all')) {
             return '*';
@@ -208,7 +244,11 @@ final readonly class SkillsAddCommand implements CommandHandler
 
         $selectors = $this->stringOptionValues($route, 'skill');
 
-        return $selectors === [] ? null : implode(',', $selectors);
+        if ($selectors !== []) {
+            return implode(',', $selectors);
+        }
+
+        return $source->requestedSkill();
     }
 
     /**
@@ -223,7 +263,27 @@ final readonly class SkillsAddCommand implements CommandHandler
         $agent = $route->options()['agent'] ?? null;
 
         if (! is_string($agent) || trim($agent) === '') {
-            throw new InvalidUsageException('skills add requires --agent or --all when installing.');
+            if ($this->optionBool($route, 'yes')) {
+                throw new InvalidUsageException('skills add requires --agent or --all when installing.');
+            }
+
+            $selected = $this->interactivePrompt->multiselect(
+                'Which agents do you want to install to?',
+                array_map(
+                    static fn(string $target): array => [
+                        'value' => $target,
+                        'label' => $target,
+                        'selected' => $target === 'codex',
+                    ],
+                    $this->targetRegistry->writeCapableNames(),
+                ),
+            );
+
+            if ($selected === null) {
+                throw new InvalidUsageException('Skill command cancelled.');
+            }
+
+            return $selected;
         }
 
         $targets = [];

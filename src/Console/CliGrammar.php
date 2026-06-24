@@ -74,7 +74,7 @@ final class CliGrammar
                 CliOption::boolean('yes', 'y'),
                 CliOption::boolean('all'),
             ],
-            'skills find' => [],
+            'skills find' => [CliOption::string('owner')],
             'skills init' => [CliOption::boolean('yes', 'y')],
             'history list' => $historyOptions,
             'history view' => $historyOptions,

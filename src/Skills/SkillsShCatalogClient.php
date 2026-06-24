@@ -38,9 +38,10 @@ final readonly class SkillsShCatalogClient
     /**
      * @return array<array-key, mixed>
      */
-    public function search(string $query, int $limit = 10): array
+    public function search(string $query, int $limit = 10, ?string $owner = null): array
     {
         $query = trim($query);
+        $owner = $this->owner($owner);
 
         if ($query === '') {
             throw new InvalidUsageException('skills find requires a query.');
@@ -54,7 +55,7 @@ final readonly class SkillsShCatalogClient
             'Accept: application/json',
             'User-Agent: sift',
         ];
-        $response = ($this->fetcher)($this->url($query, $limit), $this->timeoutSeconds, $headers);
+        $response = ($this->fetcher)($this->url($query, $limit, $owner), $this->timeoutSeconds, $headers);
         $status = $response['status'];
         $body = $response['body'];
 
@@ -79,15 +80,39 @@ final readonly class SkillsShCatalogClient
         return $decoded;
     }
 
-    private function url(string $query, int $limit): string
+    private function url(string $query, int $limit, ?string $owner = null): string
     {
         $baseUrl = $this->baseUrl();
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
-
-        return $baseUrl . $separator . http_build_query([
+        $parameters = [
             'q' => $query,
             'limit' => $limit,
-        ]);
+        ];
+
+        if ($owner !== null) {
+            $parameters['owner'] = $owner;
+        }
+
+        return $baseUrl . $separator . http_build_query($parameters);
+    }
+
+    private function owner(?string $owner): ?string
+    {
+        if ($owner === null) {
+            return null;
+        }
+
+        $owner = strtolower(trim($owner));
+
+        if ($owner === '') {
+            return null;
+        }
+
+        if (preg_match('/^[a-z0-9](?:[a-z0-9-]{0,38})$/', $owner) !== 1) {
+            throw new InvalidUsageException('--owner must be a valid GitHub owner.');
+        }
+
+        return $owner;
     }
 
     private function baseUrl(): string

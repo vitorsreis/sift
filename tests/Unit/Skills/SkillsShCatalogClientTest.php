@@ -60,6 +60,27 @@ it('uses SKILLS_API_URL as the self hosted catalog endpoint', function (): void 
     putenv('SKILLS_API_URL');
 });
 
+it('sends the owner filter when searching within one GitHub owner', function (): void {
+    /** @var list<string> $urls */
+    $urls = [];
+    $client = new SkillsShCatalogClient(
+        fetcher: function (string $url, int $timeout, array $headers) use (&$urls): array {
+            $urls[] = $url;
+
+            return [
+                'status' => 200,
+                'body' => '{"items":[]}',
+                'error' => null,
+            ];
+        },
+        baseUrl: 'https://skills.sh/api/search',
+    );
+
+    $client->search('react', 10, 'vercel');
+
+    expect($urls)->toBe(['https://skills.sh/api/search?q=react&limit=10&owner=vercel']);
+});
+
 it('appends query parameters to catalog endpoints that already have parameters', function (): void {
     /** @var list<string> $urls */
     $urls = [];

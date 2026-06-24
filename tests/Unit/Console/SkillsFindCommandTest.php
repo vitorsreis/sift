@@ -51,3 +51,51 @@ it('renders normalized skill catalog search results', function (): void {
         ],
     ]);
 });
+
+it('returns coding-agent guidance when no query is available non-interactively', function (): void {
+    $command = new SkillsFindCommand(
+        catalog: new SkillCatalog(new SkillsShCatalogClient(
+            fetcher: static function (): array {
+                throw new RuntimeException('Catalog should not be queried without a search term.');
+            },
+        )),
+        interactive: static fn(): bool => false,
+    );
+
+    $payload = $command->handle(new CommandRoute('skills.find'), __DIR__);
+
+    expect($payload)->toMatchArray([
+        'tool' => 'sift',
+        'status' => 'passed',
+        'summary' => [
+            'total' => 0,
+        ],
+        'items' => [],
+        'meta' => [
+            'subcommand' => 'skills find',
+            'query' => '',
+            'mode' => 'agent_tip',
+        ],
+    ]);
+});
+
+it('passes owner filters to the skill catalog', function (): void {
+    /** @var list<string> $urls */
+    $urls = [];
+    $command = new SkillsFindCommand(new SkillCatalog(new SkillsShCatalogClient(
+        fetcher: function (string $url, int $timeout, array $headers) use (&$urls): array {
+            $urls[] = $url;
+
+            return [
+                'status' => 200,
+                'body' => '{"items":[]}',
+                'error' => null,
+            ];
+        },
+        baseUrl: 'https://skills.sh/api/search',
+    )));
+
+    $command->handle(new CommandRoute('skills.find', ['react'], ['owner' => 'vercel']), __DIR__);
+
+    expect($urls)->toBe(['https://skills.sh/api/search?q=react&limit=10&owner=vercel']);
+});
