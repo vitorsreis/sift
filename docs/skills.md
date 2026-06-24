@@ -23,12 +23,13 @@ Preview discovers skills and returns output without writing targets. Output is t
 ## Install
 
 ```bash
+composer skills add owner/repo@skill
 composer skills add vitorsreis/sift --skill sift --agent=codex
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills add owner/repo --all
 ```
 
-In TTY mode, mutating skill commands show the selected skills and targets before requesting explicit confirmation. In non-TTY or CI, pass `--yes` or `--all`; Sift never relies on an unavailable prompt.
+In TTY mode, `skills add` can prompt for skills, target agents, and explicit confirmation. In non-TTY or CI, pass `--yes` or `--all`; Sift never relies on an unavailable prompt.
 
 ## Targets
 
@@ -60,7 +61,11 @@ Copy targets use `.sift-skill.json` inside the installed skill directory.
 ## Catalog Search
 
 ```bash
+composer skills find
 composer skills find review
+composer skills find review --owner vitorsreis
 ```
 
-Search uses `https://skills.sh/api/search` by default and can be overridden with `SKILLS_API_URL` for tests or self-hosted catalogs.
+Without a query in TTY mode, `skills find` opens an interactive typeahead search. Type to filter, use the arrow keys to move the selected skill, press Enter to install, or Escape to cancel.
+
+Search uses `https://skills.sh/api/search` by default and can be overridden with `SKILLS_API_URL` for tests or self-hosted catalogs. Use `--json` for the normalized payload.

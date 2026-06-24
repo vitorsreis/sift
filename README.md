@@ -53,7 +53,8 @@ composer sift init
 Sift brings a Composer workflow for agent instructions:
 
 ```bash
-composer skills add <source> --skill <skill>
+composer skills find
+composer skills add owner/repo@skill
 ```
 
 Supported skill sources:
@@ -63,7 +64,7 @@ Supported skill sources:
 - GitHub shorthand, such as `owner/repo`;
 - GitHub URLs.
 
-Others include commands: `init`, `list`, `find`, `update` and `remove` skills.
+Others include commands: `init`, `list`, `find`, `update` and `remove` skills. In a terminal, `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-install.
 
 ## Tools
 

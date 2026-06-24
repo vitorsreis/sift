@@ -44,6 +44,7 @@ command option > global option > config > default
 - `skills list`, `skills ls`
 - `skills add <source>`
 - `skills find [query]`
+- `skills find [query] --owner <owner>`
 - `skills init [name]`
 - `skills remove <skill>`, `skills rm <skill>`
 - `skills update [skill ...]`
@@ -72,7 +73,7 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 `--compact`, default size, and `--full` control detail level in both terminal and JSON output. `--pretty` and `--no-pretty` affect JSON only. `--json` and `--raw` cannot be used together.
 
-`help`, `version`, and `tools list` always render terminal output and ignore `--json`.
+`help`, `version`, and `tools list` always render terminal output and ignore `--json`. `skills` commands prefer terminal output by default, even when config selects JSON, but still honor explicit `--json`.
 
 `tools list` streams availability and version lines as checks finish, so order may vary.
 
