@@ -37,13 +37,13 @@ final readonly class CloverCoverageParser
         }
 
         $minimum = $minimum === null ? null : round($minimum, 2);
-        $filesBelowMinimum = $minimum === null ? [] : $this->filesBelowMinimum($xml, $cwd, $minimum);
+        $files = $this->files($xml, $cwd, $minimum);
 
         return new CloverCoverageReport(
             coveragePercent: $coveragePercent,
             minimum: $minimum,
             thresholdFailed: $minimum !== null && $coveragePercent + 0.00001 < $minimum,
-            filesBelowMinimum: $filesBelowMinimum,
+            files: $files,
         );
     }
 
@@ -61,7 +61,7 @@ final readonly class CloverCoverageParser
     /**
      * @return list<array{file: string, percent: float}>
      */
-    private function filesBelowMinimum(SimpleXMLElement $xml, string $cwd, float $minimum): array
+    private function files(SimpleXMLElement $xml, string $cwd, ?float $minimum): array
     {
         $files = $xml->xpath('//file');
 
@@ -69,7 +69,7 @@ final readonly class CloverCoverageParser
             return [];
         }
 
-        $belowMinimum = [];
+        $entries = [];
 
         foreach ($files as $fileNode) {
             $entry = $this->fileCoverage($fileNode, $cwd);
@@ -77,20 +77,20 @@ final readonly class CloverCoverageParser
                 continue;
             }
 
-            if ($entry['percent'] + 0.00001 >= $minimum) {
+            if ($minimum !== null && $entry['percent'] + 0.00001 >= $minimum) {
                 continue;
             }
 
-            $belowMinimum[] = $entry;
+            $entries[] = $entry;
         }
 
         usort(
-            $belowMinimum,
+            $entries,
             static fn(array $left, array $right): int => ($left['percent'] <=> $right['percent'])
                 ?: strcmp($left['file'], $right['file']),
         );
 
-        return $belowMinimum;
+        return $entries;
     }
 
     /**

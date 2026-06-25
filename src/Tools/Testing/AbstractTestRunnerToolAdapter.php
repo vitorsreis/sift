@@ -35,8 +35,16 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: [...$this->defaultArguments($context), ...$context->userArgs()],
+            arguments: [...$this->defaultArguments($context), ...$this->userArguments($context)],
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function userArguments(ToolContext $context): array
+    {
+        return $context->userArgs();
     }
 
     public function parse(ExecutionResult $execution, ToolContext $context, PreparedCommand $command): NormalizedResult
@@ -88,7 +96,7 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
             ],
             items: [[
                 'type' => ItemType::Error->value,
-                'message' => $this->firstOutputLine($execution),
+                'message' => $this->nativeErrorMessage($execution),
             ]],
             extra: [
                 'stdout' => trim($execution->stdout()),
@@ -97,19 +105,47 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
         );
     }
 
-    private function firstOutputLine(ExecutionResult $execution): string
+    private function nativeErrorMessage(ExecutionResult $execution): string
     {
         $output = trim($execution->stderr()) !== '' ? $execution->stderr() : $execution->stdout();
+        $lines = [];
 
         foreach (preg_split('/\R/', trim($output)) ?: [] as $line) {
             $line = trim($line);
 
             if ($line !== '') {
+                $lines[] = $line;
+            }
+        }
+
+        foreach ($lines as $line) {
+            if ($this->looksLikeErrorMessage($line)) {
                 return $line;
             }
         }
 
+        foreach ($lines as $line) {
+            if (! $this->isRunnerBanner($line)) {
+                return $line;
+            }
+        }
+
+        if ($lines !== []) {
+            return $lines[0];
+        }
+
         return 'Test runner exited before writing reports.';
+    }
+
+    private function looksLikeErrorMessage(string $line): bool
+    {
+        return preg_match('/(?:^|\b)(?:Unknown option|No code coverage driver|Fatal error|Parse error|Error|Exception|Could not|Cannot|Failed)(?:\b|:|")/i', $line) === 1;
+    }
+
+    private function isRunnerBanner(string $line): bool
+    {
+        return preg_match('/^(?:PHPUnit|Pest|ParaTest)\b/i', $line) === 1
+            || preg_match('/^by Sebastian Bergmann and contributors\.?$/i', $line) === 1;
     }
 
     private function commandFactory(): TestRunnerCommandFactory

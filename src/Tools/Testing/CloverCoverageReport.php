@@ -7,13 +7,13 @@ namespace Sift\Tools\Testing;
 final readonly class CloverCoverageReport
 {
     /**
-     * @param list<array{file: string, percent: float}> $filesBelowMinimum
+     * @param list<array{file: string, percent: float}> $files
      */
     public function __construct(
         private float $coveragePercent,
         private ?float $minimum,
         private bool $thresholdFailed,
-        private array $filesBelowMinimum,
+        private array $files,
     ) {}
 
     /**
@@ -27,7 +27,7 @@ final readonly class CloverCoverageReport
 
         if ($this->minimum !== null) {
             $summary['coverage_min'] = $this->minimum;
-            $summary['coverage_files_below_min'] = count($this->filesBelowMinimum);
+            $summary['coverage_files_below_min'] = count($this->files);
         }
 
         return $summary;
@@ -45,7 +45,7 @@ final readonly class CloverCoverageReport
     {
         $items = [];
 
-        foreach ($this->filesBelowMinimum as $entry) {
+        foreach ($this->files as $entry) {
             $items[] = [
                 'type' => 'coverage',
                 'file' => $entry['file'],

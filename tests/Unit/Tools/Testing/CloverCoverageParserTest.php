@@ -45,20 +45,43 @@ XML,
     ]);
 });
 
-it('omits threshold fields when minimum is absent', function (): void {
+it('lists every covered file when minimum is absent', function (): void {
     $project = FixtureProject::create();
-    $report = $project->write('build/clover.xml', <<<'XML'
+    $goodFile = $project->write('src/Good.php', '<?php');
+    $badFile = $project->write('src/Bad.php', '<?php');
+    $report = $project->write('build/clover.xml', sprintf(
+        <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <coverage>
   <project>
-    <metrics elements="8" coveredelements="7"/>
+    <file name="%s">
+      <metrics statements="10" coveredstatements="8"/>
+    </file>
+    <file name="%s">
+      <metrics statements="10" coveredstatements="6"/>
+    </file>
+    <metrics elements="20" coveredelements="14"/>
   </project>
 </coverage>
-XML);
+XML,
+        htmlspecialchars($goodFile, ENT_QUOTES | ENT_XML1),
+        htmlspecialchars($badFile, ENT_QUOTES | ENT_XML1),
+    ));
 
     $parsed = (new CloverCoverageParser())->parse($report, $project->root(), [$report], minimum: null);
 
-    expect($parsed->summary())->toBe(['coverage_percent' => 87.5]);
+    expect($parsed->summary())->toBe(['coverage_percent' => 70.0]);
     expect($parsed->thresholdFailed())->toBeFalse();
-    expect($parsed->items())->toBe([]);
+    expect($parsed->items())->toBe([
+        [
+            'type' => 'coverage',
+            'file' => 'src/Bad.php',
+            'percent' => 60.0,
+        ],
+        [
+            'type' => 'coverage',
+            'file' => 'src/Good.php',
+            'percent' => 80.0,
+        ],
+    ]);
 });
