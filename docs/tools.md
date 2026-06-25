@@ -2,7 +2,7 @@
 
 `tools list` reports every supported adapter, not only installed binaries.
 
-It always renders terminal output and ignores `--json`. Version checks run in bounded parallel batches and each result is printed as soon as it is available, so order may vary.
+It always renders terminal output and ignores `--json`. Version checks run in bounded parallel batches and each result is printed as soon as it is available, so order may vary. Use `output.colored=false` or `--no-color` for plain status text.
 
 Terminal status:
 

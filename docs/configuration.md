@@ -12,12 +12,13 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.1.0/resources/schema.json",
+  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.2.0/resources/schema.json",
   "output": {
     "format": "terminal",
     "size": "compact",
     "pretty": true,
-    "show_process": false
+    "show_process": false,
+    "colored": true
   },
   "history": {
     "enabled": true,
@@ -47,9 +48,11 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 - Global scope uses `SIFT_HOME` or `~/.sift`.
 - `history.max_age_days` is optional. `init` writes `30`; omitting the field disables age-based retention.
 - `output.format` accepts `terminal` or `json`. The default is `terminal`.
+- `output.colored` enables ANSI styling for terminal output. Set it to `false` for plain terminal text by default.
 - Tool timeouts default to `1800` seconds. Set `timeout` to `0` to disable the timeout.
 - `--json` and `--no-json` override `output.format`.
-- `help`, `version`, and `tools list` always render terminal output.
+- `--no-color` disables ANSI styling for one command, regardless of `output.colored`.
+- `help`, `version`, `tools list`, and the root `composer skills` help always render terminal output.
 - `output.pretty` affects JSON output only.
 
 ## Validation

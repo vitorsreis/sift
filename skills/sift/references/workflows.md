@@ -24,6 +24,7 @@ composer sift history view <run_id> meta
 
 Use `--full` only when the history sections omit required detail.
 Use `--json` only when another program needs structured output.
+Use `output.colored=false` for plain terminal output by default, or `--no-color` when one copied command must not include ANSI styling.
 
 ## Static Analysis And Quality
 
@@ -53,6 +54,7 @@ Keep Composer actions read-only through Sift.
 ## Skill Install
 
 ```bash
+composer skills find
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
 composer skills list
@@ -61,6 +63,7 @@ composer skills list
 Rules:
 
 - Preview external sources with `--list` before install when possible.
+- Use `composer skills find` without a query for interactive typeahead search in terminal mode.
 - Mutating commands in non-TTY or CI need `--yes`.
 - `--all` means all selected skills and all write-capable targets.
 - Managed blocks and `.sift-skill.json` preserve manual content around Sift-managed areas.

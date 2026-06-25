@@ -40,5 +40,6 @@ Entrypoint
 - Arrays stay at JSON/input/output edges.
 - Critical writes are atomic.
 - Terminal output is the default; JSON is opt-in with `--json` or config.
-- `help`, `version`, and `tools list` always render terminal output.
+- ANSI terminal styling is controlled globally with `output.colored` and per invocation with `--no-color`; it does not change payload sizing or JSON format.
+- `help`, `version`, `tools list`, and the root `composer skills` help always render terminal output.
 - History records keep run fields at the root and metadata under `meta`.

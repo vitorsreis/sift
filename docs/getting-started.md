@@ -25,6 +25,7 @@ composer sift --compact composer audit
 ```
 
 Output is terminal text by default. Use `--json` when you need the normalized payload, and `--full` only when compact output does not include enough information.
+Use `--no-color` when a single terminal command must not include ANSI styling, or set `output.colored=false` in `sift.json` for plain text by default.
 
 ```bash
 composer sift --json --compact pest
@@ -44,8 +45,9 @@ History records are flat JSON files keyed by sortable `run_id`.
 ## Install Agent Instructions
 
 ```bash
+composer skills find
 composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills list
 ```
 
-Use `skills add <source> --list` to preview external repositories before installing.
+Use `skills add <source> --list` to preview external repositories before installing. `composer skills find` without a query opens an interactive typeahead search in terminal mode.

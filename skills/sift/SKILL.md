@@ -14,6 +14,7 @@ Sift is the project command layer for PHP tools and agent skills. Prefer it when
 - Read structured results from Sift history before rerunning noisy tools.
 - Prefer Sift history and compact output whenever possible to save context tokens.
 - Use `--json` only when machine-readable output is needed.
+- Use `output.colored=false` for plain terminal text by default, or `--no-color` for one command.
 
 Do not install Sift unless the user asks. If Sift is unavailable or broken, use the native tool.
 
@@ -38,10 +39,11 @@ composer sift --compact pest
 3. If compact output is not enough, inspect `history view <run_id> <section>`.
 4. Use `--json` only for structured automation or parsing.
 5. Use `--no-json` to force terminal output when config selects JSON.
-6. Use `--full` only when history sections are not enough.
-7. Use `--raw` only when native output is required.
+6. Use `--no-color` only when ANSI styling would pollute copied logs or snapshots for one command.
+7. Use `--full` only when history sections are not enough.
+8. Use `--raw` only when native output is required.
 
-`help`, `version`, and `tools list` always render terminal output. `tools list` streams results as version checks finish.
+`help`, `version`, `tools list`, and the root `composer skills` help always render terminal output. `tools list` streams results as version checks finish. `composer skills find` without a query opens the interactive Skills search in terminal mode.
 
 ## Safety
 

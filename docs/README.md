@@ -18,7 +18,8 @@ This directory contains Sift's documentation.
 
 - Output is terminal text by default. Use `--json` for normalized JSON payloads.
 - Use `--no-json` to force terminal output when config selects JSON.
-- `help`, `version`, and `tools list` always render terminal output.
+- Use `output.colored=false` for plain terminal text by default, or `--no-color` for one command.
+- `help`, `version`, `tools list`, and the root `composer skills` help always render terminal output.
 - `skills` commands prefer terminal output by default and still honor explicit `--json`.
 - `tools list` streams availability and version lines as checks finish.
 - Policies run before both normalized and raw tool execution.

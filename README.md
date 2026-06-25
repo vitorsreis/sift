@@ -64,7 +64,7 @@ Supported skill sources:
 - GitHub shorthand, such as `owner/repo`;
 - GitHub URLs.
 
-Others include commands: `init`, `list`, `find`, `update` and `remove` skills. In a terminal, `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-install.
+Other commands include `init`, `list`, `find`, `update`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-install.
 
 ## Tools
 

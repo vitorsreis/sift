@@ -2,6 +2,14 @@
 
 Sift installs agent instructions from bundled, local, or GitHub sources.
 
+## Terminal Help
+
+```bash
+composer skills
+```
+
+The root command renders a `SIFT SKILLS` banner and command reference in terminal mode. Terminal feedback uses ANSI styling by default; set `output.colored=false` for plain terminal text by default or pass `--no-color` for one command.
+
 ## Sources
 
 - `sift`: bundled Sift skill.
@@ -18,7 +26,7 @@ Unsafe sources such as HTTP, SSH, Git protocol URLs, embedded credentials, path 
 composer skills add owner/repo --list
 ```
 
-Preview discovers skills and returns output without writing targets. Output is terminal text by default; use `--json` for the normalized payload.
+Preview discovers skills and returns output without writing targets. Output is terminal text by default; use `--json` for the normalized payload or `--no-color` for plain terminal text.
 
 ## Install
 
@@ -66,6 +74,6 @@ composer skills find review
 composer skills find review --owner vitorsreis
 ```
 
-Without a query in TTY mode, `skills find` opens an interactive typeahead search. Type to filter, use the arrow keys to move the selected skill, press Enter to install, or Escape to cancel.
+Without a query in terminal mode, `skills find` opens an interactive typeahead search. Type to filter, use the arrow keys to move the selected skill, press Enter to install, or Escape to cancel. The prompt shows visual feedback while searching and prevents installation until a result is selected.
 
 Search uses `https://skills.sh/api/search` by default and can be overridden with `SKILLS_API_URL` for tests or self-hosted catalogs. Use `--json` for the normalized payload.

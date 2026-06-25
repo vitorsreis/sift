@@ -73,8 +73,8 @@ Error output:
 }
 ```
 
-Terminal output is the default human format. JSON is the normalized machine payload and is opt-in with `--json` or config. Native output belongs to `--raw`.
+Terminal output is the default human format. JSON is the normalized machine payload and is opt-in with `--json` or config. ANSI styling is controlled with `output.colored` and can be disabled per invocation with `--no-color`. Native output belongs to `--raw`.
 
 History records are flat: `run_id`, payload fields, and `meta` are at the root level. Do not add a `payload` wrapper or `stored_at`.
 
-`help`, `version`, and `tools list` always render terminal output.
+`help`, `version`, `tools list`, and the root `composer skills` help always render terminal output.

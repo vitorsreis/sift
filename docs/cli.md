@@ -4,7 +4,7 @@
 
 ```bash
 composer sift <command>
-composer skills <command>
+composer skills [command]
 php vendor/bin/sift <command>
 php sift.phar <command>
 ```
@@ -22,6 +22,7 @@ All entrypoints call the same application core and should return the same output
 - `--raw`
 - `--show-process`
 - `--no-show-process`
+- `--no-color`
 - `--debug`
 - `--history`
 - `--no-history`
@@ -41,12 +42,13 @@ command option > global option > config > default
 - `init`
 - `validate`
 - `tools list`, `tools ls`
+- `skills`
 - `skills list`, `skills ls`
 - `skills add <source>`
 - `skills find [query]`
 - `skills find [query] --owner <owner>`
 - `skills init [name]`
-- `skills remove <skill>`, `skills rm <skill>`
+- `skills remove [skill ...]`, `skills rm [skill ...]`
 - `skills update [skill ...]`
 - `history list`, `history ls`
 - `history view <run_id>`
@@ -63,9 +65,10 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 ## Streams
 
-- Terminal result output goes to `STDOUT` by default.
+- Terminal result output goes to `STDOUT` by default and uses ANSI styling for status, labels, errors, and Skills CLI screens.
 - `--json` writes normalized result payloads to `STDOUT`.
 - `--no-json` forces terminal output when config selects JSON.
+- `output.colored=false` disables ANSI styling by default, and `--no-color` disables it for one command without changing the output format.
 - Sift errors go to `STDERR`.
 - `--show-process` writes only to `STDERR`.
 - `--debug` writes diagnostics to `STDERR` and keeps `STDOUT` unchanged.
@@ -73,9 +76,15 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 `--compact`, default size, and `--full` control detail level in both terminal and JSON output. `--pretty` and `--no-pretty` affect JSON only. `--json` and `--raw` cannot be used together.
 
-`help`, `version`, and `tools list` always render terminal output and ignore `--json`. `skills` commands prefer terminal output by default, even when config selects JSON, but still honor explicit `--json`.
+`help`, `version`, `tools list`, and the root `composer skills` help always render terminal output and ignore `--json`. Other `skills` commands prefer terminal output by default, even when config selects JSON, but still honor explicit `--json`.
 
 `tools list` streams availability and version lines as checks finish, so order may vary.
+
+When a command is invoked through a Composer script rather than the installed Composer command, pass Composer's end-of-options marker before Sift options:
+
+```bash
+composer skills -- --no-color
+```
 
 Sift global options can be placed before the tool name:
 

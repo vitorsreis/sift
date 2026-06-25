@@ -25,7 +25,7 @@ The stub checks:
 - `ext-json`
 - `ext-simplexml`
 
-Runtime commands use the same terminal and JSON renderers as the Composer and `vendor/bin/sift` entrypoints.
+Runtime commands use the same terminal and JSON renderers as the Composer and `vendor/bin/sift` entrypoints, including `--json`, `--no-json`, `output.colored`, and `--no-color`.
 
 Bootstrap failures exit with code `3` through the PHAR bootstrap error path because they happen before the Sift renderer is available.
 

@@ -4,6 +4,25 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.2.0 - 2026-06-25
+
+### Added
+
+- `composer sift help` now renders a grayscale `SIFT` banner, matching the skills helper visual style.
+- `output.colored` configures terminal ANSI color feedback globally.
+- `--no-color` disables ANSI styling for a single terminal command.
+
+### Changed
+
+- Terminal renderers now use one color contract: commands in cyan, options and placeholders in yellow, headings in bold, secondary text in gray, success in green, and errors in red.
+- Skills help and Sift help now build styled output from structured rows instead of ad-hoc token replacements.
+- Composer skills entrypoints now accept output flags such as `--json`, `--compact`, and `--no-color` consistently.
+
+### Fixed
+
+- Composer skills tests now isolate `CODEX_HOME` so local installed skills do not leak into fixture expectations.
+- Terminal output tests now compare plain content after stripping ANSI sequences where color is not the behavior under test.
+
 ## 2.1.0 - 2026-06-24
 
 ### Added

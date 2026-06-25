@@ -6,7 +6,7 @@ Use this file for exact syntax. Keep workflow decisions in `workflows.md`.
 
 ```bash
 composer sift <command>
-composer skills <command>
+composer skills [command]
 php vendor/bin/sift <command>
 php sift.phar <command>
 ```
@@ -20,6 +20,7 @@ php sift.phar <command>
 --json | --no-json
 --raw
 --show-process | --no-show-process
+--no-color
 --debug
 --history | --no-history
 --config=<path>
@@ -35,7 +36,7 @@ composer sift validate [--config=<path>]
 composer sift tools list [--config=<path>]
 ```
 
-`help`, `version`, and `tools list` always render terminal output and ignore `--json`. `tools list` streams each result as version checks finish.
+`help`, `version`, `tools list`, and the root `composer skills` help always render terminal output and ignore `--json`. `tools list` streams each result as version checks finish. Use `output.colored=false` or `--no-color` for plain terminal output.
 
 ## Tool Runs
 
@@ -77,8 +78,10 @@ composer skills list
 composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
-composer skills find <query>
+composer skills find [query]
 composer skills init [name] [--yes]
-composer skills update <name> --yes
-composer skills remove <name> --yes
+composer skills update [name ...] --yes
+composer skills remove [name ...] --yes
 ```
+
+`composer skills` renders the bannered skills help. `composer skills find` without a query opens interactive typeahead search in terminal mode.

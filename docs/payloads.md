@@ -1,6 +1,7 @@
 # Payloads
 
 Terminal output is the default. Use `--json` to render the normalized payload.
+Terminal output uses ANSI styling by default; set `output.colored=false` or use `--no-color` for plain terminal text.
 
 Full normalized JSON payload for stored and full run output:
 
@@ -49,8 +50,8 @@ Statuses:
 Terminal errors use short labeled lines:
 
 ```text
-error invalid_usage
-message: Unknown option "--bad".
+ERROR Unknown option "--bad".
+code: invalid_usage
 hint: Run "sift help" to list available commands.
 ```
 
