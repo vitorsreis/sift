@@ -10,6 +10,8 @@ composer skills
 
 The root command renders a `SIFT SKILLS` banner and command reference in terminal mode. Terminal feedback uses ANSI styling by default; set `output.colored=false` for plain terminal text by default or pass `--no-color` for one command.
 
+When Sift is installed globally with `composer global require vitorsreis/sift`, use `sift skills <command>` instead of `composer skills <command>`. Composer's global `vendor/bin` directory must be in your `PATH`.
+
 ## Sources
 
 - `sift`: bundled Sift skill.

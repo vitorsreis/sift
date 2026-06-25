@@ -8,8 +8,18 @@ Use this file for exact syntax. Keep workflow decisions in `workflows.md`.
 composer sift <command>
 composer skills [command]
 php vendor/bin/sift <command>
+sift <command>
 php sift.phar <command>
 ```
+
+Global install:
+
+```bash
+composer global config allow-plugins.vitorsreis/sift true
+composer global require vitorsreis/sift
+```
+
+Composer's global `vendor/bin` directory must be in `PATH` for `sift <command>` to work.
 
 ## Global Options
 

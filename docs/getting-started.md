@@ -2,10 +2,21 @@
 
 ## Install
 
+Project install:
+
 ```bash
-composer require --dev vitorsreis/sift
 composer config allow-plugins.vitorsreis/sift true
+composer require --dev vitorsreis/sift
 ```
+
+Global install:
+
+```bash
+composer global config allow-plugins.vitorsreis/sift true
+composer global require vitorsreis/sift
+```
+
+After a global install, make sure Composer's global `vendor/bin` directory is in your `PATH` and run Sift with `sift <command>`.
 
 ## Initialize
 

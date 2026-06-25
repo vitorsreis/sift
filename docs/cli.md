@@ -6,10 +6,20 @@
 composer sift <command>
 composer skills [command]
 php vendor/bin/sift <command>
+sift <command>
 php sift.phar <command>
 ```
 
 All entrypoints call the same application core and should return the same output for the same arguments.
+
+Use `sift <command>` after installing globally:
+
+```bash
+composer global config allow-plugins.vitorsreis/sift true
+composer global require vitorsreis/sift
+```
+
+Composer's global `vendor/bin` directory must be in your `PATH` for the `sift` binary to be available.
 
 ## Global Options
 

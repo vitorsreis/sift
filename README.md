@@ -48,6 +48,16 @@ composer require --dev vitorsreis/sift
 composer sift init
 ```
 
+Or install the Sift binary globally when you want the same CLI available outside a single project:
+
+```bash
+composer global config allow-plugins.vitorsreis/sift true
+composer global require vitorsreis/sift
+sift init
+```
+
+Make sure Composer's global `vendor/bin` directory is in your `PATH` before running `sift`.
+
 ## Skills
 
 Sift brings a Composer workflow for agent instructions:

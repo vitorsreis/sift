@@ -1,6 +1,6 @@
 ---
 name: sift
-description: Use when working in a PHP project that exposes Sift through composer sift, composer skills, vendor/bin/sift, bin/sift, or sift.phar, especially before running PHP quality tools or installing agent skills.
+description: Use when working in a PHP project that exposes Sift through composer sift, composer skills, vendor/bin/sift, bin/sift, global sift, or sift.phar, especially before running PHP quality tools or installing agent skills.
 ---
 
 # Sift
@@ -11,6 +11,7 @@ Sift is the Composer-native command layer for PHP quality tools, compact tool ou
 
 - If the project has `composer sift`, run supported PHP tools through `composer sift --compact`.
 - If the task is about skills, use `composer skills`.
+- If Sift is installed globally instead of in the project, use `sift <command>` and `sift skills <command>`.
 - If a tool output is too short, inspect Sift history before rerunning the tool.
 - Use `--json` only when you need a machine-readable payload.
 - Use `--full` only after compact output and history sections are insufficient.
@@ -49,6 +50,15 @@ composer sift --compact phpcbf --repair src
 ```
 
 Use `composer sift tools list` to verify tool availability.
+
+Global install for user-level access outside one project:
+
+```bash
+composer global config allow-plugins.vitorsreis/sift true
+composer global require vitorsreis/sift
+```
+
+After global install, Composer's global `vendor/bin` directory must be in `PATH`; run Sift as `sift <command>`.
 
 ## History
 
