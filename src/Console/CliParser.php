@@ -169,11 +169,12 @@ final readonly class CliParser
         return match ($subcommand) {
             '', '--help', '-h' => ['skills', $subcommand === '' ? $leadingOptions : [...$leadingOptions, ...$rest]],
             'list', 'ls' => ['skills list', [...$leadingOptions, ...$rest]],
-            'add' => ['skills add', [...$leadingOptions, ...$rest]],
+            'add', 'a' => ['skills add', [...$leadingOptions, ...$rest]],
             'find' => ['skills find', [...$leadingOptions, ...$rest]],
             'init' => ['skills init', [...$leadingOptions, ...$rest]],
             'remove', 'rm' => ['skills remove', [...$leadingOptions, ...$rest]],
-            'update' => ['skills update', [...$leadingOptions, ...$rest]],
+            'update', 'upgrade' => ['skills update', [...$leadingOptions, ...$rest]],
+            'use' => ['skills use', [...$leadingOptions, ...$rest]],
             default => str_starts_with($subcommand, '-')
                 ? ['skills', [...$leadingOptions, ...$remainingTokens]]
                 : throw new InvalidUsageException(sprintf('Unknown command "skills %s".', $subcommand)),
@@ -354,6 +355,13 @@ final readonly class CliParser
         }
 
         $this->storeOptionValue($options, $option, $this->coerceOptionValue($option, $value));
+
+        if ($option->variadic() && $inlineValue === null) {
+            while (($tokens[$index + 1] ?? null) !== null && $this->isOptionValueToken($tokens[$index + 1], $option)) {
+                ++$index;
+                $this->storeOptionValue($options, $option, $this->coerceOptionValue($option, $tokens[$index]));
+            }
+        }
     }
 
     /**

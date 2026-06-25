@@ -9,6 +9,7 @@ use Sift\Skills\Targets\CodexHomeResolver;
 use Sift\Skills\Targets\CodexSkillTarget;
 use Sift\Skills\Targets\CursorRuleTarget;
 use Sift\Skills\Targets\InstructionFileTarget;
+use Sift\Skills\Targets\InstructionTargetRegistry;
 use Sift\Skills\Targets\SkillTargetInstaller;
 use Sift\Skills\Targets\WindsurfRuleTarget;
 use Tests\Support\FixtureProject;
@@ -318,7 +319,7 @@ MD);
         new SkillSource('vendor/source', 'local', $source->root()),
     );
 
-    $removed = (new Sift\Skills\Targets\InstructionTargetRegistry())
+    $removed = (new InstructionTargetRegistry())
         ->resolve('codex')
         ->remove($project->root(), 'php-review');
 

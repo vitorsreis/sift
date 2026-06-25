@@ -6,6 +6,7 @@ namespace Sift\Console\Commands;
 
 use Sift\Console\CommandRoute;
 use Sift\Console\ConfirmationPrompt;
+use Sift\Console\InteractivePrompt;
 use Sift\Console\InvalidUsageException;
 use Sift\Skills\ClonedSkillSource;
 use Sift\Skills\Skill;
@@ -33,34 +34,68 @@ final readonly class SkillsUpdateCommand implements CommandHandler
         private SkillTargetInstaller $targetInstaller = new SkillTargetInstaller(),
         private SkillTargetLock $targetLock = new SkillTargetLock(),
         private ConfirmationPrompt $confirmationPrompt = new ConfirmationPrompt(),
+        private InteractivePrompt $interactivePrompt = new InteractivePrompt(),
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $global = $this->optionBool($route, 'global');
-        $targets = $this->targets($route, $global);
+        $scope = $this->updateScope($route, $cwd);
+        $scopeGlobals = $this->scopeGlobals($scope);
+        $scopePlans = [];
+        $allTargets = [];
+
+        foreach ($scopeGlobals as $global) {
+            $targets = $this->targets($route, $global, $scope === 'both');
+            $scopePlans[] = [
+                'global' => $global,
+                'targets' => $targets,
+            ];
+            $allTargets = [...$allTargets, ...$targets];
+        }
+
+        $allTargets = array_values(array_unique($allTargets));
         $names = $this->selectedNames($route);
         $this->assertConfirmed(
             $route,
             sprintf(
-                'Update managed skill(s) %s for target(s) %s?',
+                'Update managed skill(s) %s for target(s) %s in %s scope?',
                 $names === [] ? 'all' : implode(', ', $names),
-                implode(', ', $targets),
+                implode(', ', $allTargets),
+                $scope,
             ),
         );
         $installed = [];
-        $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, $global, &$installed): array {
-            $installed = $this->selectedMetadata($this->skillService->inventory($cwd, $targets, $global), $route);
-            $results = [];
+        $results = [];
 
-            foreach ($installed as $metadata) {
-                foreach ($this->update($cwd, $metadata, $targets, $global) as $result) {
-                    $results[] = $result;
-                }
+        foreach ($scopePlans as $scopePlan) {
+            $global = $scopePlan['global'];
+            $targets = $scopePlan['targets'];
+
+            if ($targets === []) {
+                continue;
             }
 
-            return $results;
-        });
+            $scopeResults = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, $global, &$installed): array {
+                $scopeInstalled = $this->selectedMetadata($this->skillService->inventory($cwd, $targets, $global), $route);
+                $scopeResults = [];
+
+                foreach ($scopeInstalled as $metadata) {
+                    foreach ($this->update($cwd, $metadata, $targets, $global) as $result) {
+                        $scopeResults[] = $result;
+                    }
+                }
+
+                foreach ($scopeInstalled as $metadata) {
+                    $installed[] = $metadata;
+                }
+
+                return $scopeResults;
+            });
+
+            foreach ($scopeResults as $result) {
+                $results[] = $result;
+            }
+        }
 
         return [
             'tool' => 'sift',
@@ -68,17 +103,97 @@ final readonly class SkillsUpdateCommand implements CommandHandler
             'summary' => [
                 'updated' => count($results),
                 'skills' => count($installed),
-                'targets' => count($targets),
+                'targets' => count($allTargets),
             ],
             'items' => array_map(static fn(SkillTargetInstallResult $result): array => $result->toItem(), $results),
             'artifacts' => [],
             'extra' => [],
             'meta' => [
                 'subcommand' => 'skills update',
-                'targets' => $targets,
-                'global' => $global,
+                'targets' => $allTargets,
+                'global' => $scope === 'global',
+                'scope' => $scope,
             ],
         ];
+    }
+
+    private function updateScope(CommandRoute $route, string $cwd): string
+    {
+        $names = $this->selectedNames($route);
+
+        if ($names !== []) {
+            if ($this->optionBool($route, 'global')) {
+                return 'global';
+            }
+
+            if ($this->optionBool($route, 'project')) {
+                return 'project';
+            }
+
+            return 'both';
+        }
+
+        if ($this->optionBool($route, 'global') && $this->optionBool($route, 'project')) {
+            return 'both';
+        }
+
+        if ($this->optionBool($route, 'global')) {
+            return 'global';
+        }
+
+        if ($this->optionBool($route, 'project')) {
+            return 'project';
+        }
+
+        if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
+            return $this->hasProjectSkills($route, $cwd) ? 'project' : 'global';
+        }
+
+        $scope = $this->interactivePrompt->select(
+            'Update scope',
+            [
+                [
+                    'value' => 'project',
+                    'label' => 'Project',
+                    'hint' => 'Update skills in current directory',
+                ],
+                [
+                    'value' => 'global',
+                    'label' => 'Global',
+                    'hint' => 'Update skills in home directory',
+                ],
+                [
+                    'value' => 'both',
+                    'label' => 'Both',
+                    'hint' => 'Update all skills',
+                ],
+            ],
+            $this->colorEnabled($route),
+        );
+
+        if ($scope === null) {
+            throw new InvalidUsageException('Skill command cancelled.');
+        }
+
+        return $scope;
+    }
+
+    /**
+     * @return list<bool>
+     */
+    private function scopeGlobals(string $scope): array
+    {
+        return match ($scope) {
+            'project' => [false],
+            'global' => [true],
+            'both' => [false, true],
+            default => throw new InvalidUsageException(sprintf('Unsupported update scope "%s".', $scope)),
+        };
+    }
+
+    private function hasProjectSkills(CommandRoute $route, string $cwd): bool
+    {
+        return $this->skillService->inventory($cwd, $this->targets($route, false), false) !== [];
     }
 
     /**
@@ -194,29 +309,59 @@ final readonly class SkillsUpdateCommand implements CommandHandler
     /**
      * @return list<string>
      */
-    private function targets(CommandRoute $route, bool $global): array
+    private function targets(CommandRoute $route, bool $global, bool $skipUnsupportedGlobal = false): array
     {
         if ($this->optionBool($route, 'all')) {
             return $this->targetRegistry->writeCapableNames($global);
         }
 
-        $agent = $route->options()['agent'] ?? null;
+        $agents = $this->stringOptionValues($route, 'agent');
 
-        if (! is_string($agent) || trim($agent) === '' || in_array(trim($agent), ['*', 'all'], true)) {
+        if ($agents === []) {
             return $this->targetRegistry->writeCapableNames($global);
         }
 
         $targets = [];
 
-        foreach (explode(',', $agent) as $target) {
+        foreach ($agents as $target) {
             $target = trim($target);
 
-            if ($target !== '') {
-                $targets[] = $target;
+            if ($target === '' || in_array($target, ['*', 'all'], true)) {
+                return $this->targetRegistry->writeCapableNames($global);
             }
+
+            if ($global && $skipUnsupportedGlobal && ! $this->targetRegistry->supportsGlobal($target)) {
+                continue;
+            }
+
+            $targets[] = $target;
         }
 
         return array_values(array_unique($targets));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringOptionValues(CommandRoute $route, string $name): array
+    {
+        $value = $route->options()[$name] ?? null;
+        $values = is_array($value) ? $value : [$value];
+        $strings = [];
+
+        foreach ($values as $item) {
+            if (! is_string($item)) {
+                continue;
+            }
+
+            foreach (explode(',', $item) as $string) {
+                if (trim($string) !== '') {
+                    $strings[] = trim($string);
+                }
+            }
+        }
+
+        return $strings;
     }
 
     private function assertConfirmed(CommandRoute $route, string $message): void

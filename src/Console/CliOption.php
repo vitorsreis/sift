@@ -11,6 +11,7 @@ final readonly class CliOption
         private CliOptionType $type,
         private ?string $shortAlias = null,
         private bool $repeatable = false,
+        private bool $variadic = false,
     ) {}
 
     public static function boolean(string $name, ?string $shortAlias = null, bool $repeatable = false): self
@@ -18,9 +19,9 @@ final readonly class CliOption
         return new self($name, CliOptionType::Boolean, $shortAlias, $repeatable);
     }
 
-    public static function string(string $name, ?string $shortAlias = null, bool $repeatable = false): self
+    public static function string(string $name, ?string $shortAlias = null, bool $repeatable = false, bool $variadic = false): self
     {
-        return new self($name, CliOptionType::String, $shortAlias, $repeatable);
+        return new self($name, CliOptionType::String, $shortAlias, $repeatable, $variadic);
     }
 
     public static function integer(string $name, ?string $shortAlias = null, bool $repeatable = false): self
@@ -46,5 +47,10 @@ final readonly class CliOption
     public function repeatable(): bool
     {
         return $this->repeatable;
+    }
+
+    public function variadic(): bool
+    {
+        return $this->variadic;
     }
 }

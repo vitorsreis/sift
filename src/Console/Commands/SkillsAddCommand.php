@@ -84,7 +84,7 @@ final readonly class SkillsAddCommand implements CommandHandler
                 fn(): array => $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource, $global),
             );
 
-            return $this->installPayload($route, $resolvedSource, $selectedSkills, $targets, $results, $global);
+            return $this->installPayload($resolvedSource, $selectedSkills, $targets, $results, $global);
         } finally {
             $checkout->cleanup();
         }
@@ -134,7 +134,7 @@ final readonly class SkillsAddCommand implements CommandHandler
      *
      * @return array<string, mixed>
      */
-    private function installPayload(CommandRoute $route, SkillSource $source, array $skills, array $targets, array $results, bool $global): array
+    private function installPayload(SkillSource $source, array $skills, array $targets, array $results, bool $global): array
     {
         return [
             'tool' => 'sift',
@@ -278,9 +278,15 @@ final readonly class SkillsAddCommand implements CommandHandler
             return $this->targetRegistry->writeCapableNames($global);
         }
 
-        $agent = $route->options()['agent'] ?? null;
+        $agents = $this->stringOptionValues($route, 'agent');
+        $subagentTargets = $this->subagentTargets($route);
 
-        if (! is_string($agent) || trim($agent) === '') {
+        if ($subagentTargets !== []) {
+            $agents = array_values(array_filter($agents, static fn(string $agent): bool => strtolower($agent) !== 'eve'));
+            $agents = [...$agents, ...$subagentTargets];
+        }
+
+        if ($agents === []) {
             if ($this->optionBool($route, 'yes')) {
                 throw new InvalidUsageException('skills add requires --agent or --all when installing.');
             }
@@ -300,7 +306,7 @@ final readonly class SkillsAddCommand implements CommandHandler
 
         $targets = [];
 
-        foreach (explode(',', $agent) as $target) {
+        foreach ($agents as $target) {
             $target = trim($target);
 
             if ($target === '' || in_array($target, ['*', 'all'], true)) {
@@ -308,6 +314,38 @@ final readonly class SkillsAddCommand implements CommandHandler
             }
 
             $targets[] = $target;
+        }
+
+        return array_values(array_unique($targets));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function subagentTargets(CommandRoute $route): array
+    {
+        $subagents = $this->stringOptionValues($route, 'subagent');
+
+        if ($subagents === []) {
+            return [];
+        }
+
+        $targets = [];
+
+        foreach ($subagents as $subagent) {
+            $subagent = strtolower($subagent);
+
+            if ($subagent === 'root' || $subagent === '.') {
+                $targets[] = 'eve';
+
+                continue;
+            }
+
+            if (preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $subagent) !== 1) {
+                throw new InvalidUsageException('skills add --subagent requires a valid Eve subagent name.');
+            }
+
+            $targets[] = 'eve:' . $subagent;
         }
 
         return array_values(array_unique($targets));
@@ -364,8 +402,14 @@ final readonly class SkillsAddCommand implements CommandHandler
         $strings = [];
 
         foreach ($values as $item) {
-            if (is_string($item) && trim($item) !== '') {
-                $strings[] = trim($item);
+            if (! is_string($item)) {
+                continue;
+            }
+
+            foreach (explode(',', $item) as $string) {
+                if (trim($string) !== '') {
+                    $strings[] = trim($string);
+                }
             }
         }
 

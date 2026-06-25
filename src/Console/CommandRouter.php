@@ -27,6 +27,7 @@ final readonly class CommandRouter
             'skills init' => 'skills.init',
             'skills remove' => 'skills.remove',
             'skills update' => 'skills.update',
+            'skills use' => 'skills.use',
             'tools list' => 'tools.list',
             'history list' => 'history.list',
             'history view' => 'history.view',

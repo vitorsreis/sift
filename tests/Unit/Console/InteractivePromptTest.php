@@ -55,7 +55,7 @@ it('searches as the user types and returns the highlighted skill', function (): 
     expect($plainOutput)->toContain('███████╗██╗███████╗████████╗    ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗');
     expect($plainOutput)->not->toContain('------');
     expect($plainOutput)->toContain('Search skills: ph_');
-    expect($plainOutput)->toContain('up/down navigate | enter install | esc cancel');
+    expect($plainOutput)->toContain('up/down navigate | enter select | esc cancel');
 });
 
 it('can render interactive search without ansi colors', function (): void {

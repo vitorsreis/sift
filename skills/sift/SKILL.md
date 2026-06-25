@@ -45,7 +45,9 @@ composer sift --compact pest
 
 `help`, `version`, `tools list`, and the root `composer skills` help always render terminal output. `tools list` streams results as version checks finish. `composer skills find` without a query opens the interactive Skills search in terminal mode.
 
-`composer skills add` targets project skill directories by default. In terminal mode it can prompt for agents, preselect existing target folders, then prompt for Project or Global scope when the selected agents support global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; add `--global` only when the user wants a user-level install.
+`composer skills add` targets project skill directories by default and accepts Skills CLI-style multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. In terminal mode it can prompt for agents, preselect existing target folders, then prompt for Project or Global scope when the selected agents support global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; add `--global` only when the user wants a user-level install. Use `--subagent <name>` for Eve subagents.
+
+`composer skills use <source>@<skill>` prints a one-off prompt without installing. `composer skills upgrade` aliases `composer skills update`; named updates check project and global installs unless `--project` or `--global` is passed.
 
 ## Safety
 

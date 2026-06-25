@@ -48,9 +48,9 @@ it('marks existing project skill directories as selected agent choices', functio
     $choices = (new InstructionTargetRegistry())->agentChoices($project->root());
     $selected = array_values(array_filter(
         $choices,
-        static fn(array $choice): bool => ($choice['selected'] ?? false) === true,
+        static fn(array $choice): bool => $choice['selected'] === true,
     ));
 
     expect(array_column($selected, 'value'))->toBe(['windsurf']);
-    expect($selected[0]['hint'] ?? null)->toBe('.windsurf/skills');
+    expect($selected[0]['hint'])->toBe('.windsurf/skills');
 });

@@ -57,6 +57,7 @@ Keep Composer actions read-only through Sift.
 composer skills find
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
+composer skills add owner/repo --skill pr-review commit --agent codex cursor --yes
 composer skills list
 ```
 
@@ -67,5 +68,8 @@ Rules:
 - Mutating commands in non-TTY or CI need `--yes --agent=<target>` or `--all`.
 - Skill installs target project directories by default. Add `--global` to use each target's user-level skills directory.
 - Interactive `skills add` preselects existing target folders, falls back to `codex`, and prompts for Project or Global scope when the selected target supports it.
+- Use `composer skills use owner/repo@skill` when the user wants a one-off prompt without installation.
+- Use `--subagent <name>` for Eve subagent installs and `--subagent root` for Eve's root `agent/skills`.
+- `composer skills upgrade` aliases `composer skills update`; named updates check project and global installs unless a scope flag is passed.
 - `--all` means all selected skills and all write-capable targets in the selected project/global scope.
 - Directory targets use `.sift-skill.json`; the `generic` compatibility target uses managed blocks in `AGENTS.md`.

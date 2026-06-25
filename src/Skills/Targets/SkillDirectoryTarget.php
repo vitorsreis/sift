@@ -105,7 +105,11 @@ final readonly class SkillDirectoryTarget implements InstructionTarget
         $items = [];
 
         foreach ($entries as $entry) {
-            if ($entry === '.' || $entry === '..') {
+            if ($entry === '.') {
+                continue;
+            }
+
+            if ($entry === '..') {
                 continue;
             }
 
@@ -145,7 +149,17 @@ final readonly class SkillDirectoryTarget implements InstructionTarget
                 );
             }
 
-            return Path::normalize(($this->globalDirectoryResolver)());
+            $directory = ($this->globalDirectoryResolver)();
+
+            if (! is_string($directory)) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::FilesystemError,
+                    message: sprintf('Could not resolve global skill directory for target "%s".', $this->name),
+                    context: ['target' => $this->name],
+                );
+            }
+
+            return Path::normalize($directory);
         }
 
         try {
@@ -362,7 +376,11 @@ final readonly class SkillDirectoryTarget implements InstructionTarget
         }
 
         foreach ($entries as $entry) {
-            if ($entry === '.' || $entry === '..') {
+            if ($entry === '.') {
+                continue;
+            }
+
+            if ($entry === '..') {
                 continue;
             }
 

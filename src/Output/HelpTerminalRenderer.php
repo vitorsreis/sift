@@ -70,6 +70,11 @@ final class HelpTerminalRenderer
                 ['command', 'add'],
                 ['argument', '<source>'],
             ], $style), 'Install skills from a source.'),
+            $this->row('skills use <source>', $this->syntax([
+                ['command', 'skills'],
+                ['command', 'use'],
+                ['argument', '<source>'],
+            ], $style), 'Generate a one-off skill prompt.'),
             $this->row('skills find [query]', $this->syntax([
                 ['command', 'skills'],
                 ['command', 'find'],

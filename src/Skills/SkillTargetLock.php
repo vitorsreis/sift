@@ -56,14 +56,27 @@ final readonly class SkillTargetLock
         $paths = [];
 
         foreach ($normalizedTargets as $target) {
-            if (preg_match('/^[a-z0-9][a-z0-9_.-]{0,63}$/', $target) !== 1) {
-                throw $this->filesystemError(sprintf('Invalid skill target lock name "%s".', $target), $directory);
-            }
-
-            $paths[] = $guard->assertInside(Path::join($directory, $target . '.lock'));
+            $paths[] = $guard->assertInside(Path::join($directory, $this->lockName($target) . '.lock'));
         }
 
         return $paths;
+    }
+
+    private function lockName(string $target): string
+    {
+        $normalized = strtolower(trim($target));
+        $safe = preg_replace('/[^a-z0-9_.-]+/', '-', $normalized) ?? '';
+        $safe = trim($safe, '-_.');
+
+        if ($safe === '') {
+            throw $this->filesystemError(sprintf('Invalid skill target lock name "%s".', $target), '.');
+        }
+
+        if ($safe === $normalized) {
+            return $safe;
+        }
+
+        return substr($safe, 0, 54) . '-' . substr(sha1($normalized), 0, 8);
     }
 
     private function lockDirectory(PathGuard $guard, string $cwd): string

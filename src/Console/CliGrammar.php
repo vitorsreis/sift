@@ -56,8 +56,8 @@ final class CliGrammar
         ];
         $skillsScopedOptions = [
             CliOption::boolean('global', 'g'),
-            CliOption::string('agent', 'a'),
-            CliOption::string('skill', 's', repeatable: true),
+            CliOption::string('agent', 'a', repeatable: true, variadic: true),
+            CliOption::string('skill', 's', repeatable: true, variadic: true),
             ...$terminalOutputOptions,
         ];
 
@@ -79,7 +79,11 @@ final class CliGrammar
                 ...$skillsScopedOptions,
                 CliOption::boolean('list', 'l'),
                 CliOption::boolean('yes', 'y'),
+                CliOption::boolean('copy'),
+                CliOption::string('subagent', repeatable: true, variadic: true),
                 CliOption::boolean('all'),
+                CliOption::boolean('full-depth'),
+                CliOption::boolean('dangerously-accept-openclaw-risks'),
                 CliOption::string('config', 'c'),
             ],
             'skills list' => $skillsScopedOptions,
@@ -90,8 +94,16 @@ final class CliGrammar
             ],
             'skills update' => [
                 ...$skillsScopedOptions,
+                CliOption::boolean('project', 'p'),
                 CliOption::boolean('yes', 'y'),
                 CliOption::boolean('all'),
+            ],
+            'skills use' => [
+                CliOption::string('agent', 'a', repeatable: true, variadic: true),
+                CliOption::string('skill', 's', repeatable: true, variadic: true),
+                CliOption::boolean('full-depth'),
+                CliOption::boolean('dangerously-accept-openclaw-risks'),
+                ...$terminalOutputOptions,
             ],
             'skills find' => [CliOption::string('owner'), ...$terminalOutputOptions],
             'skills init' => [CliOption::boolean('yes', 'y'), ...$terminalOutputOptions],

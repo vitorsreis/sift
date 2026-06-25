@@ -44,12 +44,13 @@ command option > global option > config > default
 - `tools list`, `tools ls`
 - `skills`
 - `skills list`, `skills ls`
-- `skills add <source>`
+- `skills add <source>`, `skills a <source>`
+- `skills use <source>[@<skill>]`
 - `skills find [query]`
 - `skills find [query] --owner <owner>`
 - `skills init [name]`
 - `skills remove [skill ...]`, `skills rm [skill ...]`
-- `skills update [skill ...]`
+- `skills update [skill ...]`, `skills upgrade [skill ...]`
 - `history list`, `history ls`
 - `history view <run_id>`
 - `history <run_id>`
@@ -80,9 +81,13 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 `tools list` streams availability and version lines as checks finish, so order may vary.
 
-`skills add`, `skills list`, `skills remove`, and `skills update` use project skill directories by default. Pass `--global` / `-g` to target the matching user-level skill directory.
+`skills add`, `skills list`, `skills remove`, and `skills update` use project skill directories by default. Pass `--global` / `-g` to target the matching user-level skill directory. `skills update` also accepts `--project` / `-p`; named updates check both project and global unless a scope flag is passed.
 
 In terminal mode, `skills add` can prompt for agents and scope. Existing target folders in the current scope are selected in the agent prompt, `codex` is selected when no target folder is detected, and the Project/Global scope prompt appears only when a selected target supports global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; without `--global`, installs remain project-scoped.
+
+Skills commands accept the public Skills CLI multi-value option style, for example `--agent codex cursor` and `--skill pr-review commit`. `skills add --subagent reviewer` targets Eve at `agent/subagents/reviewer/skills`; `--subagent root` targets Eve's root `agent/skills`.
+
+`skills use` prints a prompt for one selected skill without installing it. It supports `<source>@<skill>` and `--skill <skill>` selection and returns terminal prompt text by default.
 
 When a command is invoked through a Composer script rather than the installed Composer command, pass Composer's end-of-options marker before Sift options:
 

@@ -78,12 +78,17 @@ composer skills list
 composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
+composer skills add owner/repo --skill pr-review commit --agent codex cursor --yes
 composer skills add owner/repo --skill <name> --agent=<target> --global --yes
+composer skills add owner/repo --subagent <eve-subagent> --yes
+composer skills use owner/repo@skill
 composer skills find [query]
 composer skills init [name] [--yes]
-composer skills update [name ...] [--agent=<target>] [--global] --yes
+composer skills update|upgrade [name ...] [--agent=<target>] [--project|--global] --yes
 composer skills remove [name ...] [--agent=<target>] [--global] --yes
 ```
 
 `composer skills` renders the bannered skills help. `composer skills find` without a query opens interactive typeahead search in terminal mode.
-`composer skills add` can prompt for agents and Project/Global scope in terminal mode. In CI, use `--yes --agent=<target>` or `--all`; use `--global` only for user-level skill directories.
+`composer skills add` can prompt for agents and Project/Global scope in terminal mode. In CI, use `--yes --agent=<target>` or `--all`; use `--global` only for user-level skill directories. Skills commands accept the public Skills CLI multi-value flag style, including `--agent codex cursor` and `--skill pr-review commit`.
+
+`composer skills use` prints a prompt for one selected skill without installing. `composer skills update` asks for Project/Global/Both in terminal mode; with `--yes`, it updates project skills when present and otherwise falls back to global.

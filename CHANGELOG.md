@@ -13,6 +13,8 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - `--no-color` disables ANSI styling for a single terminal command.
 - Skills targets now include OpenCode, Antigravity, Gemini CLI, OpenClaw, and other `.agents/skills`-based agents.
 - `skills add` now prompts interactively for Project or Global scope when selected agents support user-level installs.
+- `skills use` generates a one-off prompt from a selected skill without installing it.
+- `skills add --subagent <name>` installs to Eve subagent directories.
 
 ### Changed
 
@@ -21,6 +23,8 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Composer skills entrypoints now accept output flags such as `--json`, `--compact`, and `--no-color` consistently.
 - Native skill targets now install into project skill directories by default; `--global` / `-g` selects the user-level target directory for add, list, remove, and update.
 - The interactive agent picker now preselects existing target folders and falls back to `codex` when no target folder is detected.
+- Skills commands now accept Skills CLI-style aliases and multi-value flags, including `skills a`, `skills upgrade`, `--agent codex cursor`, and `--skill pr-review commit`.
+- `skills update` now follows the Skills CLI scope rules: named updates check project and global unless `--project` or `--global` is provided, and `--yes` autodetects project skills before falling back to global.
 
 ### Fixed
 

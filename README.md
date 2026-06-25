@@ -64,9 +64,9 @@ Supported skill sources:
 - GitHub shorthand, such as `owner/repo`;
 - GitHub URLs.
 
-Other commands include `init`, `list`, `find`, `update`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-install.
+Other commands include `init`, `list`, `find`, `use`, `update` / `upgrade`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-select before install.
 
-`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. Use `--global` / `-g` for user-level installs, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
+`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. It accepts Skills CLI-style multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. Use `--global` / `-g` for user-level installs, `--subagent reviewer` for Eve subagents, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
 
 ## Tools
 

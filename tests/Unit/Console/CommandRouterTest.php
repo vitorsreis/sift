@@ -33,11 +33,14 @@ it('routes nested commands and aliases', function (): void {
     expectSiftRoute(['skills', 'list'], 'skills.list');
     expectSiftRoute(['skills', 'ls'], 'skills.list');
     expectSiftRoute(['skills', 'add', 'vitorsreis/sift'], 'skills.add');
+    expectSiftRoute(['skills', 'a', 'vitorsreis/sift'], 'skills.add');
+    expectSiftRoute(['skills', 'use', 'vitorsreis/sift@sift'], 'skills.use');
     expectSiftRoute(['skills', 'find', 'review'], 'skills.find');
     expectSiftRoute(['skills', 'init', 'review'], 'skills.init');
     expectSiftRoute(['skills', 'remove', 'review'], 'skills.remove');
     expectSiftRoute(['skills', 'rm', 'review'], 'skills.remove');
     expectSiftRoute(['skills', 'update', 'review'], 'skills.update');
+    expectSiftRoute(['skills', 'upgrade', 'review'], 'skills.update');
     expectSiftRoute(['tools', 'list'], 'tools.list');
     expectSiftRoute(['tools', 'ls'], 'tools.list');
     expectSiftRoute(['history', 'list'], 'history.list');

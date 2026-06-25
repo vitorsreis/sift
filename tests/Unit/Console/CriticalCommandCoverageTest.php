@@ -7,6 +7,7 @@ use Sift\Console\Commands\RunToolCommand;
 use Sift\Console\Commands\SkillsAddCommand;
 use Sift\Console\Commands\SkillsRemoveCommand;
 use Sift\Console\Commands\SkillsUpdateCommand;
+use Sift\Console\ConfirmationPrompt;
 use Sift\Console\InteractivePrompt;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
@@ -60,6 +61,44 @@ it('updates installed skills when no update names are provided', function (): vo
 
     expect($payload['summary'])->toMatchArray(['updated' => 1, 'skills' => 1, 'targets' => 1]);
     expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Updated all guidance');
+});
+
+it('prompts for the update scope in terminal skills mode', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    criticalCommandSkill($source, 'Old interactive update guidance');
+
+    (new SkillsAddCommand())->handle(
+        new CommandRoute('skills.add', [$source->root()], ['agent' => 'generic', 'yes' => true]),
+        $project->root(),
+    );
+
+    criticalCommandSkill($source, 'Updated interactive update guidance');
+
+    $keys = ['enter'];
+    $output = '';
+    $payload = (new SkillsUpdateCommand(
+        confirmationPrompt: new ConfirmationPrompt(
+            interactive: static fn(): bool => true,
+            reader: static fn(): string => "y\n",
+            writer: static function (): void {},
+        ),
+        interactivePrompt: new InteractivePrompt(
+            keyReader: static function () use (&$keys): string {
+                return array_shift($keys) ?? 'escape';
+            },
+            writer: static function (string $message) use (&$output): void {
+                $output .= $message;
+            },
+        ),
+    ))->handle(
+        new CommandRoute('skills.update', options: ['agent' => 'generic']),
+        $project->root(),
+    );
+
+    expect(stripCriticalCommandAnsi($output))->toContain('Update scope');
+    expect($payload['summary'])->toMatchArray(['updated' => 1, 'skills' => 1, 'targets' => 1]);
+    expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Updated interactive update guidance');
 });
 
 it('previews skills add without requiring confirmation or writing targets', function (): void {
@@ -240,6 +279,11 @@ function criticalCommandSkill(FixtureProject $source, string $body): void
         "---\nname: critical-review\ndescription: Critical review.\n---\n\n# Critical Review\n\n%s\n",
         $body,
     ));
+}
+
+function stripCriticalCommandAnsi(string $output): string
+{
+    return preg_replace('/\e\[[0-9;?]*[A-Za-z]/', '', $output) ?? $output;
 }
 
 /**

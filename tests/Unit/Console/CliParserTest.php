@@ -123,7 +123,93 @@ it('parses command options after a declared command', function (): void {
     expect($request->arguments())->toBe(['vitorsreis/sift']);
     expect($request->options())->toBe([
         'skill' => ['sift'],
-        'agent' => 'codex',
+        'agent' => ['codex'],
+        'yes' => true,
+    ]);
+});
+
+it('parses npx skills style multi value skill and agent options', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'a',
+        'owner/repo',
+        '--skill',
+        'php-review',
+        'laravel-review',
+        '--agent',
+        'claude-code',
+        'cursor',
+        '--yes',
+    ]);
+
+    expect($request->command())->toBe('skills add');
+    expect($request->arguments())->toBe(['owner/repo']);
+    expect($request->options())->toBe([
+        'skill' => ['php-review', 'laravel-review'],
+        'agent' => ['claude-code', 'cursor'],
+        'yes' => true,
+    ]);
+});
+
+it('parses npx skills add compatibility options', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'add',
+        'owner/repo',
+        '--copy',
+        '--full-depth',
+        '--subagent',
+        'root',
+        'reviewer',
+        '--dangerously-accept-openclaw-risks',
+    ]);
+
+    expect($request->command())->toBe('skills add');
+    expect($request->arguments())->toBe(['owner/repo']);
+    expect($request->options())->toBe([
+        'copy' => true,
+        'full-depth' => true,
+        'subagent' => ['root', 'reviewer'],
+        'dangerously-accept-openclaw-risks' => true,
+    ]);
+});
+
+it('parses skills use compatibility options', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'use',
+        'owner/repo@php-review',
+        '--skill',
+        'php-review',
+        '--agent',
+        'codex',
+        '--full-depth',
+        '--dangerously-accept-openclaw-risks',
+    ]);
+
+    expect($request->command())->toBe('skills use');
+    expect($request->arguments())->toBe(['owner/repo@php-review']);
+    expect($request->options())->toBe([
+        'skill' => ['php-review'],
+        'agent' => ['codex'],
+        'full-depth' => true,
+        'dangerously-accept-openclaw-risks' => true,
+    ]);
+});
+
+it('parses skills upgrade as update with explicit project scope', function (): void {
+    $request = CliParser::forSift()->parse([
+        'skills',
+        'upgrade',
+        'php-review',
+        '--project',
+        '--yes',
+    ]);
+
+    expect($request->command())->toBe('skills update');
+    expect($request->arguments())->toBe(['php-review']);
+    expect($request->options())->toBe([
+        'project' => true,
         'yes' => true,
     ]);
 });
@@ -192,7 +278,7 @@ it('parses every declared command option set', function (): void {
     expectParsedCommandOptions(['tools', 'list', '-c', 'sift.json'], 'tools list', ['config' => 'sift.json']);
     expectParsedCommandOptions(['skills', 'add', 'vitorsreis/sift', '-g', '-a', 'codex', '-s', 'sift', '-l', '-y', '--all', '-c', 'sift.json'], 'skills add', [
         'global' => true,
-        'agent' => 'codex',
+        'agent' => ['codex'],
         'skill' => ['sift'],
         'list' => true,
         'yes' => true,
@@ -201,19 +287,20 @@ it('parses every declared command option set', function (): void {
     ], ['vitorsreis/sift']);
     expectParsedCommandOptions(['skills', 'list', '-g', '-a', 'codex', '-s', 'sift'], 'skills list', [
         'global' => true,
-        'agent' => 'codex',
+        'agent' => ['codex'],
         'skill' => ['sift'],
     ]);
     expectParsedCommandOptions(['skills', 'remove', 'sift', '-g', '-a', 'codex', '-s', 'sift', '-y', '--all'], 'skills remove', [
         'global' => true,
-        'agent' => 'codex',
+        'agent' => ['codex'],
         'skill' => ['sift'],
         'yes' => true,
         'all' => true,
     ], ['sift']);
-    expectParsedCommandOptions(['skills', 'update', 'sift', '-g', '-a', 'codex', '-s', 'sift', '-y', '--all'], 'skills update', [
+    expectParsedCommandOptions(['skills', 'update', 'sift', '-g', '--project', '-a', 'codex', '-s', 'sift', '-y', '--all'], 'skills update', [
         'global' => true,
-        'agent' => 'codex',
+        'project' => true,
+        'agent' => ['codex'],
         'skill' => ['sift'],
         'yes' => true,
         'all' => true,

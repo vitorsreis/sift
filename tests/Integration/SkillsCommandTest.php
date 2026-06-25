@@ -252,6 +252,121 @@ it('installs repeated skill selectors', function (): void {
     expect($agents)->not->toContain('name: security-review');
 });
 
+it('installs npx skills style multi value skills and agents', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    skillsCommandFixture($repository, 'skills/laravel-review/SKILL.md', 'laravel-review', 'Use when reviewing Laravel.');
+    skillsCommandFixture($repository, 'skills/security-review/SKILL.md', 'security-review', 'Use when reviewing security.');
+
+    $result = CliRunner::run([
+        '--json',
+        '--full',
+        '--no-pretty',
+        'skills',
+        'a',
+        $repository->root(),
+        '--skill',
+        'php-review',
+        'laravel-review',
+        '--agent',
+        'generic',
+        'codex',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary'))->toMatchArray(['installed' => 4, 'skills' => 2, 'targets' => 2]);
+    expect(skillsCommandObject($payload, 'meta')['targets'] ?? null)->toBe(['generic', 'codex']);
+    expect($agents)->toContain('name: php-review');
+    expect($agents)->toContain('name: laravel-review');
+    expect($agents)->not->toContain('name: security-review');
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/laravel-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/security-review/SKILL.md'))->not->toBeFile();
+});
+
+it('generates a skills use prompt without installing the skill', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixtureWithBody($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Read the PHP review checklist.');
+    $repository->write('skills/php-review/references/checklist.md', "Checklist body\n");
+
+    $result = CliRunner::run([
+        'skills',
+        'use',
+        $repository->root(),
+        '--skill',
+        'php-review',
+        '--no-color',
+    ], $project->root());
+
+    expect($result['exit_code'])->toBe(0);
+    expect($result['stderr'])->toBe('');
+    expect($result['stdout'])->toContain('You are being given a Skill to execute');
+    expect($result['stdout'])->toContain('<SKILL.md>');
+    expect($result['stdout'])->toContain('name: php-review');
+    expect($result['stdout'])->toContain('Read the PHP review checklist.');
+    expect($result['stdout'])->toContain('Supporting files for this skill were downloaded to:');
+    expect($project->path('AGENTS.md'))->not->toBeFile();
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->not->toBeFile();
+});
+
+it('installs and removes Eve subagent skills with the npx subagent option', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+
+    $add = CliRunner::run([
+        '--json',
+        '--full',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--subagent',
+        'reviewer',
+        '--yes',
+    ], $project->root());
+    $addPayload = CliRunner::decode($add['stdout']);
+
+    $list = CliRunner::run([
+        '--json',
+        '--full',
+        '--no-pretty',
+        'skills',
+        'list',
+        '--agent',
+        'eve:reviewer',
+    ], $project->root());
+    $listPayload = CliRunner::decode($list['stdout']);
+
+    expect($add['exit_code'])->toBe(0);
+    expect(skillsCommandObject($addPayload, 'meta')['targets'] ?? null)->toBe(['eve:reviewer']);
+    expect($project->path('agent/subagents/reviewer/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->path('agent/skills/php-review/SKILL.md'))->not->toBeFile();
+    expect(skillsCommandObject($listPayload, 'summary')['total'] ?? null)->toBe(1);
+    expect(skillsCommandItems($listPayload)[0]['targets'] ?? null)->toBe(['eve:reviewer']);
+
+    $remove = CliRunner::run([
+        '--json',
+        '--full',
+        '--no-pretty',
+        'skills',
+        'remove',
+        'php-review',
+        '--agent',
+        'eve:reviewer',
+        '--yes',
+    ], $project->root());
+    $removePayload = CliRunner::decode($remove['stdout']);
+
+    expect(skillsCommandObject($removePayload, 'summary')['removed'] ?? null)->toBe(1);
+    expect($project->path('agent/subagents/reviewer/skills/php-review/SKILL.md'))->not->toBeFile();
+});
+
 it('lists installed generic skills from managed blocks only', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
@@ -401,6 +516,147 @@ it('updates an installed generic skill from managed source metadata', function (
     expect($agents)->toContain('Manual instructions');
     expect($agents)->toContain('Updated guidance');
     expect($agents)->not->toContain('Old guidance');
+});
+
+it('updates project skills with the npx skills upgrade alias and project scope', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Old project guidance');
+
+    CliRunner::run([
+        '--json',
+        '--no-pretty',
+        'skills',
+        'add',
+        $repository->root(),
+        '--agent',
+        'generic',
+        '--yes',
+    ], $project->root());
+
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Updated project guidance');
+
+    $result = CliRunner::run([
+        '--json',
+        '--full',
+        '--no-pretty',
+        'skills',
+        'upgrade',
+        'php-review',
+        '--project',
+        '--agent',
+        'generic',
+        '--yes',
+    ], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $agents = (string) file_get_contents($project->path('AGENTS.md'));
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary')['updated'] ?? null)->toBe(1);
+    expect(skillsCommandObject($payload, 'meta'))->toMatchArray(['global' => false]);
+    expect($agents)->toContain('Updated project guidance');
+    expect($agents)->not->toContain('Old project guidance');
+});
+
+it('updates named project and global skills when no update scope is specified', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Old both guidance');
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        CliRunner::run([
+            '--json',
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent',
+            'codex',
+            '--yes',
+        ], $project->root());
+        CliRunner::run([
+            '--json',
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent',
+            'codex',
+            '--global',
+            '--yes',
+        ], $project->root());
+
+        skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Updated both guidance');
+
+        $result = CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'upgrade',
+            'php-review',
+            '--agent',
+            'codex',
+            '--yes',
+        ], $project->root());
+        $payload = CliRunner::decode($result['stdout']);
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary'))->toMatchArray(['updated' => 2, 'skills' => 2, 'targets' => 1]);
+    expect(skillsCommandObject($payload, 'meta'))->toMatchArray(['scope' => 'both']);
+    expect((string) file_get_contents($project->path('.agents/skills/php-review/SKILL.md')))->toContain('Updated both guidance');
+    expect((string) file_get_contents($codexHome->path('skills/php-review/SKILL.md')))->toContain('Updated both guidance');
+});
+
+it('updates global skills with yes when the project has no skills', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Old global guidance');
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        CliRunner::run([
+            '--json',
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent',
+            'codex',
+            '--global',
+            '--yes',
+        ], $project->root());
+
+        skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Updated global guidance');
+
+        $result = CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'update',
+            '--agent',
+            'codex',
+            '--yes',
+        ], $project->root());
+        $payload = CliRunner::decode($result['stdout']);
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($result['exit_code'])->toBe(0);
+    expect(skillsCommandObject($payload, 'summary'))->toMatchArray(['updated' => 1, 'skills' => 1, 'targets' => 1]);
+    expect(skillsCommandObject($payload, 'meta'))->toMatchArray(['global' => true, 'scope' => 'global']);
+    expect((string) file_get_contents($codexHome->path('skills/php-review/SKILL.md')))->toContain('Updated global guidance');
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->not->toBeFile();
 });
 
 it('requires confirmation before updating skills', function (): void {

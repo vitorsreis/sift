@@ -208,23 +208,49 @@ final readonly class SkillsRemoveCommand implements CommandHandler
      */
     private function targets(CommandRoute $route, bool $global): array
     {
-        $agent = $route->options()['agent'] ?? null;
+        $agents = $this->stringOptionValues($route, 'agent');
 
-        if (! is_string($agent) || trim($agent) === '' || in_array(trim($agent), ['*', 'all'], true)) {
+        if ($agents === []) {
             return $this->targetRegistry->writeCapableNames($global);
         }
 
         $targets = [];
 
-        foreach (explode(',', $agent) as $target) {
+        foreach ($agents as $target) {
             $target = trim($target);
 
-            if ($target !== '') {
-                $targets[] = $target;
+            if ($target === '' || in_array($target, ['*', 'all'], true)) {
+                return $this->targetRegistry->writeCapableNames($global);
             }
+
+            $targets[] = $target;
         }
 
         return array_values(array_unique($targets));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringOptionValues(CommandRoute $route, string $name): array
+    {
+        $value = $route->options()[$name] ?? null;
+        $values = is_array($value) ? $value : [$value];
+        $strings = [];
+
+        foreach ($values as $item) {
+            if (! is_string($item)) {
+                continue;
+            }
+
+            foreach (explode(',', $item) as $string) {
+                if (trim($string) !== '') {
+                    $strings[] = trim($string);
+                }
+            }
+        }
+
+        return $strings;
     }
 
     private function optionBool(CommandRoute $route, string $name): bool

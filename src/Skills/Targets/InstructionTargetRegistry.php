@@ -14,6 +14,24 @@ final readonly class InstructionTargetRegistry
     public function resolve(string $target, bool $global = false): InstructionTarget
     {
         $normalized = $this->normalize($target);
+        $eveSubagent = $this->eveSubagent($normalized);
+
+        if ($eveSubagent !== null) {
+            if ($global) {
+                throw UserFacingException::withContext(
+                    errorCode: ErrorCode::UnsupportedTarget,
+                    message: sprintf('Skill target "%s" does not support global installs.', $target),
+                    context: ['target' => $target, 'global' => true],
+                );
+            }
+
+            return new SkillDirectoryTarget(
+                name: $eveSubagent['name'],
+                projectRelativeDirectory: $eveSubagent['project'],
+                globalDirectoryResolver: null,
+                global: false,
+            );
+        }
 
         foreach ($this->directoryTargets() as $name => $definition) {
             if ($this->matches($normalized, $name, $definition['aliases'] ?? [])) {
@@ -143,6 +161,10 @@ final readonly class InstructionTargetRegistry
     {
         $normalized = $this->normalize($target);
 
+        if ($this->eveSubagent($normalized) !== null) {
+            return false;
+        }
+
         foreach ($this->directoryTargets() as $name => $definition) {
             if ($this->matches($normalized, $name, $definition['aliases'] ?? [])) {
                 return ($definition['global'] ?? null) !== null;
@@ -165,6 +187,23 @@ final readonly class InstructionTargetRegistry
     private function normalize(string $target): string
     {
         return strtolower(trim($target));
+    }
+
+    /**
+     * @return null|array{name: string, project: string}
+     */
+    private function eveSubagent(string $target): ?array
+    {
+        if (preg_match('/^eve[:\/](?P<name>[a-z0-9][a-z0-9-]{0,63})$/', $target, $matches) !== 1) {
+            return null;
+        }
+
+        $name = $matches['name'];
+
+        return [
+            'name' => 'eve:' . $name,
+            'project' => 'agent/subagents/' . $name . '/skills',
+        ];
     }
 
     /**
@@ -285,7 +324,17 @@ final readonly class InstructionTargetRegistry
             );
         }
 
-        return Path::normalize($resolver());
+        $directory = $resolver();
+
+        if (! is_string($directory)) {
+            throw UserFacingException::withContext(
+                errorCode: ErrorCode::FilesystemError,
+                message: sprintf('Could not resolve global skill directory for target "%s".', $name),
+                context: ['target' => $name],
+            );
+        }
+
+        return Path::normalize($directory);
     }
 
     private function environmentOrHomePath(string $environmentKey, string $homeRelativePath): string

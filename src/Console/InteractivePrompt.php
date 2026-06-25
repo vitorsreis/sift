@@ -325,7 +325,7 @@ final class InteractivePrompt
         }
 
         $lines[] = '';
-        $lines[] = $style->muted('up/down navigate | enter install | esc cancel');
+        $lines[] = $style->muted('up/down navigate | enter select | esc cancel');
 
         return $lines;
     }

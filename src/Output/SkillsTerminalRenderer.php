@@ -21,6 +21,7 @@ final class SkillsTerminalRenderer
             'skills add' => $this->result($payload, 'Installed Skills', $style),
             'skills remove' => $this->result($payload, 'Removed Skills', $style),
             'skills update' => $this->result($payload, 'Updated Skills', $style),
+            'skills use' => $this->use($payload),
             'skills init' => $this->init($payload, $style),
             default => $this->fallback($payload, $style),
         };
@@ -39,7 +40,7 @@ final class SkillsTerminalRenderer
             ], $style),
             '',
             $style->heading('Manage Skills:'),
-            $this->helpRow('add <package>', $this->syntax([
+            $this->helpRow('add, a <package>', $this->syntax([
                 ['command', 'add'],
                 ['argument', '<package>'],
             ], $style), 'Add a skill package.'),
@@ -50,6 +51,7 @@ final class SkillsTerminalRenderer
                 ['command', 'find'],
                 ['argument', '[query]'],
             ], $style), 'Search for skills interactively.'),
+            $this->helpRow('use <package>@<skill>', $style->command('use') . ' ' . $style->argument('<package>@<skill>'), 'Generate a prompt without installing.'),
             $this->helpRow('list, ls', $style->command('list') . ', ' . $style->command('ls'), 'List installed skills.'),
             $this->helpRow('remove [skills...]', $this->syntax([
                 ['command', 'remove'],
@@ -57,7 +59,7 @@ final class SkillsTerminalRenderer
             ], $style), 'Remove installed skills.'),
             '',
             $style->heading('Updates:'),
-            $this->helpRow('update [skills...]', $this->syntax([
+            $this->helpRow('update, upgrade [skills...]', $this->syntax([
                 ['command', 'update'],
                 ['argument', '[skills...]'],
             ], $style), 'Update skills to latest versions.'),
@@ -75,10 +77,20 @@ final class SkillsTerminalRenderer
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Specify skill names to install.'),
             $this->helpRow('-l, --list', $style->argument('-l') . ', ' . $style->argument('--list'), 'List available skills without installing.'),
             $this->helpRow('-y, --yes', $style->argument('-y') . ', ' . $style->argument('--yes'), 'Skip confirmation prompts.'),
+            $this->helpRow('--copy', $style->argument('--copy'), 'Accepted for Skills CLI compatibility; Sift copies skill files.'),
+            $this->helpRow('--subagent <names>', $style->argument('--subagent') . ' ' . $style->argument('<names>'), 'Install to Eve subagents; use root for agent/skills.'),
             $this->helpRow('--all', $style->argument('--all'), 'Install every skill into every supported agent.'),
+            $this->helpRow('--full-depth', $style->argument('--full-depth'), 'Accepted for Skills CLI compatibility.'),
+            $this->helpRow('--dangerously-accept-openclaw-risks', $style->argument('--dangerously-accept-openclaw-risks'), 'Accepted for Skills CLI compatibility.'),
+            '',
+            $style->heading('Use Options:'),
+            $this->helpRow('-s, --skill <skill>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skill>'), 'Specify the skill to use.'),
+            $this->helpRow('--full-depth', $style->argument('--full-depth'), 'Accepted for Skills CLI compatibility.'),
+            $this->helpRow('--dangerously-accept-openclaw-risks', $style->argument('--dangerously-accept-openclaw-risks'), 'Accepted for Skills CLI compatibility.'),
             '',
             $style->heading('Update Options:'),
             $this->helpRow('-g, --global', $style->argument('-g') . ', ' . $style->argument('--global'), 'Use user-level skill directories.'),
+            $this->helpRow('-p, --project', $style->argument('-p') . ', ' . $style->argument('--project'), 'Use project skill directories.'),
             $this->helpRow('-a, --agent <agents>', $style->argument('-a') . ', ' . $style->argument('--agent') . ' ' . $style->argument('<agents>'), 'Update specific agents.'),
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Update specific skills.'),
             $this->helpRow('-y, --yes', $style->argument('-y') . ', ' . $style->argument('--yes'), 'Skip confirmation prompts.'),
@@ -105,7 +117,9 @@ final class SkillsTerminalRenderer
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'find'], ['plain', 'php']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo@skill']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--skill'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--yes']], $style),
+            '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--skill'], ['plain', 'pr-review'], ['plain', 'commit'], ['argument', '--agent'], ['plain', 'codex'], ['plain', 'cursor'], ['argument', '--yes']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--skill'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--global'], ['argument', '--yes']], $style),
+            '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'use'], ['plain', 'owner/repo@skill']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--list']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'remove']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'remove'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--yes']], $style),
@@ -247,6 +261,17 @@ final class SkillsTerminalRenderer
         }
 
         return implode(PHP_EOL, $lines);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function use(array $payload): string
+    {
+        $extra = $this->object($payload['extra'] ?? null);
+        $prompt = $this->string($extra['prompt'] ?? null);
+
+        return $prompt === '' ? $this->fallback($payload, new TerminalStyle()) : $prompt;
     }
 
     /**
