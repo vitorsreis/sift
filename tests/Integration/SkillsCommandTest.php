@@ -252,7 +252,7 @@ it('installs repeated skill selectors', function (): void {
     expect($agents)->not->toContain('name: security-review');
 });
 
-it('installs npx skills style multi value skills and agents', function (): void {
+it('installs public Skills CLI style multi value skills and agents', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
     skillsCommandFixture($repository, 'skills/php-review/SKILL.md', 'php-review', 'Use when reviewing PHP.');
@@ -314,7 +314,7 @@ it('generates a skills use prompt without installing the skill', function (): vo
     expect($project->path('.agents/skills/php-review/SKILL.md'))->not->toBeFile();
 });
 
-it('installs and removes Eve subagent skills with the npx subagent option', function (): void {
+it('installs and removes Eve subagent skills with the Skills CLI subagent option', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
     skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
@@ -518,7 +518,7 @@ it('updates an installed generic skill from managed source metadata', function (
     expect($agents)->not->toContain('Old guidance');
 });
 
-it('updates project skills with the npx skills upgrade alias and project scope', function (): void {
+it('updates project skills with the Skills CLI upgrade alias and project scope', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
     skillsCommandFixtureWithBody($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.', 'Old project guidance');
