@@ -4,6 +4,18 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.1 - 2026-06-25
+
+### Changed
+
+- Documented global Composer installation through `composer global config allow-plugins.vitorsreis/sift true` and `composer global require vitorsreis/sift`.
+- Updated the bundled `sift` skill references to include globally installed `sift` usage.
+
+### Fixed
+
+- Limited interactive multiselect prompts to a 10-item visible window while keeping keyboard navigation over the full option list.
+- Grouped duplicate skill agent targets that share the same skills directory so `skills add` no longer renders many identical `.agents/skills` choices.
+
 ## 2.3.0 - 2026-06-25
 
 ### Added
