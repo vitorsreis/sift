@@ -191,37 +191,29 @@ if (PHP_OS_FAMILY !== 'Windows') {
         expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
     });
 
-    it('replaces existing codex targets without following nested symlinks', function (): void {
+    it('replaces existing project codex targets without following nested symlinks', function (): void {
         $project = FixtureProject::create();
-        $codexHome = FixtureProject::create('sift-codex-home-');
         $source = FixtureProject::create('sift-skill-source-');
         $outside = FixtureProject::create('sift-skill-outside-');
         $skillFile = $source->write('SKILL.md', "# PHP Review\n");
         $source->write('references/escaped.md', 'must not escape');
-        $codexHome->write('skills/php-review/SKILL.md', '# Existing');
-        $codexHome->write('skills/php-review/.keep', '');
+        $project->write('.agents/skills/php-review/SKILL.md', '# Existing');
+        $project->write('.agents/skills/php-review/.keep', '');
 
-        if (! @symlink($outside->root(), $codexHome->path('skills/php-review/references'))) {
+        if (! @symlink($outside->root(), $project->path('.agents/skills/php-review/references'))) {
             return;
         }
 
         $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
-        $previousCodexHome = getenv('CODEX_HOME');
-        putenv('CODEX_HOME=' . $codexHome->root());
-
-        try {
-            (new SkillTargetInstaller())->install(
-                $project->root(),
-                [$skill],
-                ['codex'],
-                new SkillSource('vendor/source', 'local', $source->root()),
-            );
-        } finally {
-            putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
-        }
+        (new SkillTargetInstaller())->install(
+            $project->root(),
+            [$skill],
+            ['codex'],
+            new SkillSource('vendor/source', 'local', $source->root()),
+        );
 
         expect($outside->path('escaped.md'))->not->toBeFile();
-        expect($codexHome->path('skills/php-review/references/escaped.md'))->toBeFile();
+        expect($project->path('.agents/skills/php-review/references/escaped.md'))->toBeFile();
     });
 }
 

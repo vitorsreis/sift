@@ -28,7 +28,6 @@ final readonly class InstructionTargetRegistry
             return new SkillDirectoryTarget(
                 name: $eveSubagent['name'],
                 projectRelativeDirectory: $eveSubagent['project'],
-                globalDirectoryResolver: null,
                 global: false,
             );
         }
