@@ -6,6 +6,7 @@ namespace Sift\Console\Commands;
 
 use Sift\Config\ConfigLoader;
 use Sift\Console\CommandRoute;
+use Sift\Console\OutputPreferences;
 use Sift\Output\TerminalRenderer;
 use Sift\Registry\ToolRegistry;
 use Sift\Tools\ToolInspector;
@@ -60,17 +61,22 @@ final readonly class ToolsListCommand implements CommandHandler
      *
      * @return array<string, mixed>
      */
-    public function streamTerminal(CommandRoute $route, string $cwd, callable $writer, TerminalRenderer $renderer): array
-    {
+    public function streamTerminal(
+        CommandRoute $route,
+        string $cwd,
+        callable $writer,
+        TerminalRenderer $renderer,
+        ?OutputPreferences $preferences = null,
+    ): array {
         $workspace = $this->workspaceResolver->resolve($cwd, $this->configPath($route));
         $config = $this->configLoader->load($workspace);
         $items = [];
 
-        $writer($renderer->renderToolsListHeader());
+        $writer($renderer->renderToolsListHeader($preferences));
 
         foreach ($this->toolInspector->inspectEach($config, $workspace->projectRoot(), self::VERSION_CONCURRENCY) as $item) {
             $items[] = $item;
-            $writer($renderer->renderToolsListItem($item));
+            $writer($renderer->renderToolsListItem($item, $preferences));
         }
 
         return [

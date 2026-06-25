@@ -29,6 +29,7 @@ it('parses global options before the command', function (): void {
         '--raw',
         '--show-process',
         '--no-show-process',
+        '--no-color',
         '--debug',
         '--history',
         '--no-history',
@@ -46,6 +47,7 @@ it('parses global options before the command', function (): void {
         'raw' => true,
         'show-process' => true,
         'no-show-process' => true,
+        'no-color' => true,
         'debug' => true,
         'history' => true,
         'no-history' => true,
@@ -126,6 +128,14 @@ it('parses command options after a declared command', function (): void {
     ]);
 });
 
+it('parses the skills root command as skills help', function (): void {
+    $request = CliParser::forSift()->parse(['skills']);
+
+    expect($request->command())->toBe('skills');
+    expect($request->arguments())->toBe([]);
+    expect($request->options())->toBe([]);
+});
+
 it('parses repeated skill selectors', function (): void {
     $request = CliParser::forSift()->parse([
         'skills',
@@ -156,6 +166,17 @@ it('parses skills find owner filters', function (): void {
     expect($request->command())->toBe('skills find');
     expect($request->arguments())->toBe(['react']);
     expect($request->options())->toBe(['owner' => 'vercel']);
+});
+
+it('parses no-color on declared terminal commands', function (): void {
+    expectParsedCommandOptions(['validate', '--no-color'], 'validate', ['no-color' => true]);
+    expectParsedCommandOptions(['skills', '--no-color'], 'skills', ['no-color' => true]);
+    expectParsedCommandOptions(['skills', 'find', 'php', '--no-color'], 'skills find', ['no-color' => true], ['php']);
+    expectParsedCommandOptions(['skills', '--no-color', 'find', 'php'], 'skills find', ['no-color' => true], ['php']);
+    expectParsedCommandOptions(['skills', '--json', '--no-pretty', 'list'], 'skills list', [
+        'json' => true,
+        'no-pretty' => true,
+    ]);
 });
 
 it('parses every declared command option set', function (): void {

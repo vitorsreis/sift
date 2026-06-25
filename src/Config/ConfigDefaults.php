@@ -31,7 +31,7 @@ final class ConfigDefaults
     }
 
     /**
-     * @return array{format: string, size: string, pretty: bool, show_process: bool}
+     * @return array{format: string, size: string, pretty: bool, show_process: bool, colored: bool}
      */
     public static function output(): array
     {
@@ -40,6 +40,7 @@ final class ConfigDefaults
             'size' => 'compact',
             'pretty' => true,
             'show_process' => false,
+            'colored' => true,
         ];
     }
 

@@ -12,6 +12,7 @@ final readonly class OutputPreferences
         private bool $showProcess,
         private bool $debug,
         private OutputFormat $format = OutputFormat::Terminal,
+        private bool $color = true,
     ) {}
 
     public function size(): OutputSize
@@ -37,5 +38,10 @@ final readonly class OutputPreferences
     public function format(): OutputFormat
     {
         return $this->format;
+    }
+
+    public function color(): bool
+    {
+        return $this->color;
     }
 }

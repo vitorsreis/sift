@@ -84,13 +84,14 @@ it('initializes a minimal config and validates it', function (): void {
 it('installs the bundled sift skill during init when yes is explicit', function (): void {
     $project = FixtureProject::create();
     $codexHome = FixtureProject::create('sift-codex-home-');
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         $init = CliRunner::run(['--json', '--full', 'init', '--yes'], $project->root());
         $again = CliRunner::run(['--json', '--full', 'init', '--skill'], $project->root());
     } finally {
-        putenv('SIFT_CODEX_HOME');
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     $initPayload = CliRunner::decode($init['stdout']);
@@ -110,12 +111,13 @@ it('installs the bundled sift skill during init when yes is explicit', function 
 it('does not install the bundled skill during init without an explicit opt in', function (): void {
     $project = FixtureProject::create();
     $codexHome = FixtureProject::create('sift-codex-home-');
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         $init = CliRunner::run(['--json', '--full', 'init'], $project->root());
     } finally {
-        putenv('SIFT_CODEX_HOME');
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     $payload = CliRunner::decode($init['stdout']);
@@ -287,11 +289,12 @@ it('renders validate as terminal text by default', function (): void {
     $project = FixtureProject::create();
 
     $result = CliRunner::run(['--compact', 'validate'], $project->root());
+    $stdout = stripSiftAnsi($result['stdout']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toContain('sift passed');
-    expect($result['stdout'])->toContain('using_defaults=true');
+    expect($stdout)->toContain('sift passed');
+    expect($stdout)->toContain('using_defaults=true');
 });
 
 it('uses json output when configured without requiring the json flag', function (): void {
@@ -333,10 +336,12 @@ it('renders config errors as terminal text by default', function (): void {
     ]);
 
     $result = CliRunner::run(['validate'], $project->root());
+    $stderr = stripSiftAnsi($result['stderr']);
 
     expect($result['exit_code'])->toBe(3);
     expect($result['stdout'])->toBe('');
-    expect($result['stderr'])->toContain('error invalid_config');
-    expect($result['stderr'])->toContain('message:');
-    expect($result['stderr'])->toContain('path: ' . $project->path('sift.json'));
+    expect($stderr)->toContain('ERROR');
+    expect($stderr)->toContain('code: invalid_config');
+    expect($stderr)->toContain('history.max_files');
+    expect($stderr)->toContain('path: ' . $project->path('sift.json'));
 });

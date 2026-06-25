@@ -23,18 +23,20 @@ it('renders history list and view as terminal text by default', function (): voi
 
     $list = CliRunner::run(['--full', 'history', 'list'], $project->root());
     $view = CliRunner::run(['--full', 'history', 'view', '0td7j1a01z141z'], $project->root());
+    $listStdout = stripSiftAnsi($list['stdout']);
+    $viewStdout = stripSiftAnsi($view['stdout']);
 
     expect($list['exit_code'])->toBe(0);
     expect($list['stderr'])->toBe('');
-    expect($list['stdout'])->toContain('sift passed');
-    expect($list['stdout'])->toContain('summary: total=1 returned=1 limit=20 offset=0');
-    expect($list['stdout'])->toContain('0td7j1a01z141z');
+    expect($listStdout)->toContain('sift passed');
+    expect($listStdout)->toContain('summary: total=1 returned=1 limit=20 offset=0');
+    expect($listStdout)->toContain('0td7j1a01z141z');
 
     expect($view['exit_code'])->toBe(0);
     expect($view['stderr'])->toBe('');
-    expect($view['stdout'])->toContain('pest passed');
-    expect($view['stdout'])->toContain('summary: tests=12');
-    expect($view['stdout'])->toContain('- test_failure failed');
+    expect($viewStdout)->toContain('pest passed');
+    expect($viewStdout)->toContain('summary: tests=12');
+    expect($viewStdout)->toContain('- test_failure failed');
 });
 
 it('does not ignore invalid config for history commands', function (): void {

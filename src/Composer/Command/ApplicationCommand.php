@@ -43,6 +43,7 @@ abstract class ApplicationCommand extends BaseCommand
             ->addOption('raw', null, InputOption::VALUE_NONE, 'Stream native tool output through Sift.')
             ->addOption('show-process', null, InputOption::VALUE_NONE, 'Show the prepared Sift process on STDERR.')
             ->addOption('no-show-process', null, InputOption::VALUE_NONE, 'Hide the prepared Sift process.')
+            ->addOption('no-color', null, InputOption::VALUE_NONE, 'Disable Sift terminal color feedback.')
             ->addOption('debug', null, InputOption::VALUE_NONE, 'Show Sift debug context on STDERR.')
             ->addOption('history', null, InputOption::VALUE_NONE, 'Force Sift history recording.')
             ->addOption('no-history', null, InputOption::VALUE_NONE, 'Skip Sift history recording.')
@@ -181,6 +182,7 @@ abstract class ApplicationCommand extends BaseCommand
             'raw',
             'show-process',
             'no-show-process',
+            'no-color',
             'debug',
             'history',
             'no-history',
@@ -266,6 +268,7 @@ abstract class ApplicationCommand extends BaseCommand
             '--raw',
             '--show-process',
             '--no-show-process',
+            '--no-color',
             '--debug',
             '--history',
             '--no-history',

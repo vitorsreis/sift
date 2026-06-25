@@ -24,6 +24,7 @@ it('loads defaults when config is absent', function (): void {
     expect($config->output()->size())->toBe('compact');
     expect($config->output()->pretty())->toBeTrue();
     expect($config->output()->showProcess())->toBeFalse();
+    expect($config->output()->colored())->toBeTrue();
     expect($config->tool('*')?->enabled())->toBeTrue();
     expect((new ToolConfigResolver())->resolve($config, 'pest')->enabled())->toBeTrue();
 });
@@ -80,6 +81,21 @@ it('loads output format from config', function (): void {
     $config = (new ConfigLoader())->load($workspace);
 
     expect($config->output()->format())->toBe('json');
+});
+
+it('loads colored output preference from config', function (): void {
+    $project = FixtureProject::create();
+    $project->writeJson('sift.json', [
+        '$schema' => ConfigDefaults::schemaUrl(),
+        'output' => [
+            'colored' => false,
+        ],
+    ]);
+
+    $workspace = (new WorkspaceResolver(homeDirectory: $project->path('home')))->resolve($project->root());
+    $config = (new ConfigLoader())->load($workspace);
+
+    expect($config->output()->colored())->toBeFalse();
 });
 
 it('rejects invalid output format values', function (): void {

@@ -11,6 +11,7 @@ final readonly class OutputConfig
         private bool $pretty,
         private bool $showProcess,
         private string $format = 'terminal',
+        private bool $colored = true,
     ) {}
 
     public function format(): string
@@ -31,5 +32,10 @@ final readonly class OutputConfig
     public function showProcess(): bool
     {
         return $this->showProcess;
+    }
+
+    public function colored(): bool
+    {
+        return $this->colored;
     }
 }

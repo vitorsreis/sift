@@ -151,6 +151,7 @@ final readonly class ConfigLoader
             pretty: $this->boolValue($output, 'pretty', $defaults['pretty'], $path, 'output.pretty'),
             showProcess: $this->boolValue($output, 'show_process', $defaults['show_process'], $path, 'output.show_process'),
             format: $format,
+            colored: $this->boolValue($output, 'colored', $defaults['colored'], $path, 'output.colored'),
         );
     }
 

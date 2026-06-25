@@ -4,7 +4,8 @@
     "format": "json",
     "size": "full",
     "pretty": false,
-    "show_process": false
+    "show_process": false,
+    "colored": false
   },
   "history": {
     "enabled": true,

@@ -8,6 +8,8 @@ use Tests\Support\FixtureProject;
 
 it('runs composer sift and composer skills from an installed plugin package', function (): void {
     $project = FixtureProject::create('sift-composer-entrypoint-');
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $previousCodexHome = getenv('CODEX_HOME');
     $repoRoot = str_replace('\\', '/', dirname(__DIR__, 2));
 
     $project->writeJson('composer.json', [
@@ -38,17 +40,23 @@ it('runs composer sift and composer skills from an installed plugin package', fu
     ]);
     $composerJson = (string) file_get_contents($project->path('composer.json'));
 
-    $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
+    putenv('CODEX_HOME=' . $codexHome->root());
 
-    if ($install['exit_code'] !== 0) {
-        throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
+    try {
+        $install = runComposerEntrypoint($project, ['install', '--no-interaction', '--no-progress', '--no-ansi']);
+
+        if ($install['exit_code'] !== 0) {
+            throw new RuntimeException($install['stderr'] . PHP_EOL . $install['stdout']);
+        }
+
+        expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
+
+        $sift = runComposerEntrypoint($project, ['sift', '--json', '--no-pretty', 'help']);
+        $skills = runComposerEntrypoint($project, ['skills', '--json', '--no-pretty', 'list']);
+        $vendorBin = runVendorSiftEntrypoint($project, ['--json', '--no-pretty', 'help']);
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
-
-    expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
-
-    $sift = runComposerEntrypoint($project, ['sift', '--json', '--no-pretty', 'help']);
-    $skills = runComposerEntrypoint($project, ['skills', '--json', '--no-pretty', 'list']);
-    $vendorBin = runVendorSiftEntrypoint($project, ['--json', '--no-pretty', 'help']);
 
     expect((string) file_get_contents($project->path('composer.json')))->toBe($composerJson);
 
@@ -118,7 +126,7 @@ it('installs the composer package as a copied distribution', function (): void {
     expect($validatePackage['exit_code'])->toBe(0);
     expect($vendorBin['exit_code'])->toBe(0);
     expect($vendorValidate['exit_code'])->toBe(0);
-    expect($vendorBin['stdout'])->toStartWith('Sift ');
+    expect(stripSiftAnsi($vendorBin['stdout']))->toStartWith('Sift ');
     expect(decodeComposerEntrypointPayload($vendorValidate['stdout'])['status'] ?? null)->toBe('passed');
     expect($project->path('vendor/vitorsreis/sift/src/Sift.php'))->toBeFile();
 });

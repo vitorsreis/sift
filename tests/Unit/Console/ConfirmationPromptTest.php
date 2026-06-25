@@ -15,7 +15,7 @@ it('accepts explicit interactive confirmation', function (): void {
         },
     );
 
-    $prompt->confirm('Install skill sift?');
+    $prompt->confirm('Install skill sift?', color: false);
 
     expect($output)->toBe('Install skill sift? [y/N] ');
 });

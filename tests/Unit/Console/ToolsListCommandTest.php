@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Sift\Console\CommandRoute;
 use Sift\Console\Commands\CommandHandler;
 use Sift\Console\Commands\ToolsListCommand;
+use Sift\Console\OutputFormat;
+use Sift\Console\OutputPreferences;
+use Sift\Console\OutputSize;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
 use Sift\Core\PreparedCommand;
@@ -78,6 +81,29 @@ it('streams terminal tools list lines while building the payload', function (): 
     expect($chunks[0])->toContain('Supported tools and local availability.');
     expect($chunks[1])->toContain('OK');
     expect($chunks[2])->toContain('NO');
+});
+
+it('streams terminal tools list without ansi when colors are disabled', function (): void {
+    $project = FixtureProject::create();
+    $command = new ToolsListCommand(
+        toolInspector: new ToolInspector(new ToolRegistry(
+            toolsListCommandAdapter('installed', [PHP_BINARY]),
+        )),
+    );
+    $chunks = [];
+
+    $command->streamTerminal(
+        new CommandRoute('tools.list'),
+        $project->root(),
+        static function (string $chunk) use (&$chunks): void {
+            $chunks[] = $chunk;
+        },
+        new TerminalRenderer(),
+        new OutputPreferences(OutputSize::Compact, false, false, false, OutputFormat::Terminal, false),
+    );
+
+    expect(implode('', $chunks))->not->toContain("\033[");
+    expect(implode('', $chunks))->toContain('OK Installed');
 });
 
 /**

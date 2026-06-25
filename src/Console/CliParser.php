@@ -162,18 +162,61 @@ final readonly class CliParser
      */
     private function resolveSkillsCommand(array $tokens): array
     {
-        $subcommand = $tokens[0] ?? '';
-        $rest = array_slice($tokens, 1);
+        [$leadingOptions, $remainingTokens] = $this->splitLeadingSkillsOptions($tokens);
+        $subcommand = $remainingTokens[0] ?? '';
+        $rest = array_slice($remainingTokens, 1);
 
         return match ($subcommand) {
-            'list', 'ls' => ['skills list', $rest],
-            'add' => ['skills add', $rest],
-            'find' => ['skills find', $rest],
-            'init' => ['skills init', $rest],
-            'remove', 'rm' => ['skills remove', $rest],
-            'update' => ['skills update', $rest],
-            default => throw new InvalidUsageException(sprintf('Unknown command "skills%s".', $subcommand === '' ? '' : ' ' . $subcommand)),
+            '', '--help', '-h' => ['skills', $subcommand === '' ? $leadingOptions : [...$leadingOptions, ...$rest]],
+            'list', 'ls' => ['skills list', [...$leadingOptions, ...$rest]],
+            'add' => ['skills add', [...$leadingOptions, ...$rest]],
+            'find' => ['skills find', [...$leadingOptions, ...$rest]],
+            'init' => ['skills init', [...$leadingOptions, ...$rest]],
+            'remove', 'rm' => ['skills remove', [...$leadingOptions, ...$rest]],
+            'update' => ['skills update', [...$leadingOptions, ...$rest]],
+            default => str_starts_with($subcommand, '-')
+                ? ['skills', [...$leadingOptions, ...$remainingTokens]]
+                : throw new InvalidUsageException(sprintf('Unknown command "skills %s".', $subcommand)),
         };
+    }
+
+    /**
+     * @param list<string> $tokens
+     *
+     * @return array{list<string>, list<string>}
+     */
+    private function splitLeadingSkillsOptions(array $tokens): array
+    {
+        $leading = [];
+        $index = 0;
+
+        while ($index < count($tokens)) {
+            $token = $tokens[$index];
+
+            if (! $this->isLeadingSkillsOption($token)) {
+                break;
+            }
+
+            $leading[] = $token;
+            ++$index;
+        }
+
+        return [$leading, array_slice($tokens, $index)];
+    }
+
+    private function isLeadingSkillsOption(string $token): bool
+    {
+        return in_array(explode('=', $token, 2)[0], [
+            '--compact',
+            '--full',
+            '--pretty',
+            '-p',
+            '--no-pretty',
+            '-P',
+            '--json',
+            '--no-json',
+            '--no-color',
+        ], true);
     }
 
     /**

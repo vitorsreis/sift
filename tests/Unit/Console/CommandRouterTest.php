@@ -29,6 +29,7 @@ it('routes top-level builtins and aliases', function (): void {
 });
 
 it('routes nested commands and aliases', function (): void {
+    expectSiftRoute(['skills'], 'skills.help');
     expectSiftRoute(['skills', 'list'], 'skills.list');
     expectSiftRoute(['skills', 'ls'], 'skills.list');
     expectSiftRoute(['skills', 'add', 'vitorsreis/sift'], 'skills.add');

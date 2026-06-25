@@ -33,6 +33,7 @@ final readonly class OutputPreferencesResolver
         $format = $output instanceof OutputConfig ? OutputFormat::from($output->format()) : OutputFormat::from($defaults['format']);
         $pretty = $output instanceof OutputConfig ? $output->pretty() : ($this->runningInCi ? false : $defaults['pretty']);
         $showProcess = $output instanceof OutputConfig ? $output->showProcess() : $defaults['show_process'];
+        $color = $output instanceof OutputConfig ? $output->colored() : $defaults['colored'];
 
         return new OutputPreferences(
             size: $size,
@@ -40,6 +41,7 @@ final readonly class OutputPreferencesResolver
             showProcess: $showProcess,
             debug: false,
             format: $format,
+            color: $color,
         );
     }
 
@@ -61,8 +63,17 @@ final readonly class OutputPreferencesResolver
         $showProcess = $this->boolFromOptions($options, 'show-process', 'no-show-process', $current->showProcess());
         $debug = $this->optionEnabled($options, 'debug') || $current->debug();
         $format = $this->formatFromOptions($options) ?? $current->format();
+        $color = $this->colorFromOptions($options, $current->color());
 
-        return new OutputPreferences($size, $pretty, $showProcess, $debug, $format);
+        return new OutputPreferences($size, $pretty, $showProcess, $debug, $format, $color);
+    }
+
+    /**
+     * @param array<string, ParsedOption> $options
+     */
+    private function colorFromOptions(array $options, bool $current): bool
+    {
+        return $this->optionEnabled($options, 'no-color') ? false : $current;
     }
 
     /**

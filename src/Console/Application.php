@@ -17,6 +17,7 @@ use Sift\Console\Commands\RunToolCommand;
 use Sift\Console\Commands\RunToolCommandResult;
 use Sift\Console\Commands\SkillsAddCommand;
 use Sift\Console\Commands\SkillsFindCommand;
+use Sift\Console\Commands\SkillsHelpCommand;
 use Sift\Console\Commands\SkillsInitCommand;
 use Sift\Console\Commands\SkillsListCommand;
 use Sift\Console\Commands\SkillsRemoveCommand;
@@ -70,7 +71,8 @@ final readonly class Application
                 'version' => $this->renderPassed((new VersionCommand())->handle($route, $this->cwd()), $preferences),
                 'init' => $this->renderPassed((new InitCommand())->handle($route, $this->cwd()), $preferences),
                 'validate' => $this->renderPassed((new ValidateCommand())->handle($route, $this->cwd()), $preferences),
-                'tools.list' => $this->renderToolsList(new ToolsListCommand(), $route),
+                'tools.list' => $this->renderToolsList(new ToolsListCommand(), $route, $preferences),
+                'skills.help' => $this->renderPassed((new SkillsHelpCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.add' => $this->renderPassed((new SkillsAddCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.find' => $this->renderPassed((new SkillsFindCommand())->handle($route, $this->cwd()), $preferences),
                 'skills.init' => $this->renderPassed((new SkillsInitCommand())->handle($route, $this->cwd()), $preferences),
@@ -107,13 +109,14 @@ final readonly class Application
         return $this->renderPassed($payload, $result->outputPreferences());
     }
 
-    private function renderToolsList(ToolsListCommand $command, CommandRoute $route): int
+    private function renderToolsList(ToolsListCommand $command, CommandRoute $route, OutputPreferences $preferences): int
     {
         $payload = $command->streamTerminal(
             route: $route,
             cwd: $this->cwd(),
             writer: $this->writeStdout(...),
             renderer: $this->terminalRenderer,
+            preferences: $preferences,
         );
 
         $status = $payload['status'] ?? RunStatus::Passed->value;
@@ -148,9 +151,18 @@ final readonly class Application
     private function usageErrorPreferences(array $argv): OutputPreferences
     {
         $defaults = $this->outputPreferencesResolver()->defaults();
+        $color = ! in_array('--no-color', array_slice($argv, 1), true)
+            && $defaults->color();
 
         if (! in_array('--json', array_slice($argv, 1), true)) {
-            return $defaults;
+            return new OutputPreferences(
+                size: $defaults->size(),
+                pretty: $defaults->pretty(),
+                showProcess: $defaults->showProcess(),
+                debug: $defaults->debug(),
+                format: $defaults->format(),
+                color: $color,
+            );
         }
 
         return new OutputPreferences(
@@ -159,6 +171,7 @@ final readonly class Application
             showProcess: $defaults->showProcess(),
             debug: $defaults->debug(),
             format: OutputFormat::Json,
+            color: $color,
         );
     }
 
@@ -175,7 +188,7 @@ final readonly class Application
 
     private function routePreferences(CommandRoute $route, OutputPreferences $fallback): OutputPreferences
     {
-        if (in_array($route->handler(), ['help', 'version', 'tools.list'], true)) {
+        if (in_array($route->handler(), ['help', 'version', 'tools.list', 'skills.help'], true)) {
             return $this->terminalPreferences($fallback);
         }
 
@@ -202,6 +215,7 @@ final readonly class Application
             showProcess: $preferences->showProcess(),
             debug: $preferences->debug(),
             format: OutputFormat::Terminal,
+            color: $preferences->color(),
         );
     }
 
@@ -318,6 +332,7 @@ final readonly class Application
                 'size' => $preferences->size()->value,
                 'pretty' => $preferences->pretty(),
                 'show_process' => $preferences->showProcess(),
+                'color' => $preferences->color(),
             ],
         ];
 

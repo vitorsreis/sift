@@ -21,6 +21,7 @@ it('writes the minimal default config document', function (): void {
             'size' => 'compact',
             'pretty' => true,
             'show_process' => false,
+            'colored' => true,
         ],
         'history' => [
             'enabled' => true,
@@ -91,6 +92,7 @@ it('preserves known overrides when rewriting defaults', function (): void {
         'size' => 'full',
         'pretty' => false,
         'show_process' => false,
+        'colored' => true,
     ]);
     expect($document['history'])->toMatchArray([
         'enabled' => false,

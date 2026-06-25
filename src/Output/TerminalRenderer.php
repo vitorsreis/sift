@@ -13,6 +13,7 @@ final readonly class TerminalRenderer
         private HelpTerminalRenderer $helpRenderer = new HelpTerminalRenderer(),
         private ToolsListTerminalRenderer $toolsListRenderer = new ToolsListTerminalRenderer(),
         private SkillsFindTerminalRenderer $skillsFindRenderer = new SkillsFindTerminalRenderer(),
+        private SkillsTerminalRenderer $skillsRenderer = new SkillsTerminalRenderer(),
     ) {}
 
     /**
@@ -20,29 +21,35 @@ final readonly class TerminalRenderer
      */
     public function render(array $payload, OutputPreferences $preferences): string
     {
+        $style = $this->style($preferences);
+
         if (($payload['status'] ?? null) === 'error') {
-            return $this->renderError($payload);
+            return $this->renderError($payload, $style);
         }
 
         $subcommand = $this->subcommand($payload);
 
         if ($subcommand === 'help') {
-            return $this->helpRenderer->render() . PHP_EOL;
+            return $this->helpRenderer->render($style) . PHP_EOL;
         }
 
         if ($subcommand === 'version') {
-            return $this->renderVersion($payload) . PHP_EOL;
+            return $this->renderVersion($payload, $style) . PHP_EOL;
         }
 
         if ($subcommand === 'tools list') {
-            return $this->toolsListRenderer->render($payload) . PHP_EOL;
+            return $this->toolsListRenderer->render($payload, $style) . PHP_EOL;
         }
 
         if ($subcommand === 'skills find') {
-            return $this->skillsFindRenderer->render($payload) . PHP_EOL;
+            return $this->skillsFindRenderer->render($payload, $style) . PHP_EOL;
         }
 
-        return $this->renderPayload($this->payloadSizer->resize($payload, $preferences)) . PHP_EOL;
+        if (is_string($subcommand) && ($subcommand === 'skills' || str_starts_with($subcommand, 'skills '))) {
+            return $this->skillsRenderer->render($payload, $style) . PHP_EOL;
+        }
+
+        return $this->renderPayload($this->payloadSizer->resize($payload, $preferences), $style) . PHP_EOL;
     }
 
     /**
@@ -64,7 +71,7 @@ final readonly class TerminalRenderer
     /**
      * @param array<string, mixed> $payload
      */
-    private function renderVersion(array $payload): string
+    private function renderVersion(array $payload, TerminalStyle $style): string
     {
         $summary = $payload['summary'] ?? [];
 
@@ -72,43 +79,43 @@ final readonly class TerminalRenderer
             return 'Sift unknown';
         }
 
-        return 'Sift ' . $this->value($summary['version'] ?? 'unknown');
+        return $style->bold('Sift') . ' ' . $style->cyan($this->value($summary['version'] ?? 'unknown'));
     }
 
-    public function renderToolsListHeader(): string
+    public function renderToolsListHeader(?OutputPreferences $preferences = null): string
     {
-        return $this->toolsListRenderer->header();
+        return $this->toolsListRenderer->header($this->style($preferences));
     }
 
     /**
      * @param array<string, mixed> $item
      */
-    public function renderToolsListItem(array $item): string
+    public function renderToolsListItem(array $item, ?OutputPreferences $preferences = null): string
     {
-        return $this->toolsListRenderer->item($item);
+        return $this->toolsListRenderer->item($item, $this->style($preferences));
     }
 
     /**
      * @param array<string, mixed> $payload
      */
-    private function renderPayload(array $payload): string
+    private function renderPayload(array $payload, TerminalStyle $style): string
     {
-        $lines = [$this->headline($payload)];
+        $lines = [$this->headline($payload, $style)];
 
         $summary = $payload['summary'] ?? null;
         if (is_array($summary) && ! array_is_list($summary)) {
-            $lines[] = 'summary: ' . $this->fields($summary);
+            $lines[] = $style->label('summary:') . ' ' . $this->fields($summary, $style);
         }
 
-        $flat = $this->flatFields($payload);
+        $flat = $this->flatFields($payload, $style);
         if ($flat !== '') {
             $lines[0] .= ' ' . $flat;
         }
 
-        $this->appendListSection($lines, 'items', $payload['items'] ?? null);
-        $this->appendListSection($lines, 'artifacts', $payload['artifacts'] ?? null);
-        $this->appendObjectSection($lines, 'extra', $payload['extra'] ?? null);
-        $this->appendObjectSection($lines, 'meta', $payload['meta'] ?? null);
+        $this->appendListSection($lines, 'items', $payload['items'] ?? null, $style);
+        $this->appendListSection($lines, 'artifacts', $payload['artifacts'] ?? null, $style);
+        $this->appendObjectSection($lines, 'extra', $payload['extra'] ?? null, $style);
+        $this->appendObjectSection($lines, 'meta', $payload['meta'] ?? null, $style);
 
         return implode(PHP_EOL, $lines);
     }
@@ -116,17 +123,19 @@ final readonly class TerminalRenderer
     /**
      * @param array<string, mixed> $payload
      */
-    private function renderError(array $payload): string
+    private function renderError(array $payload, TerminalStyle $style): string
     {
         $error = $payload['error'] ?? [];
         $error = is_array($error) && ! array_is_list($error) ? $error : [];
 
         $code = $this->value($error['code'] ?? 'error');
-        $lines = ['error ' . $code];
+        $message = $this->value($error['message'] ?? $code);
+        $lines = [$style->errorBadge() . ' ' . $style->red($message)];
+        $lines[] = $style->label('code:') . ' ' . $style->red($code);
 
-        foreach (['message', 'hint'] as $key) {
+        foreach (['hint'] as $key) {
             if (array_key_exists($key, $error)) {
-                $lines[] = $key . ': ' . $this->value($error[$key]);
+                $lines[] = $style->label($key . ':') . ' ' . $this->value($error[$key]);
             }
         }
 
@@ -139,7 +148,7 @@ final readonly class TerminalRenderer
                 continue;
             }
 
-            $lines[] = $key . ': ' . $this->value($value);
+            $lines[] = $style->label($key . ':') . ' ' . $this->value($value);
         }
 
         return implode(PHP_EOL, $lines) . PHP_EOL;
@@ -148,18 +157,18 @@ final readonly class TerminalRenderer
     /**
      * @param array<string, mixed> $payload
      */
-    private function headline(array $payload): string
+    private function headline(array $payload, TerminalStyle $style): string
     {
         $tool = $payload['tool'] ?? 'sift';
         $status = $payload['status'] ?? 'passed';
 
-        return $this->value($tool) . ' ' . $this->value($status);
+        return $style->command($this->value($tool)) . ' ' . $style->status($this->value($status));
     }
 
     /**
      * @param array<string, mixed> $payload
      */
-    private function flatFields(array $payload): string
+    private function flatFields(array $payload, TerminalStyle $style): string
     {
         $fields = [];
 
@@ -171,13 +180,13 @@ final readonly class TerminalRenderer
             $fields[$key] = $value;
         }
 
-        return $this->fields($fields);
+        return $this->fields($fields, $style);
     }
 
     /**
      * @param array<mixed, mixed> $fields
      */
-    private function fields(array $fields): string
+    private function fields(array $fields, TerminalStyle $style): string
     {
         $parts = [];
 
@@ -186,7 +195,7 @@ final readonly class TerminalRenderer
                 continue;
             }
 
-            $parts[] = $key . '=' . $this->value($value);
+            $parts[] = $style->label($key) . '=' . $this->value($value);
         }
 
         return implode(' ', $parts);
@@ -195,20 +204,20 @@ final readonly class TerminalRenderer
     /**
      * @param list<string> $lines
      */
-    private function appendListSection(array &$lines, string $name, mixed $items): void
+    private function appendListSection(array &$lines, string $name, mixed $items, TerminalStyle $style): void
     {
         if (! is_array($items) || ! array_is_list($items) || $items === []) {
             return;
         }
 
-        $lines[] = $name . ':';
+        $lines[] = $style->label($name . ':');
 
         foreach ($items as $item) {
-            $lines[] = '- ' . $this->listItem($item);
+            $lines[] = '- ' . $this->listItem($item, $style);
         }
     }
 
-    private function listItem(mixed $item): string
+    private function listItem(mixed $item, TerminalStyle $style): string
     {
         if (! is_array($item) || array_is_list($item)) {
             return $this->value($item);
@@ -235,7 +244,7 @@ final readonly class TerminalRenderer
             $type,
             $location,
             $message,
-            $this->fields($rest),
+            $this->fields($rest, $style),
         ], static fn(string $part): bool => $part !== '')));
     }
 
@@ -264,13 +273,18 @@ final readonly class TerminalRenderer
     /**
      * @param list<string> $lines
      */
-    private function appendObjectSection(array &$lines, string $name, mixed $values): void
+    private function appendObjectSection(array &$lines, string $name, mixed $values, TerminalStyle $style): void
     {
         if (! is_array($values) || array_is_list($values)) {
             return;
         }
 
-        $lines[] = $name . ': ' . $this->fields($values);
+        $lines[] = $style->label($name . ':') . ' ' . $this->fields($values, $style);
+    }
+
+    private function style(?OutputPreferences $preferences): TerminalStyle
+    {
+        return new TerminalStyle($preferences?->color() ?? true);
     }
 
     private function value(mixed $value): string

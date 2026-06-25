@@ -9,51 +9,56 @@ final class ToolsListTerminalRenderer
     /**
      * @param array<string, mixed> $payload
      */
-    public function render(array $payload): string
+    public function render(array $payload, ?TerminalStyle $style = null): string
     {
+        $style ??= new TerminalStyle();
         $items = $payload['items'] ?? [];
-        $lines = [rtrim($this->header(), PHP_EOL)];
+        $lines = [rtrim($this->header($style), PHP_EOL)];
 
         if (! is_array($items) || ! array_is_list($items) || $items === []) {
-            $lines[] = '  No tools found.';
+            $lines[] = '  ' . $style->muted('No tools found.');
 
             return implode(PHP_EOL, $lines);
         }
 
         foreach ($items as $item) {
             if (is_array($item) && ! array_is_list($item)) {
-                $lines[] = rtrim($this->item($this->object($item)), PHP_EOL);
+                $lines[] = rtrim($this->item($this->object($item), $style), PHP_EOL);
             }
         }
 
         return implode(PHP_EOL, $lines);
     }
 
-    public function header(): string
+    public function header(?TerminalStyle $style = null): string
     {
-        return 'Tools' . PHP_EOL
-            . '  Supported tools and local availability.' . PHP_EOL
+        $style ??= new TerminalStyle();
+
+        return $style->heading('Tools') . PHP_EOL
+            . '  ' . $style->muted('Supported tools and local availability.') . PHP_EOL
             . PHP_EOL;
     }
 
     /**
      * @param array<string, mixed> $item
      */
-    public function item(array $item): string
+    public function item(array $item, ?TerminalStyle $style = null): string
     {
+        $style ??= new TerminalStyle();
         $installed = ($item['installed'] ?? null) === true && ($item['enabled'] ?? null) === true;
-        $status = $installed ? $this->green('OK') : $this->red('NO');
-        $name = $this->displayName($this->value($item['tool'] ?? 'tool'));
+        $status = $installed ? $style->success('OK') : $style->red('NO');
+        $name = $style->command($this->displayName($this->value($item['tool'] ?? 'tool')));
         $version = $item['version'] ?? null;
 
         if ($installed) {
             $suffix = $this->version($version);
+            $suffix = $suffix === '' ? '' : ' ' . $style->muted($suffix);
 
-            return trim($status . ' ' . $name . ($suffix === '' ? '' : ' ' . $suffix)) . PHP_EOL;
+            return trim($status . ' ' . $name . $suffix) . PHP_EOL;
         }
 
         $hint = $item['install_hint'] ?? null;
-        $install = is_string($hint) && $hint !== '' ? ', use `' . $hint . '`' : '';
+        $install = is_string($hint) && $hint !== '' ? ', use `' . $style->command($hint) . '`' : '';
 
         return $status . ' ' . $name . $install . PHP_EOL;
     }
@@ -95,16 +100,6 @@ final class ToolsListTerminalRenderer
     private function value(mixed $value): string
     {
         return is_scalar($value) ? (string) $value : 'tool';
-    }
-
-    private function green(string $value): string
-    {
-        return "\033[32m" . $value . "\033[0m";
-    }
-
-    private function red(string $value): string
-    {
-        return "\033[31m" . $value . "\033[0m";
     }
 
     /**

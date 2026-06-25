@@ -11,7 +11,7 @@ use Sift\Console\OutputFormat;
 use Sift\Console\OutputPreferencesResolver;
 use Sift\Console\OutputSize;
 
-function outputResolverConfig(string $size, bool $pretty, bool $showProcess, string $format = 'terminal'): SiftConfig
+function outputResolverConfig(string $size, bool $pretty, bool $showProcess, string $format = 'terminal', bool $colored = true): SiftConfig
 {
     return new SiftConfig(
         schema: 'https://example.com/schema.json',
@@ -25,7 +25,7 @@ function outputResolverConfig(string $size, bool $pretty, bool $showProcess, str
             maxBytesPerRun: 1048576,
             redactSecrets: true,
         ),
-        output: new OutputConfig($size, $pretty, $showProcess, $format),
+        output: new OutputConfig($size, $pretty, $showProcess, $format, $colored),
         tools: [],
     );
 }
@@ -77,6 +77,31 @@ it('resolves global options before config and defaults', function (): void {
     expect($preferences->pretty())->toBeFalse();
     expect($preferences->showProcess())->toBeFalse();
     expect($preferences->debug())->toBeTrue();
+});
+
+it('can disable terminal colors with no-color', function (): void {
+    $preferences = (new OutputPreferencesResolver())->resolve(
+        new CommandRoute('validate', globalOptions: ['no-color' => true]),
+    );
+
+    expect($preferences->color())->toBeFalse();
+});
+
+it('resolves command-scoped terminal color options', function (): void {
+    $preferences = (new OutputPreferencesResolver())->resolve(
+        new CommandRoute('validate', options: ['no-color' => true]),
+    );
+
+    expect($preferences->color())->toBeFalse();
+});
+
+it('uses colored output preference from config', function (): void {
+    $preferences = (new OutputPreferencesResolver())->resolve(
+        route: new CommandRoute('validate'),
+        config: outputResolverConfig('compact', true, false, colored: false),
+    );
+
+    expect($preferences->color())->toBeFalse();
 });
 
 it('uses terminal output by default and json when requested', function (): void {

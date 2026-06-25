@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sift\Console;
 
 use Closure;
+use Sift\Output\TerminalStyle;
 
 final readonly class ConfirmationPrompt
 {
@@ -14,11 +15,12 @@ final readonly class ConfirmationPrompt
         private ?Closure $writer = null,
     ) {}
 
-    public function confirm(string $message): void
+    public function confirm(string $message, bool $color = true): void
     {
         $this->assertInteractive();
 
-        $this->write($message . ' [y/N] ');
+        $style = new TerminalStyle($color);
+        $this->write($style->label($message) . ' ' . $style->argument('[y/N]') . ' ');
         $answer = strtolower(trim($this->read()));
 
         if (! in_array($answer, ['y', 'yes'], true)) {

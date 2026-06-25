@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Tests\Support\FixtureProject;
 
 it('exposes only the command provider capability', function (): void {
     expect((new SiftPlugin())->getCapabilities())->toBe([
@@ -143,10 +144,19 @@ it('runs the real application through composer sift', function (): void {
 });
 
 it('runs the real application through composer skills', function (): void {
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $previousCodexHome = getenv('CODEX_HOME');
     $tester = composerCommandTester(new ComposerSkillsCommand());
-    $exitCode = $tester->execute([
-        'arguments' => ['--json', '--no-pretty', '--compact', 'list'],
-    ]);
+
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $exitCode = $tester->execute([
+            'arguments' => ['--json', '--no-pretty', '--compact', 'list'],
+        ]);
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
 
     $payload = decodeComposerCommandPayload($tester->getDisplay());
 

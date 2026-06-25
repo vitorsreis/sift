@@ -20,6 +20,7 @@ final readonly class CommandRouter
             'version' => 'version',
             'init' => 'init',
             'validate' => 'validate',
+            'skills' => 'skills.help',
             'skills list' => 'skills.list',
             'skills add' => 'skills.add',
             'skills find' => 'skills.find',

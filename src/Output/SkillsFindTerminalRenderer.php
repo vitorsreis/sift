@@ -9,17 +9,18 @@ final class SkillsFindTerminalRenderer
     /**
      * @param array<string, mixed> $payload
      */
-    public function render(array $payload): string
+    public function render(array $payload, ?TerminalStyle $style = null): string
     {
+        $style ??= new TerminalStyle();
         $meta = $this->object($payload['meta'] ?? null);
         $mode = $this->string($meta['mode'] ?? null);
 
         if ($mode === 'agent_tip') {
-            return $this->agentTip();
+            return $this->agentTip($style);
         }
 
         if ($mode === 'cancelled') {
-            return 'Search cancelled';
+            return $style->warning('Search cancelled');
         }
 
         $query = $this->string($meta['query'] ?? null);
@@ -29,23 +30,23 @@ final class SkillsFindTerminalRenderer
         if ($items === []) {
             $suffix = $owner === '' ? '' : sprintf(' from owner "%s"', $owner);
 
-            return sprintf('No skills found for "%s"%s', $query, $suffix);
+            return $style->warning(sprintf('No skills found for "%s"%s', $query, $suffix));
         }
 
         $lines = [
-            'Install with composer skills add <owner/repo@skill>',
+            'Install with ' . $style->command('composer skills add') . ' ' . $style->argument('<owner/repo@skill>'),
             '',
         ];
 
         foreach (array_slice($items, 0, 6) as $item) {
-            $entry = $this->entry($item);
+            $entry = $this->entry($item, $style);
 
             if ($entry === null) {
                 continue;
             }
 
             $lines[] = $entry['headline'];
-            $lines[] = "\u{2514} " . $entry['url'];
+            $lines[] = $style->muted("\u{2514}") . ' ' . $entry['url'];
             $lines[] = '';
         }
 
@@ -56,14 +57,14 @@ final class SkillsFindTerminalRenderer
         return implode(PHP_EOL, $lines);
     }
 
-    private function agentTip(): string
+    private function agentTip(TerminalStyle $style): string
     {
         return implode(PHP_EOL, [
-            'Tip: if running in a coding agent, follow these steps:',
-            '  1) composer skills find [query] [--owner <owner>]',
-            '  2) composer skills add <owner/repo@skill>',
+            $style->label('Tip:') . ' if running in a coding agent, follow these steps:',
+            '  1) ' . $style->command('composer skills find') . ' ' . $style->argument('[query]') . ' ' . $style->argument('[--owner <owner>]'),
+            '  2) ' . $style->command('composer skills add') . ' ' . $style->argument('<owner/repo@skill>'),
             '',
-            'Usage: composer skills find <query> [--owner <owner>]',
+            $style->label('Usage:') . ' ' . $style->command('composer skills find') . ' ' . $style->argument('[query]') . ' ' . $style->argument('[--owner <owner>]'),
         ]);
     }
 
@@ -72,7 +73,7 @@ final class SkillsFindTerminalRenderer
      *
      * @return null|array{headline: string, url: string}
      */
-    private function entry(array $item): ?array
+    private function entry(array $item, TerminalStyle $style): ?array
     {
         $name = $this->string($item['name'] ?? null);
         $source = $this->string($item['source'] ?? null);
@@ -82,12 +83,12 @@ final class SkillsFindTerminalRenderer
         }
 
         $installs = $this->installs($item['installs'] ?? null);
-        $headline = $source . '@' . $name . ($installs === '' ? '' : ' ' . $installs);
+        $headline = $style->muted($source) . '@' . $style->command($name) . ($installs === '' ? '' : ' ' . $style->muted($installs));
         $slug = $this->string($item['slug'] ?? null);
 
         return [
             'headline' => $headline,
-            'url' => 'https://skills.sh/' . ($slug === '' ? $source . '/' . $name : $slug),
+            'url' => $style->blue('https://skills.sh/' . ($slug === '' ? $source . '/' . $name : $slug)),
         ];
     }
 

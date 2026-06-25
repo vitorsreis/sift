@@ -53,6 +53,7 @@ it('keeps schema, defaults and documentation on the same contract url and fields
     $historyPath = configSchemaObject($historyProperties, 'path');
     $outputFormat = configSchemaObject($outputProperties, 'format');
     $outputSize = configSchemaObject($outputProperties, 'size');
+    $outputColored = configSchemaObject($outputProperties, 'colored');
     $wildcardEnabled = configSchemaObject($wildcardToolProperties, 'enabled');
     $wildcardTimeout = configSchemaObject($wildcardToolProperties, 'timeout');
     $toolTimeout = configSchemaObject($toolProperties, 'timeout');
@@ -71,6 +72,7 @@ it('keeps schema, defaults and documentation on the same contract url and fields
         'size',
         'pretty',
         'show_process',
+        'colored',
     ]);
     expect($toolProperties)->toHaveKeys([
         'enabled',
@@ -84,6 +86,7 @@ it('keeps schema, defaults and documentation on the same contract url and fields
     expect($outputFormat['enum'] ?? null)->toBe(['terminal', 'json']);
     expect($outputSize['default'] ?? null)->toBe(ConfigDefaults::output()['size']);
     expect($outputSize['enum'] ?? null)->toBe(['compact', 'normal', 'full']);
+    expect($outputColored['default'] ?? null)->toBe(ConfigDefaults::output()['colored']);
     expect($wildcardEnabled['default'] ?? null)->toBeTrue();
     expect($wildcardTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);
     expect($toolTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);

@@ -132,30 +132,32 @@ function listField(array $payload, string $key): array
 
 it('renders help as terminal text by default', function (): void {
     $result = runSift(['--compact', 'help']);
+    $stdout = stripSiftAnsi($result['stdout']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toContain('Sift');
-    expect($result['stdout'])->toContain('Usage');
-    expect($result['stdout'])->toContain('Commands');
-    expect($result['stdout'])->toContain('Options');
-    expect($result['stdout'])->toContain('composer sift [options] <command>');
-    expect($result['stdout'])->toContain('tools list');
-    expect($result['stdout'])->toContain('--json');
-    expect($result['stdout'])->toContain('--no-json');
-    expect($result['stdout'])->toContain('Terminal-only commands');
-    expect($result['stdout'])->toContain('help, version, tools list');
-    expect($result['stdout'])->toContain('--compact');
+    expect($stdout)->toContain('Sift');
+    expect($stdout)->toContain('Usage');
+    expect($stdout)->toContain('Commands');
+    expect($stdout)->toContain('Options');
+    expect($stdout)->toContain('composer sift [options] <command>');
+    expect($stdout)->toContain('tools list');
+    expect($stdout)->toContain('--json');
+    expect($stdout)->toContain('--no-json');
+    expect($stdout)->toContain('Terminal-only commands');
+    expect($stdout)->toContain('help, version, tools list');
+    expect($stdout)->toContain('--compact');
 });
 
 it('renders help as terminal text even when json is requested', function (): void {
     $result = runSift(['--json', 'help']);
+    $stdout = stripSiftAnsi($result['stdout']);
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toContain('Sift');
-    expect($result['stdout'])->toContain('<tool> [args]');
-    expect($result['stdout'])->toContain('run <tool> [args]');
+    expect($stdout)->toContain('Sift');
+    expect($stdout)->toContain('<tool> [args]');
+    expect($stdout)->toContain('run <tool> [args]');
 });
 
 it('renders version as terminal text by default', function (): void {
@@ -163,7 +165,7 @@ it('renders version as terminal text by default', function (): void {
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toStartWith('Sift ');
+    expect(stripSiftAnsi($result['stdout']))->toStartWith('Sift ');
 });
 
 it('renders version as terminal text even when json is requested', function (): void {
@@ -171,7 +173,7 @@ it('renders version as terminal text even when json is requested', function (): 
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toStartWith('Sift ');
+    expect(stripSiftAnsi($result['stdout']))->toStartWith('Sift ');
 });
 
 it('renders tools list as terminal text by default', function (): void {
@@ -225,8 +227,8 @@ it('forces terminal output with no-json even when config requests json', functio
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toContain('sift passed');
-    expect($result['stdout'])->not->toStartWith('{');
+    expect(stripSiftAnsi($result['stdout']))->toContain('sift passed');
+    expect(stripSiftAnsi($result['stdout']))->not->toStartWith('{');
 });
 
 it('renders invalid usage errors as JSON on stderr', function (): void {

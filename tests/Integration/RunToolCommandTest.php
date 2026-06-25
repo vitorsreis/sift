@@ -61,7 +61,7 @@ it('renders direct tool output as terminal text by default', function (): void {
 
     expect($result['exit_code'])->toBe(0);
     expect($result['stderr'])->toBe('');
-    expect($result['stdout'])->toBe('pest passed tests=1 passed=1 failures=0 errors=0 skipped=0' . PHP_EOL);
+    expect(stripSiftAnsi($result['stdout']))->toBe('pest passed tests=1 passed=1 failures=0 errors=0 skipped=0' . PHP_EOL);
 });
 
 it('exposes the history run id in compact json output', function (): void {

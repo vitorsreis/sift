@@ -52,6 +52,7 @@ it('exposes history output and tool config values', function (): void {
     expect($output->pretty())->toBeFalse();
     expect($output->showProcess())->toBeTrue();
     expect($output->format())->toBe('terminal');
+    expect($output->colored())->toBeTrue();
 
     expect($tool->name())->toBe('pest');
     expect($tool->enabled())->toBeFalse();
