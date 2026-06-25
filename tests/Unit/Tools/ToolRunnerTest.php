@@ -55,6 +55,31 @@ it('runs a normalized tool through registry, policies, process and parser', func
     expect($payload['meta']['command'])->toBe([PHP_BINARY, '-r', $code, 'user-arg']);
 });
 
+it('accepts vendor bin prefixed tool commands', function (): void {
+    $code = 'fwrite(STDOUT, "normalized-out");';
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(toolRunnerAdapter('demo', [], ['-r', $code])),
+    );
+
+    $result = $runner->run(
+        arguments: new CliArguments('vendor/bin/demo', ['user-arg']),
+        config: toolRunnerConfig(new ToolConfig('demo', true, null, [], 30)),
+        cwd: getcwd() ?: '.',
+    );
+
+    if (! $result instanceof NormalizedResult) {
+        throw new RuntimeException('Expected normalized result.');
+    }
+
+    $payload = $result->toPayload();
+
+    expect($payload['tool'])->toBe('demo');
+    expect($payload['summary'])->toMatchArray([
+        'stdout' => 'normalized-out',
+        'parsed_command' => [PHP_BINARY, '-r', $code, 'user-arg'],
+    ]);
+});
+
 it('runs policies before starting the process', function (): void {
     $project = FixtureProject::create();
     $marker = $project->path('ran.txt');

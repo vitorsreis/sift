@@ -86,7 +86,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
 
     public function find(string $name): ?ToolAdapter
     {
-        $normalizedName = $this->normalizeName($name);
+        $normalizedName = $this->normalizeLookupName($name);
 
         return $this->adaptersByName[$normalizedName] ?? null;
     }
@@ -108,5 +108,22 @@ final readonly class ToolRegistry implements ToolRegistryInterface
         }
 
         return $normalizedName;
+    }
+
+    private function normalizeLookupName(string $name): string
+    {
+        $normalizedName = $this->normalizeName($name);
+
+        if (! str_starts_with($normalizedName, 'vendor/bin/')) {
+            return $normalizedName;
+        }
+
+        $toolName = substr($normalizedName, strlen('vendor/bin/'));
+
+        if ($toolName === '' || str_contains($toolName, '/')) {
+            return $normalizedName;
+        }
+
+        return $toolName;
     }
 }
