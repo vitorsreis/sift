@@ -12,6 +12,8 @@ final class InteractivePrompt
 {
     private const int SEARCH_RESULT_LIMIT = 10;
 
+    private const int MULTISELECT_VISIBLE_LIMIT = 10;
+
     private const float SEARCH_DEBOUNCE_SECONDS = 0.35;
 
     private const string HIDE_CURSOR = "\033[?25l";
@@ -141,12 +143,30 @@ final class InteractivePrompt
                 }
 
                 $lines = [...$this->headerLines($style), $style->label($message)];
+                $totalOptions = count($options);
+                $visibleStart = 0;
 
-                foreach ($options as $index => $option) {
+                if ($totalOptions > self::MULTISELECT_VISIBLE_LIMIT) {
+                    $visibleStart = min(
+                        max(0, $cursor - intdiv(self::MULTISELECT_VISIBLE_LIMIT, 2)),
+                        $totalOptions - self::MULTISELECT_VISIBLE_LIMIT,
+                    );
+                }
+
+                foreach (array_slice($options, $visibleStart, self::MULTISELECT_VISIBLE_LIMIT, true) as $index => $option) {
                     $marker = isset($selected[$option['value']]) ? $style->success('[x]') : $style->muted('[ ]');
                     $pointer = $index === $cursor ? $style->command('>') : ' ';
                     $hint = isset($option['hint']) && $option['hint'] !== '' ? ' - ' . $style->muted($option['hint']) : '';
                     $lines[] = sprintf('  %s %s %s%s', $pointer, $marker, $style->command($option['label']), $hint);
+                }
+
+                if ($totalOptions > self::MULTISELECT_VISIBLE_LIMIT) {
+                    $lines[] = $style->muted(sprintf(
+                        'showing %d-%d of %d',
+                        $visibleStart + 1,
+                        min($totalOptions, $visibleStart + self::MULTISELECT_VISIBLE_LIMIT),
+                        $totalOptions,
+                    ));
                 }
 
                 $lines[] = '';
@@ -173,13 +193,17 @@ final class InteractivePrompt
                 }
 
                 if ($key === 'down') {
-                    $cursor = min(count($options) - 1, $cursor + 1);
+                    $cursor = min(max(0, count($options) - 1), $cursor + 1);
                     $render();
 
                     continue;
                 }
 
                 if ($key === 'space') {
+                    if (! isset($options[$cursor])) {
+                        continue;
+                    }
+
                     $value = $options[$cursor]['value'];
                     if (isset($selected[$value])) {
                         unset($selected[$value]);

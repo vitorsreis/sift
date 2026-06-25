@@ -54,3 +54,21 @@ it('marks existing project skill directories as selected agent choices', functio
     expect(array_column($selected, 'value'))->toBe(['windsurf']);
     expect($selected[0]['hint'])->toBe('.windsurf/skills');
 });
+
+it('groups project agent choices that use the same skills directory', function (): void {
+    $project = FixtureProject::create();
+
+    $choices = (new InstructionTargetRegistry())->agentChoices($project->root());
+    $sharedChoices = array_values(array_filter(
+        $choices,
+        static fn(array $choice): bool => str_starts_with((string) $choice['hint'], '.agents/skills'),
+    ));
+
+    expect($sharedChoices)->toHaveCount(1);
+    expect($sharedChoices[0]['value'])->toBe('codex');
+    expect(str_starts_with($sharedChoices[0]['label'], 'codex (+'))->toBeTrue();
+    expect($sharedChoices[0]['hint'])->toContain('.agents/skills');
+    expect($sharedChoices[0]['hint'])->toContain('shared:');
+    expect($sharedChoices[0]['hint'])->toContain('cursor');
+    expect($sharedChoices[0]['selected'])->toBeTrue();
+});

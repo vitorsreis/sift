@@ -11,6 +11,19 @@ use Sift\Filesystem\Path;
 
 final readonly class InstructionTargetRegistry
 {
+    private const int SHARED_TARGET_HINT_LIMIT = 5;
+
+    private const array SHARED_TARGET_PRIORITY = [
+        'codex',
+        'cursor',
+        'github-copilot',
+        'gemini-cli',
+        'opencode',
+        'amp',
+        'replit',
+        'universal',
+    ];
+
     public function resolve(string $target, bool $global = false): InstructionTarget
     {
         $normalized = $this->normalize($target);
@@ -93,8 +106,7 @@ final readonly class InstructionTargetRegistry
      */
     public function agentChoices(string $cwd, bool $global = false): array
     {
-        $choices = [];
-        $hasSelected = false;
+        $directoryChoices = [];
 
         foreach ($this->directoryTargets() as $name => $definition) {
             if ($global && ($definition['global'] ?? null) === null) {
@@ -106,8 +118,7 @@ final readonly class InstructionTargetRegistry
                 : $definition['project'];
             $path = $global ? $hint : Path::join($cwd, $definition['project']);
             $selected = is_dir($path);
-            $hasSelected = $hasSelected || $selected;
-            $choices[] = [
+            $directoryChoices[] = [
                 'value' => $name,
                 'label' => $name,
                 'hint' => $hint,
@@ -115,11 +126,12 @@ final readonly class InstructionTargetRegistry
             ];
         }
 
+        $choices = $this->groupSharedDirectoryChoices($directoryChoices);
+
         if (! $global) {
             foreach ($this->descriptors() as $descriptor) {
                 $path = Path::join($cwd, $descriptor->relativePath());
                 $selected = is_file($path);
-                $hasSelected = $hasSelected || $selected;
                 $choices[] = [
                     'value' => $descriptor->name(),
                     'label' => $descriptor->name(),
@@ -128,6 +140,11 @@ final readonly class InstructionTargetRegistry
                 ];
             }
         }
+
+        $hasSelected = array_filter(
+            $choices,
+            static fn(array $choice): bool => $choice['selected'] === true,
+        ) !== [];
 
         if (! $hasSelected) {
             foreach ($choices as $index => $choice) {
@@ -140,6 +157,117 @@ final readonly class InstructionTargetRegistry
         }
 
         return $choices;
+    }
+
+    /**
+     * @param list<array{value: string, label: string, hint: string, selected: bool}> $choices
+     *
+     * @return list<array{value: string, label: string, hint: string, selected: bool}>
+     */
+    private function groupSharedDirectoryChoices(array $choices): array
+    {
+        $groups = [];
+        $order = [];
+
+        foreach ($choices as $choice) {
+            $key = $choice['hint'];
+
+            if (! array_key_exists($key, $groups)) {
+                $groups[$key] = [];
+                $order[] = $key;
+            }
+
+            $groups[$key][] = $choice;
+        }
+
+        $grouped = [];
+
+        foreach ($order as $key) {
+            $items = $groups[$key];
+
+            if (count($items) === 1) {
+                $grouped[] = $items[0];
+
+                continue;
+            }
+
+            $representative = $this->representativeChoice($items);
+            $names = array_column($items, 'value');
+
+            $grouped[] = [
+                'value' => $representative['value'],
+                'label' => sprintf('%s (+%d)', $representative['value'], count($items) - 1),
+                'hint' => $this->sharedDirectoryHint($representative['hint'], $names, $representative['value']),
+                'selected' => array_filter(
+                    $items,
+                    static fn(array $choice): bool => $choice['selected'] === true,
+                ) !== [],
+            ];
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @param non-empty-list<array{value: string, label: string, hint: string, selected: bool}> $choices
+     *
+     * @return array{value: string, label: string, hint: string, selected: bool}
+     */
+    private function representativeChoice(array $choices): array
+    {
+        $names = $this->prioritizedTargetNames(array_column($choices, 'value'));
+
+        foreach ($names as $name) {
+            foreach ($choices as $choice) {
+                if ($choice['value'] === $name) {
+                    return $choice;
+                }
+            }
+        }
+
+        return $choices[0];
+    }
+
+    /**
+     * @param list<string> $names
+     *
+     * @return list<string>
+     */
+    private function prioritizedTargetNames(array $names): array
+    {
+        $priority = array_flip(self::SHARED_TARGET_PRIORITY);
+
+        usort($names, static function (string $left, string $right) use ($priority): int {
+            $leftRank = $priority[$left] ?? PHP_INT_MAX;
+            $rightRank = $priority[$right] ?? PHP_INT_MAX;
+
+            if ($leftRank === $rightRank) {
+                return $left <=> $right;
+            }
+
+            return $leftRank <=> $rightRank;
+        });
+
+        return $names;
+    }
+
+    /**
+     * @param list<string> $names
+     */
+    private function sharedDirectoryHint(string $directory, array $names, string $representative): string
+    {
+        $sharedNames = array_values(array_filter(
+            $this->prioritizedTargetNames($names),
+            static fn(string $name): bool => $name !== $representative,
+        ));
+        $preview = array_slice($sharedNames, 0, self::SHARED_TARGET_HINT_LIMIT);
+        $remaining = count($sharedNames) - count($preview);
+
+        if ($remaining > 0) {
+            $preview[] = '+' . $remaining;
+        }
+
+        return sprintf('%s (shared: %s)', $directory, implode(', ', $preview));
     }
 
     /**

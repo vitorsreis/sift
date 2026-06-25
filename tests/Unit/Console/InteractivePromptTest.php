@@ -8,7 +8,15 @@ use Sift\Skills\SkillsShCatalogClient;
 
 function stripInteractiveAnsi(string $output): string
 {
-    return preg_replace('/\033\[[0-9;]*m/', '', $output) ?? $output;
+    return preg_replace('/\033\[[0-9;?]*[A-Za-z]/', '', $output) ?? $output;
+}
+
+function lastInteractiveFrame(string $output): string
+{
+    $frames = explode("\033[J", $output);
+    $frame = $frames[count($frames) - 1];
+
+    return $frame !== '' ? $frame : $output;
 }
 
 it('searches as the user types and returns the highlighted skill', function (): void {
@@ -256,6 +264,39 @@ it('supports keyboard multiselect prompts', function (): void {
     expect($output)->toContain("\033[38;5;");
     expect(stripInteractiveAnsi($output))->toContain('███████╗██╗███████╗████████╗    ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗');
     expect(stripInteractiveAnsi($output))->not->toContain('------');
+});
+
+it('limits rendered multiselect options while keeping navigation across all choices', function (): void {
+    $keys = [...array_fill(0, 12, 'down'), 'space', 'enter'];
+    $output = '';
+    $prompt = new InteractivePrompt(
+        keyReader: static function () use (&$keys): string {
+            return array_shift($keys) ?? 'escape';
+        },
+        writer: static function (string $contents) use (&$output): void {
+            $output .= $contents;
+        },
+    );
+
+    $selected = $prompt->multiselect(
+        'Which agents do you want to install to?',
+        array_map(
+            static fn(int $index): array => [
+                'value' => sprintf('agent-%02d', $index),
+                'label' => sprintf('agent-%02d', $index),
+            ],
+            range(1, 15),
+        ),
+        color: false,
+    );
+
+    $frame = stripInteractiveAnsi(lastInteractiveFrame($output));
+
+    expect($selected)->toBe(['agent-13']);
+    expect($frame)->toContain('showing 6-15 of 15');
+    expect($frame)->toContain('> [x] agent-13');
+    expect($frame)->not->toContain('agent-01');
+    expect($frame)->not->toContain('agent-05');
 });
 
 it('supports keyboard select prompts with enter on the highlighted option', function (): void {
