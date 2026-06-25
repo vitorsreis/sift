@@ -58,8 +58,6 @@ composer global config allow-plugins.vitorsreis/sift true
 composer global require vitorsreis/sift
 ```
 
-After global install, Composer's global `vendor/bin` directory must be in `PATH`; run Sift as `sift <command>`.
-
 ## History
 
 When Sift prints a `run_id`, inspect stored sections instead of rerunning noisy tools:

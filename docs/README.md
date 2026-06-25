@@ -21,8 +21,6 @@ composer global config allow-plugins.vitorsreis/sift true
 composer global require vitorsreis/sift
 ```
 
-After a global install, Composer's global `vendor/bin` directory must be in your `PATH` before running `sift`.
-
 ## Contract Notes
 
 - Output is terminal text by default. Use `--json` for normalized JSON payloads.

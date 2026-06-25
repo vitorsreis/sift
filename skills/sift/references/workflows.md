@@ -18,10 +18,7 @@ If running non-interactively, pass `--no-skill` or `--yes` to `init`.
 ```bash
 composer global config allow-plugins.vitorsreis/sift true
 composer global require vitorsreis/sift
-sift init
 ```
-
-Composer's global `vendor/bin` directory must be in `PATH`. After that, use `sift <command>` and `sift skills <command>` when the project does not expose `composer sift` or `composer skills`.
 
 ## Failing Test
 

@@ -19,8 +19,6 @@ composer global config allow-plugins.vitorsreis/sift true
 composer global require vitorsreis/sift
 ```
 
-Composer's global `vendor/bin` directory must be in your `PATH` for the `sift` binary to be available.
-
 ## Global Options
 
 - `--compact`

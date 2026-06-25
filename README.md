@@ -40,23 +40,25 @@ only when they need more detail.
 
 ## Quick Start
 
-Install Sift in a PHP 8.3+ project:
-
-```bash
-composer config allow-plugins.vitorsreis/sift true
-composer require --dev vitorsreis/sift
-composer sift init
-```
-
-Or install the Sift binary globally when you want the same CLI available outside a single project:
+Install Sift globally:
 
 ```bash
 composer global config allow-plugins.vitorsreis/sift true
 composer global require vitorsreis/sift
-sift init
 ```
 
-Make sure Composer's global `vendor/bin` directory is in your `PATH` before running `sift`.
+Or install Sift in a single project:
+
+```bash
+composer config allow-plugins.vitorsreis/sift true
+composer require --dev vitorsreis/sift
+```
+
+After installation, initialize Sift in your project:
+
+```bash
+composer sift init
+```
 
 ## Skills
 
