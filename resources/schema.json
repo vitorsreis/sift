@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/vitorsreis/sift/v2.2.0/resources/schema.json",
+  "$id": "https://raw.githubusercontent.com/vitorsreis/sift/v2.3.0/resources/schema.json",
   "title": "Sift Config Schema",
   "description": "Configuration schema for Sift v2.",
   "type": "object",
@@ -10,7 +10,7 @@
       "description": "Editor metadata URL for this configuration schema. Sift does not enforce this value at runtime.",
       "type": "string",
       "format": "uri-reference",
-      "default": "https://raw.githubusercontent.com/vitorsreis/sift/v2.2.0/resources/schema.json"
+      "default": "https://raw.githubusercontent.com/vitorsreis/sift/v2.3.0/resources/schema.json"
     },
     "history": {
       "description": "Controls run history storage, retention, and secret redaction.",

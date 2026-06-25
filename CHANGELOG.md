@@ -4,6 +4,24 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.0 - 2026-06-25
+
+### Added
+
+- Added first-class `phpcbf` support for PHP_CodeSniffer auto-fixes. Because PHPCBF mutates files and does not provide a dry-run mode, Sift requires an explicit `--repair` flag before running it.
+- Added Sift-level `--min` coverage thresholds for `phpunit`; Sift removes the unsupported option before executing PHPUnit and evaluates the generated Clover report.
+
+### Changed
+
+- Coverage payloads now list every covered file when no `--min` threshold is provided. With `--min`, coverage items remain limited to files below the threshold.
+- Documentation and the bundled `sift` skill now use Composer-native `composer skills` guidance without outdated external CLI wording.
+
+### Fixed
+
+- Tool commands now accept Composer bin path prefixes such as `vendor/bin/pest` as aliases for supported tools.
+- PHPUnit native option errors now surface the actionable error line instead of the startup banner when generated reports are missing.
+- Tool documentation now names the Composer dependency adapters as `composer-require-checker` and `composer-unused`.
+
 ## 2.2.0 - 2026-06-25
 
 ### Added
@@ -23,8 +41,8 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Composer skills entrypoints now accept output flags such as `--json`, `--compact`, and `--no-color` consistently.
 - Native skill targets now install into project skill directories by default; `--global` / `-g` selects the user-level target directory for add, list, remove, and update.
 - The interactive agent picker now preselects existing target folders and falls back to `codex` when no target folder is detected.
-- Skills commands now accept Skills CLI-style aliases and multi-value flags, including `skills a`, `skills upgrade`, `--agent codex cursor`, and `--skill pr-review commit`.
-- `skills update` now follows the Skills CLI scope rules: named updates check project and global unless `--project` or `--global` is provided, and `--yes` autodetects project skills before falling back to global.
+- Skills commands now accept Composer-native aliases and multi-value flags, including `skills a`, `skills upgrade`, `--agent codex cursor`, and `--skill pr-review commit`.
+- `skills update` now follows project/global scope rules: named updates check project and global unless `--project` or `--global` is provided, and `--yes` autodetects project skills before falling back to global.
 
 ### Fixed
 
@@ -42,7 +60,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ### Changed
 
-- `skills find <query>` now renders compact terminal output like the public Skills CLI by default while preserving `--json`.
+- `skills find <query>` now renders compact terminal output by default while preserving `--json`.
 - Skill catalog results preserve installs, slugs, and source URLs when returned by `skills.sh`.
 
 ## 2.0.0 - 2026-06-04
