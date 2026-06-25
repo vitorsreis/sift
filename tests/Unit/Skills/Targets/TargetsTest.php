@@ -68,7 +68,8 @@ MD);
         source: 'vendor/source',
         sourceType: 'local',
     );
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         (new SkillTargetInstaller())->install(
@@ -78,7 +79,7 @@ MD);
             new SkillSource('vendor/source', 'local', $source->root()),
         );
     } finally {
-        putenv('SIFT_CODEX_HOME');
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
@@ -132,7 +133,8 @@ if (PHP_OS_FAMILY !== 'Windows') {
         }
 
         $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
-        putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+        $previousCodexHome = getenv('CODEX_HOME');
+        putenv('CODEX_HOME=' . $codexHome->root());
 
         try {
             expect(fn(): array => (new SkillTargetInstaller())->install(
@@ -142,7 +144,7 @@ if (PHP_OS_FAMILY !== 'Windows') {
                 new SkillSource('vendor/source', 'local', $source->root()),
             ))->toThrow(UserFacingException::class, 'symlink');
         } finally {
-            putenv('SIFT_CODEX_HOME');
+            putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
         }
 
         expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
@@ -163,7 +165,8 @@ if (PHP_OS_FAMILY !== 'Windows') {
         }
 
         $skill = new Skill('php-review', 'Review PHP projects.', $source->root(), $skillFile, 'vendor/source', 'local');
-        putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+        $previousCodexHome = getenv('CODEX_HOME');
+        putenv('CODEX_HOME=' . $codexHome->root());
 
         try {
             (new SkillTargetInstaller())->install(
@@ -173,7 +176,7 @@ if (PHP_OS_FAMILY !== 'Windows') {
                 new SkillSource('vendor/source', 'local', $source->root()),
             );
         } finally {
-            putenv('SIFT_CODEX_HOME');
+            putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
         }
 
         expect($outside->path('escaped.md'))->not->toBeFile();

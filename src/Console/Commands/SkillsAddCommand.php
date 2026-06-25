@@ -42,7 +42,7 @@ final readonly class SkillsAddCommand implements CommandHandler
             throw new InvalidUsageException('skills add requires a source.');
         }
 
-        if (! $this->optionBool($route, 'list') && ! $this->optionBool($route, 'yes') && ! $this->optionBool($route, 'all')) {
+        if (! $this->optionBool($route, 'list') && ! $this->optionBool($route, 'yes') && ! $this->optionBool($route, 'all') && $this->jsonRequested($route)) {
             $this->confirmationPrompt->assertInteractive();
         }
 
@@ -193,6 +193,17 @@ final readonly class SkillsAddCommand implements CommandHandler
         return ($route->options()[$name] ?? false) === true;
     }
 
+    private function jsonRequested(CommandRoute $route): bool
+    {
+        return ($route->globalOptions()['json'] ?? false) === true || ($route->options()['json'] ?? false) === true;
+    }
+
+    private function colorEnabled(CommandRoute $route): bool
+    {
+        return ($route->globalOptions()['no-color'] ?? false) !== true
+            && ($route->options()['no-color'] ?? false) !== true;
+    }
+
     /**
      * @param list<Skill> $skills
      *
@@ -216,6 +227,7 @@ final readonly class SkillsAddCommand implements CommandHandler
                 ],
                 $skills,
             ),
+            $this->colorEnabled($route),
         );
 
         if ($selected === null) {
@@ -231,7 +243,7 @@ final readonly class SkillsAddCommand implements CommandHandler
             return;
         }
 
-        if (! $this->interactivePrompt->confirm($message)) {
+        if (! $this->interactivePrompt->confirm($message, $this->colorEnabled($route))) {
             throw new InvalidUsageException('Skill command cancelled.');
         }
     }
@@ -277,6 +289,7 @@ final readonly class SkillsAddCommand implements CommandHandler
                     ],
                     $this->targetRegistry->writeCapableNames(),
                 ),
+                $this->colorEnabled($route),
             );
 
             if ($selected === null) {

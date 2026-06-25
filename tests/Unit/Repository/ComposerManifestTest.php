@@ -152,5 +152,6 @@ it('declares the package contract required for the rebuild', function (): void {
     expect($manifest['autoload-dev']['psr-4']['Tests\\'] ?? null)->toBe('tests/');
     expect($manifest['bin'])->toBe(['bin/sift']);
     expect($manifest['extra']['class'])->toBe(SiftPlugin::class);
-    expect(array_keys($manifest['scripts']))->toContain('test', 'analyse', 'format', 'rector', 'quality');
+    expect(array_keys($manifest['scripts']))->toContain('sift', 'skills', 'test', 'analyse', 'format', 'rector', 'quality');
+    expect($manifest['scripts']['skills'] ?? null)->toBe('@php bin/sift -- skills @additional_args');
 });

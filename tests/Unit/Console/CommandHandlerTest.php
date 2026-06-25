@@ -140,6 +140,7 @@ it('reports missing skill removal for an empty generic target', function (): voi
     expect($payload['meta'])->toBe([
         'subcommand' => 'skills remove',
         'targets' => ['generic'],
+        'skills' => ['sift'],
     ]);
 });
 

@@ -254,8 +254,8 @@ it('removes managed codex skill directories', function (): void {
     $repository = FixtureProject::create('sift-skills-repo-');
     $codexHome = FixtureProject::create('sift-codex-home-');
     skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
-    $previousCodexHome = getenv('SIFT_CODEX_HOME');
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         CliRunner::run([
@@ -273,7 +273,7 @@ it('removes managed codex skill directories', function (): void {
         $items = skillsCommandItems($payload);
         $list = CliRunner::decode(CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'list', '--agent=codex'], $project->root())['stdout']);
     } finally {
-        putenv($previousCodexHome === false ? 'SIFT_CODEX_HOME' : 'SIFT_CODEX_HOME=' . $previousCodexHome);
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     expect($result['exit_code'])->toBe(0);
@@ -289,15 +289,15 @@ it('does not remove unmanaged codex skill directories', function (): void {
     $codexHome = FixtureProject::create('sift-codex-home-');
     $codexHome->write('skills/php-review/SKILL.md', "# PHP Review\n");
 
-    $previousCodexHome = getenv('SIFT_CODEX_HOME');
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
         $payload = CliRunner::decode($result['stdout']);
         $items = skillsCommandItems($payload);
     } finally {
-        putenv($previousCodexHome === false ? 'SIFT_CODEX_HOME' : 'SIFT_CODEX_HOME=' . $previousCodexHome);
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     expect($result['exit_code'])->toBe(0);

@@ -53,12 +53,13 @@ it('reads managed codex skill metadata files', function (): void {
         'installed_at' => '2026-06-01T00:00:00+00:00',
         'targets' => ['codex'],
     ]);
-    putenv('SIFT_CODEX_HOME=' . $codexHome->root());
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
         $items = (new SkillInventory())->list($project->root(), ['codex']);
     } finally {
-        putenv('SIFT_CODEX_HOME');
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
     expect(array_map(static fn(SkillManagedMetadata $metadata): string => $metadata->name(), $items))->toBe(['php-review']);

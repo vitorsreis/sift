@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sift\Console\Commands;
 
-use Closure;
 use Sift\Console\CommandRoute;
 use Sift\Console\InteractivePrompt;
 use Sift\Console\InvalidUsageException;
@@ -12,14 +11,10 @@ use Sift\Skills\SkillCatalog;
 
 final readonly class SkillsFindCommand implements CommandHandler
 {
-    /**
-     * @param null|Closure(): bool $interactive
-     */
     public function __construct(
         private SkillCatalog $catalog = new SkillCatalog(),
         private SkillsAddCommand $addCommand = new SkillsAddCommand(),
         private InteractivePrompt $interactivePrompt = new InteractivePrompt(),
-        private ?Closure $interactive = null,
     ) {}
 
     public function handle(CommandRoute $route, string $cwd): array
@@ -28,11 +23,11 @@ final readonly class SkillsFindCommand implements CommandHandler
         $owner = $this->owner($route);
 
         if ($query === '') {
-            if (! $this->shouldPrompt()) {
+            if (! $this->shouldPrompt($route)) {
                 return $this->emptyQueryPayload($owner);
             }
 
-            $selected = $this->interactivePrompt->searchSkills($this->catalog, $owner);
+            $selected = $this->interactivePrompt->searchSkills($this->catalog, $owner, $this->colorEnabled($route));
 
             if ($selected === null) {
                 return $this->cancelledPayload($owner);
@@ -143,31 +138,19 @@ final readonly class SkillsFindCommand implements CommandHandler
         return $owner;
     }
 
-    private function shouldPrompt(): bool
+    private function shouldPrompt(CommandRoute $route): bool
     {
-        return $this->isInteractive() && ! $this->isRunningInAgent();
+        return ! $this->jsonRequested($route);
     }
 
-    private function isInteractive(): bool
+    private function jsonRequested(CommandRoute $route): bool
     {
-        if ($this->interactive instanceof Closure) {
-            return ($this->interactive)() === true;
-        }
-
-        return function_exists('stream_isatty') && stream_isatty(STDIN);
+        return ($route->globalOptions()['json'] ?? false) === true || ($route->options()['json'] ?? false) === true;
     }
 
-    private function isRunningInAgent(): bool
+    private function colorEnabled(CommandRoute $route): bool
     {
-        foreach (['CODEX_CI', 'CODEX_SHELL', 'CLAUDECODE', 'CLAUDE_CODE', 'GITHUB_COPILOT_AGENT'] as $name) {
-            $value = getenv($name);
-
-            if (is_string($value) && ! in_array(strtolower($value), ['', '0', 'false', 'no'], true)) {
-                return true;
-            }
-        }
-
-        return false;
+        return ($route->globalOptions()['no-color'] ?? false) !== true
+            && ($route->options()['no-color'] ?? false) !== true;
     }
-
 }

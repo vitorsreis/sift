@@ -20,12 +20,10 @@ final readonly class CodexHomeResolver
             return Path::normalize($this->override);
         }
 
-        foreach (['SIFT_CODEX_HOME', 'CODEX_HOME'] as $environmentKey) {
-            $value = getenv($environmentKey);
+        $codexHome = getenv('CODEX_HOME');
 
-            if (is_string($value) && trim($value) !== '') {
-                return Path::normalize($value);
-            }
+        if (is_string($codexHome) && trim($codexHome) !== '') {
+            return Path::normalize($codexHome);
         }
 
         $home = getenv('HOME') ?: getenv('USERPROFILE');

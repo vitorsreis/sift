@@ -88,12 +88,8 @@ final readonly class SkillsUpdateCommand implements CommandHandler
     {
         $names = $this->selectedNames($route);
 
-        if ($names === [] && $this->optionBool($route, 'all')) {
-            return $items;
-        }
-
         if ($names === []) {
-            throw new InvalidUsageException('skills update requires a skill name or --all.');
+            return $items;
         }
 
         $selected = array_values(array_filter(
@@ -227,11 +223,17 @@ final readonly class SkillsUpdateCommand implements CommandHandler
             return;
         }
 
-        $this->confirmationPrompt->confirm($message);
+        $this->confirmationPrompt->confirm($message, $this->colorEnabled($route));
     }
 
     private function optionBool(CommandRoute $route, string $name): bool
     {
         return ($route->options()[$name] ?? false) === true;
+    }
+
+    private function colorEnabled(CommandRoute $route): bool
+    {
+        return ($route->globalOptions()['no-color'] ?? false) !== true
+            && ($route->options()['no-color'] ?? false) !== true;
     }
 }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 use Sift\Console\CommandRoute;
 use Sift\Console\Commands\RunToolCommand;
 use Sift\Console\Commands\SkillsAddCommand;
+use Sift\Console\Commands\SkillsRemoveCommand;
 use Sift\Console\Commands\SkillsUpdateCommand;
+use Sift\Console\InteractivePrompt;
 use Sift\Core\ErrorCode;
 use Sift\Core\ExecutionResult;
 use Sift\Core\NormalizedResult;
@@ -39,6 +41,27 @@ it('runs add and update skill handlers directly', function (): void {
     expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Updated guidance');
 });
 
+it('updates installed skills when no update names are provided', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    criticalCommandSkill($source, 'Old guidance');
+
+    (new SkillsAddCommand())->handle(
+        new CommandRoute('skills.add', [$source->root()], ['agent' => 'generic', 'yes' => true]),
+        $project->root(),
+    );
+
+    criticalCommandSkill($source, 'Updated all guidance');
+
+    $payload = (new SkillsUpdateCommand())->handle(
+        new CommandRoute('skills.update', options: ['agent' => 'generic', 'yes' => true]),
+        $project->root(),
+    );
+
+    expect($payload['summary'])->toMatchArray(['updated' => 1, 'skills' => 1, 'targets' => 1]);
+    expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Updated all guidance');
+});
+
 it('previews skills add without requiring confirmation or writing targets', function (): void {
     $project = FixtureProject::create();
     $source = FixtureProject::create('sift-critical-skill-');
@@ -62,6 +85,61 @@ it('previews skills add without requiring confirmation or writing targets', func
         'ignored_options' => ['agent', 'yes', 'all'],
     ]);
     expect($project->path('AGENTS.md'))->not->toBeFile();
+});
+
+it(
+    'runs skills add prompts in terminal skills mode without requiring yes',
+    function (): void {
+        $project = FixtureProject::create();
+        $source = FixtureProject::create('sift-critical-skill-');
+        criticalCommandSkill($source, 'Interactive guidance');
+
+        $keys = ['space', 'down', 'down', 'down', 'down', 'space', 'enter', 'char:y'];
+        $payload = (new SkillsAddCommand(
+            interactivePrompt: new InteractivePrompt(
+                keyReader: static function () use (&$keys): string {
+                    return array_shift($keys) ?? 'escape';
+                },
+                writer: static function (): void {},
+            ),
+        ))->handle(
+            new CommandRoute('skills.add', [$source->root()]),
+            $project->root(),
+        );
+        $items = criticalCommandPayloadList($payload, 'items');
+        $firstItem = criticalCommandPayloadMap($items[0] ?? null);
+
+        expect($payload['summary'])->toMatchArray(['installed' => 1, 'skills' => 1, 'targets' => 1]);
+        expect($firstItem['target'] ?? null)->toBe('generic');
+        expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Interactive guidance');
+    },
+);
+
+it('removes selected skills from the interactive skills remove flow', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    criticalCommandSkill($source, 'Interactive removal guidance');
+
+    (new SkillsAddCommand())->handle(
+        new CommandRoute('skills.add', [$source->root()], ['agent' => 'generic', 'yes' => true]),
+        $project->root(),
+    );
+
+    $keys = ['space', 'enter', 'char:y'];
+    $payload = (new SkillsRemoveCommand(
+        interactivePrompt: new InteractivePrompt(
+            keyReader: static function () use (&$keys): string {
+                return array_shift($keys) ?? 'escape';
+            },
+            writer: static function (): void {},
+        ),
+    ))->handle(
+        new CommandRoute('skills.remove', options: ['agent' => 'generic']),
+        $project->root(),
+    );
+
+    expect($payload['summary'])->toBe(['removed' => 1]);
+    expect((string) file_get_contents($project->path('AGENTS.md')))->not->toContain('Interactive removal guidance');
 });
 
 it('runs a normalized tool handler directly with process reporting and history disabled', function (): void {

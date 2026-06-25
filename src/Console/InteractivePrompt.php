@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace Sift\Console;
 
 use Closure;
+use Sift\Output\TerminalStyle;
 use Sift\Skills\SkillCatalog;
 
 final class InteractivePrompt
 {
+    private const int SEARCH_RESULT_LIMIT = 10;
+
+    private const float SEARCH_DEBOUNCE_SECONDS = 0.35;
+
     private const string HIDE_CURSOR = "\033[?25l";
 
     private const string SHOW_CURSOR = "\033[?25h";
@@ -35,76 +40,78 @@ final class InteractivePrompt
     /**
      * @return null|array<string, mixed>
      */
-    public function searchSkills(SkillCatalog $catalog, ?string $owner = null): ?array
+    public function searchSkills(SkillCatalog $catalog, ?string $owner = null, bool $color = true): ?array
     {
-        return $this->withTerminal(function () use ($catalog, $owner): ?array {
-            $query = '';
-            $results = [];
-            $selected = 0;
-            $lastRenderedLines = 0;
-            $lastSearchedQuery = null;
+        return $this->withTerminal(function () use ($catalog, $owner, $color): ?array {
+            $style = new TerminalStyle($color);
+            $state = new InteractiveSearchState();
 
-            $render = function () use (&$lastRenderedLines, &$query, &$results, &$selected): void {
-                if ($lastRenderedLines > 0) {
-                    $this->write("\033[" . $lastRenderedLines . "A\033[1G");
+            $render = function () use ($state, $style): void {
+                if ($state->lastRenderedLines > 0) {
+                    $this->write("\033[" . $state->lastRenderedLines . "A\033[1G");
                 }
 
-                $lines = $this->searchLines($query, $results, $selected);
+                $lines = $this->searchLines($state->query, $state->results, $state->selected, $state->loading, $style);
                 $this->write(self::CLEAR_DOWN . implode(PHP_EOL, $lines) . PHP_EOL);
-                $lastRenderedLines = count($lines);
+                $state->lastRenderedLines = count($lines);
             };
 
             $render();
 
             while (true) {
-                $key = $this->readKey();
+                $timeout = is_float($state->debounceUntil) ? max(0.0, $state->debounceUntil - microtime(true)) : null;
+                $key = $this->readKey($timeout);
+
+                if ($key === 'idle') {
+                    $this->flushSearch($state, $catalog, $owner, $render, true);
+
+                    continue;
+                }
 
                 if ($key === 'escape' || $key === 'ctrl-c') {
                     return null;
                 }
 
                 if ($key === 'enter') {
-                    return $results[$selected] ?? null;
+                    if ($state->hasPendingSearch()) {
+                        continue;
+                    }
+
+                    return $state->results[$state->selected] ?? null;
                 }
 
                 if ($key === 'up') {
-                    $selected = max(0, $selected - 1);
+                    if ($state->hasPendingSearch()) {
+                        continue;
+                    }
+
+                    $state->selected = max(0, $state->selected - 1);
                     $render();
 
                     continue;
                 }
 
                 if ($key === 'down') {
-                    $selected = min(max(0, count($results) - 1), $selected + 1);
+                    if ($state->hasPendingSearch()) {
+                        continue;
+                    }
+
+                    $lastVisibleIndex = min(self::SEARCH_RESULT_LIMIT, count($state->results)) - 1;
+                    $state->selected = min(max(0, $lastVisibleIndex), $state->selected + 1);
                     $render();
 
                     continue;
                 }
 
                 if ($key === 'backspace') {
-                    $query = substr($query, 0, -1);
+                    $state->query = substr($state->query, 0, -1);
                 } elseif (str_starts_with($key, 'char:')) {
-                    $query .= substr($key, 5);
+                    $state->query .= substr($key, 5);
                 } else {
                     continue;
                 }
 
-                if (strlen($query) < 2) {
-                    $results = [];
-                    $selected = 0;
-                    $lastSearchedQuery = null;
-                    $render();
-
-                    continue;
-                }
-
-                if ($query !== $lastSearchedQuery) {
-                    $lastSearchedQuery = $query;
-                    $results = $catalog->search($query, $owner);
-                    $selected = 0;
-                }
-
-                $render();
+                $this->queueSearch($state, $render);
             }
         });
     }
@@ -114,9 +121,10 @@ final class InteractivePrompt
      *
      * @return list<string>|null
      */
-    public function multiselect(string $message, array $options): ?array
+    public function multiselect(string $message, array $options, bool $color = true): ?array
     {
-        return $this->withTerminal(function () use ($message, $options): ?array {
+        return $this->withTerminal(function () use ($message, $options, $color): ?array {
+            $style = new TerminalStyle($color);
             $cursor = 0;
             $selected = [];
             $lastRenderedLines = 0;
@@ -127,22 +135,22 @@ final class InteractivePrompt
                 }
             }
 
-            $render = function () use (&$lastRenderedLines, $message, $options, &$cursor, &$selected): void {
+            $render = function () use (&$lastRenderedLines, $message, $options, &$cursor, &$selected, $style): void {
                 if ($lastRenderedLines > 0) {
                     $this->write("\033[" . $lastRenderedLines . "A\033[1G");
                 }
 
-                $lines = [$message];
+                $lines = [...$this->headerLines($style), $style->label($message)];
 
                 foreach ($options as $index => $option) {
-                    $marker = isset($selected[$option['value']]) ? '[x]' : '[ ]';
-                    $pointer = $index === $cursor ? '>' : ' ';
-                    $hint = isset($option['hint']) && $option['hint'] !== '' ? ' - ' . $option['hint'] : '';
-                    $lines[] = sprintf('  %s %s %s%s', $pointer, $marker, $option['label'], $hint);
+                    $marker = isset($selected[$option['value']]) ? $style->success('[x]') : $style->muted('[ ]');
+                    $pointer = $index === $cursor ? $style->command('>') : ' ';
+                    $hint = isset($option['hint']) && $option['hint'] !== '' ? ' - ' . $style->muted($option['hint']) : '';
+                    $lines[] = sprintf('  %s %s %s%s', $pointer, $marker, $style->command($option['label']), $hint);
                 }
 
                 $lines[] = '';
-                $lines[] = 'up/down navigate | space toggle | enter continue | esc cancel';
+                $lines[] = $style->muted('up/down navigate | space toggle | enter continue | esc cancel');
 
                 $this->write(self::CLEAR_DOWN . implode(PHP_EOL, $lines) . PHP_EOL);
                 $lastRenderedLines = count($lines);
@@ -194,7 +202,7 @@ final class InteractivePrompt
     /**
      * @param list<array{value: string, label: string, hint?: string}> $options
      */
-    public function select(string $message, array $options): ?string
+    public function select(string $message, array $options, bool $color = true): ?string
     {
         $multiOptions = array_map(
             static fn(array $option): array => [
@@ -205,15 +213,16 @@ final class InteractivePrompt
             ],
             $options,
         );
-        $selected = $this->multiselect($message, $multiOptions);
+        $selected = $this->multiselect($message, $multiOptions, $color);
 
         return $selected[0] ?? null;
     }
 
-    public function confirm(string $message): bool
+    public function confirm(string $message, bool $color = true): bool
     {
-        return $this->withTerminal(function () use ($message): bool {
-            $this->write($message . ' [y/N] ');
+        return $this->withTerminal(function () use ($message, $color): bool {
+            $style = new TerminalStyle($color);
+            $this->write($style->label($message) . ' ' . $style->argument('[y/N]') . ' ');
 
             while (true) {
                 $key = $this->readKey();
@@ -244,29 +253,38 @@ final class InteractivePrompt
      *
      * @return list<string>
      */
-    private function searchLines(string $query, array $results, int $selected): array
+    private function searchLines(string $query, array $results, int $selected, bool $loading, TerminalStyle $style): array
     {
         $lines = [
-            'Search skills: ' . $query . '_',
+            ...$this->headerLines($style),
+            $style->label('Search skills:') . ' ' . $style->argument($query . '_'),
             '',
         ];
 
         if (strlen($query) < 2) {
-            $lines[] = 'Start typing to search (min 2 chars)';
+            $lines[] = $style->muted('Start typing to search (min 2 chars)');
+        } elseif ($results === [] && $loading) {
+            $lines[] = $style->warning('Searching...');
         } elseif ($results === []) {
-            $lines[] = 'No skills found';
+            $lines[] = $style->warning('No skills found');
         } else {
-            foreach (array_slice($results, 0, 8) as $index => $skill) {
+            foreach (array_slice($results, 0, self::SEARCH_RESULT_LIMIT) as $index => $skill) {
                 $name = is_string($skill['name'] ?? null) ? $skill['name'] : '';
                 $source = is_string($skill['source'] ?? null) ? $skill['source'] : '';
                 $installs = $this->formatInstalls($skill['installs'] ?? null);
-                $pointer = $index === $selected ? '>' : ' ';
-                $lines[] = sprintf('  %s %s %s%s', $pointer, $name, $source, $installs === '' ? '' : ' ' . $installs);
+                $pointer = $index === $selected ? $style->command('>') : ' ';
+                $lines[] = sprintf(
+                    '  %s %s %s%s',
+                    $pointer,
+                    $style->command($name),
+                    $style->muted($source),
+                    $installs === '' ? '' : ' ' . $style->muted($installs),
+                );
             }
         }
 
         $lines[] = '';
-        $lines[] = 'up/down navigate | enter install | esc cancel';
+        $lines[] = $style->muted('up/down navigate | enter install | esc cancel');
 
         return $lines;
     }
@@ -294,6 +312,78 @@ final class InteractivePrompt
     }
 
     /**
+     * @return list<string>
+     */
+    private function headerLines(TerminalStyle $style): array
+    {
+        return [
+            ...$style->siftSkillsBanner(),
+            '',
+        ];
+    }
+
+    private function searchDebounceSeconds(string $query): float
+    {
+        return strlen($query) < 2 ? 0.0 : self::SEARCH_DEBOUNCE_SECONDS;
+    }
+
+    /**
+     * @param Closure(): void $render
+     */
+    private function queueSearch(InteractiveSearchState $state, Closure $render): void
+    {
+        if (strlen($state->query) < 2) {
+            $state->results = [];
+            $state->selected = 0;
+            $state->pendingQuery = null;
+            $state->debounceUntil = null;
+            $state->loading = false;
+            $state->lastSearchedQuery = null;
+            $render();
+
+            return;
+        }
+
+        $state->pendingQuery = $state->query;
+        $state->debounceUntil = microtime(true) + $this->searchDebounceSeconds($state->query);
+        $state->loading = true;
+        $render();
+    }
+
+    /**
+     * @param Closure(): void $render
+     */
+    private function flushSearch(
+        InteractiveSearchState $state,
+        SkillCatalog $catalog,
+        ?string $owner,
+        Closure $render,
+        bool $force = false,
+    ): void {
+        if ($state->pendingQuery === null) {
+            return;
+        }
+
+        if (! $force && $state->debounceUntil !== null && microtime(true) < $state->debounceUntil) {
+            return;
+        }
+
+        $searchQuery = $state->pendingQuery;
+        $state->pendingQuery = null;
+        $state->debounceUntil = null;
+
+        if ($searchQuery !== $state->lastSearchedQuery) {
+            $state->lastSearchedQuery = $searchQuery;
+            $cacheKey = ($owner ?? '') . "\0" . $searchQuery;
+            $state->results = $state->cache[$cacheKey] ??= $catalog->search($searchQuery, $owner);
+            $state->selected = 0;
+        }
+
+        $state->loading = false;
+        $render();
+    }
+
+    /**
      * @template T
      *
      * @param Closure(): T $callback
@@ -313,21 +403,25 @@ final class InteractivePrompt
         }
     }
 
-    private function readKey(): string
+    private function readKey(?float $timeoutSeconds = null): string
     {
         if ($this->keyReader instanceof Closure) {
             return ($this->keyReader)();
         }
 
         if (PHP_OS_FAMILY === 'Windows') {
-            return $this->readWindowsKey();
+            return $this->readWindowsKey($timeoutSeconds);
         }
 
-        return $this->readUnixKey();
+        return $this->readUnixKey($timeoutSeconds);
     }
 
-    private function readUnixKey(): string
+    private function readUnixKey(?float $timeoutSeconds = null): string
     {
+        if ($timeoutSeconds !== null && ! $this->stdinReady($timeoutSeconds)) {
+            return 'idle';
+        }
+
         $char = fgetc(STDIN);
 
         if ($char === false) {
@@ -348,13 +442,34 @@ final class InteractivePrompt
         return $this->keyFromCode(ord($char), ord($char));
     }
 
-    private function readWindowsKey(): string
+    private function readWindowsKey(?float $timeoutSeconds = null): string
     {
         $this->ensureWindowsHelper();
-        $line = is_array($this->windowsPipes) ? fgets($this->windowsPipes[1]) : false;
+
+        if (! is_array($this->windowsPipes)) {
+            return 'escape';
+        }
+
+        $pipe = $this->windowsPipes[1];
+        stream_set_blocking($pipe, true);
+
+        if ($timeoutSeconds !== null) {
+            $read = [$pipe];
+            $write = null;
+            $except = null;
+            $seconds = (int) floor($timeoutSeconds);
+            $microseconds = (int) max(0, ($timeoutSeconds - $seconds) * 1000000);
+            $ready = @stream_select($read, $write, $except, $seconds, $microseconds);
+
+            if ($ready !== 1) {
+                return 'idle';
+            }
+        }
+
+        $line = fgets($pipe);
 
         if (! is_string($line)) {
-            return 'escape';
+            return $timeoutSeconds === null ? 'escape' : 'idle';
         }
 
         [$code, $char] = array_map(intval(...), explode(',', trim($line)) + [0, 0]);
@@ -373,6 +488,18 @@ final class InteractivePrompt
             32 => 'space',
             default => $char === 3 ? 'ctrl-c' : ($char >= 32 && $char <= 126 ? 'char:' . chr($char) : ''),
         };
+    }
+
+    private function stdinReady(float $timeoutSeconds): bool
+    {
+        $read = [STDIN];
+        $write = null;
+        $except = null;
+        $seconds = (int) floor($timeoutSeconds);
+        $microseconds = (int) max(0, ($timeoutSeconds - $seconds) * 1000000);
+        $ready = @stream_select($read, $write, $except, $seconds, $microseconds);
+
+        return $ready === 1;
     }
 
     private function enableRawMode(): void
