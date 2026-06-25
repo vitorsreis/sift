@@ -91,6 +91,7 @@ final class ToolsListTerminalRenderer
             'phpunit' => 'PHPUnit',
             'phpstan' => 'PHPStan',
             'phpcs' => 'PHPCS',
+            'phpcbf' => 'PHPCBF',
             'phpmd' => 'PHPMD',
             'php-cs-fixer' => 'PHP-CS-Fixer',
             default => str_replace(' ', '-', ucwords(str_replace('-', ' ', $tool))),

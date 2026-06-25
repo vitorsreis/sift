@@ -12,6 +12,7 @@ use Sift\Tools\Deptrac\DeptracToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
 use Sift\Tools\ParallelLint\ParallelLintToolAdapter;
+use Sift\Tools\PhpCs\PhpcbfToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpCsFixer\PhpCsFixerToolAdapter;
 use Sift\Tools\PhpMd\PhpmdToolAdapter;
@@ -68,6 +69,7 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PhpstanToolAdapter(),
             new PsalmToolAdapter(),
             new PhpcsToolAdapter(),
+            new PhpcbfToolAdapter(),
             new RectorToolAdapter(),
             new PintToolAdapter(),
             new MagoToolAdapter(),
