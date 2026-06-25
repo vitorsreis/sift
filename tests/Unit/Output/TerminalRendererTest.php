@@ -143,7 +143,7 @@ it('renders tools list terminal output as status lines', function (): void {
     expect($plainOutput)->toContain('PHPUnit, use `composer require --dev phpunit/phpunit`');
 });
 
-it('renders skills find terminal output like the skills cli', function (): void {
+it('renders skills find terminal output with install guidance', function (): void {
     $branch = "\u{2514}";
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',
@@ -208,7 +208,7 @@ Usage: composer skills find [query] [--owner <owner>]
 TEXT) . PHP_EOL);
 });
 
-it('renders skills root help like the skills cli', function (): void {
+it('renders skills root help with the skills banner', function (): void {
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',
         'status' => 'passed',
@@ -282,7 +282,7 @@ it('renders skills root help without ansi when colors are disabled', function ()
     expect($output)->not->toContain("\033[");
 });
 
-it('renders skills list terminal output like the skills cli', function (): void {
+it('renders skills list terminal output with project metadata', function (): void {
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',
         'status' => 'passed',
@@ -352,7 +352,7 @@ it('renders global skills list heading when global scope is selected', function 
     expect(stripTerminalAnsi($output))->toContain('No global skills installed.');
 });
 
-it('renders skills add list previews like the skills cli', function (): void {
+it('renders skills add list previews with install commands', function (): void {
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',
         'status' => 'passed',
@@ -421,7 +421,7 @@ it('renders skills install remove update and init result output without generic 
     ['skills init', ['created' => 1], 'Initialized skill'],
 ]);
 
-it('renders skills init with next steps like the skills cli', function (): void {
+it('renders skills init with next steps', function (): void {
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',
         'status' => 'passed',

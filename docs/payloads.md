@@ -68,6 +68,8 @@ hint: Run "sift help" to list available commands.
 
 Context fields such as `tool`, `path`, `run_id`, `argument`, or `suggestions` may be added inside `error`.
 
+Tool runs that fail after process execution still use the normal run payload. For test runners, if PHPUnit, Pest, or Paratest exits before Sift's generated XML reports are written, Sift emits a `status: "error"` payload with an `error` item whose `message` is the first actionable native error line, not the runner startup banner. Raw stdout and stderr remain available in `extra`.
+
 ## Items
 
 Common fields:
@@ -81,6 +83,14 @@ Common fields:
 - `column`
 
 Item types are centralized. Adapters should not invent new item types without adding catalog coverage.
+
+Coverage-capable test runners add `summary.coverage_percent`. Without `--min`, coverage `items` list every file sorted by lowest coverage first:
+
+```json
+{ "type": "coverage", "file": "src/Checkout.php", "percent": 72.5 }
+```
+
+With `--min`, coverage `items` list only files below the threshold, and `summary` also includes `coverage_min` and `coverage_files_below_min`.
 
 ## History
 

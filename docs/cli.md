@@ -66,7 +66,7 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 ## Streams
 
-- Terminal result output goes to `STDOUT` by default and uses ANSI styling for status, labels, errors, and Skills CLI screens.
+- Terminal result output goes to `STDOUT` by default and uses ANSI styling for status, labels, errors, and skills screens.
 - `--json` writes normalized result payloads to `STDOUT`.
 - `--no-json` forces terminal output when config selects JSON.
 - `output.colored=false` disables ANSI styling by default, and `--no-color` disables it for one command without changing the output format.
@@ -85,7 +85,7 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 In terminal mode, `skills add` can prompt for agents and scope. Existing target folders in the current scope are selected in the agent prompt, `codex` is selected when no target folder is detected, and the Project/Global scope prompt appears only when a selected target supports global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; without `--global`, installs remain project-scoped.
 
-Skills commands accept the public Skills CLI multi-value option style, for example `--agent codex cursor` and `--skill pr-review commit`. `skills add --subagent reviewer` targets Eve at `agent/subagents/reviewer/skills`; `--subagent root` targets Eve's root `agent/skills`.
+Skills commands accept multi-value options, for example `--agent codex cursor` and `--skill pr-review commit`. `skills add --subagent reviewer` targets Eve at `agent/subagents/reviewer/skills`; `--subagent root` targets Eve's root `agent/skills`.
 
 `skills use` prints a prompt for one selected skill without installing it. It supports `<source>@<skill>` and `--skill <skill>` selection and returns terminal prompt text by default.
 
@@ -99,6 +99,12 @@ Sift global options can be placed before the tool name:
 
 ```bash
 composer sift --json composer validate
+```
+
+Tools that can change files require explicit repair intent. For PHPCBF, use `--repair` because the native tool writes fixes in place and has no dry-run mode:
+
+```bash
+composer sift phpcbf --repair src
 ```
 
 ## Exit Codes

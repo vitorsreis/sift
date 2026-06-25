@@ -44,7 +44,7 @@ In TTY mode, `skills add` can prompt for skills, target agents, installation sco
 
 In non-TTY or CI, pass `--yes` with `--agent=<target>`, or use `--all`; Sift never relies on an unavailable prompt. Without `--global`, non-interactive installs stay in project scope.
 
-Sift accepts the Skills CLI multi-value flag style: `--agent codex cursor`, `--skill pr-review commit`, and repeated flags all resolve to the same target/skill lists. `skills a` is an alias for `skills add`. `--copy`, `--full-depth`, and `--dangerously-accept-openclaw-risks` are accepted for Skills CLI compatibility; Sift installs by copying files into managed targets.
+Sift accepts multi-value flags: `--agent codex cursor`, `--skill pr-review commit`, and repeated flags all resolve to the same target/skill lists. `skills a` is an alias for `skills add`. `--copy`, `--full-depth`, and `--dangerously-accept-openclaw-risks` are accepted for compatibility with existing skill-manager invocations; Sift installs by copying files into managed targets.
 
 For Eve, use `--subagent <name>` to install into `agent/subagents/<name>/skills/<skill>/`. Use `--subagent root` for the root `agent/skills/<skill>/` target. If `--subagent` is provided without `--agent`, Sift targets Eve automatically.
 
@@ -80,7 +80,7 @@ Common global paths:
 - `opencode`: `~/.config/opencode/skills/<skill>/`.
 - `windsurf`: `~/.codeium/windsurf/skills/<skill>/`.
 
-Sift supports the Skills CLI target names from `skills@1.5.13`, including `aider-desk`, `amp`, `replit`, `universal`, `antigravity`, `antigravity-cli`, `astrbot`, `autohand-code`, `augment`, `bob`, `claude-code`, `openclaw`, `cline`, `dexto`, `kimi-code-cli`, `loaf`, `warp`, `zed`, `codearts-agent`, `codebuddy`, `codemaker`, `codestudio`, `codex`, `command-code`, `continue`, `cortex`, `crush`, `cursor`, `deepagents`, `devin`, `droid`, `eve`, `firebender`, `forgecode`, `gemini-cli`, `github-copilot`, `goose`, `hermes-agent`, `inference-sh`, `jazz`, `junie`, `iflow-cli`, `kilo`, `kiro-cli`, `kode`, `lingma`, `mcpjam`, `mistral-vibe`, `moxby`, `mux`, `opencode`, `openhands`, `ona`, `pi`, `qoder`, `qoder-cn`, `qwen-code`, `reasonix`, `rovodev`, `roo`, `tabnine-cli`, `terramind`, `tinycloud`, `trae`, `trae-cn`, `windsurf`, `zencoder`, `zenflow`, `neovate`, `pochi`, `promptscript`, and `adal`. Project-only targets such as `eve`, `promptscript`, and `generic` are excluded from global `--all`.
+Sift supports target names including `aider-desk`, `amp`, `replit`, `universal`, `antigravity`, `antigravity-cli`, `astrbot`, `autohand-code`, `augment`, `bob`, `claude-code`, `openclaw`, `cline`, `dexto`, `kimi-code-cli`, `loaf`, `warp`, `zed`, `codearts-agent`, `codebuddy`, `codemaker`, `codestudio`, `codex`, `command-code`, `continue`, `cortex`, `crush`, `cursor`, `deepagents`, `devin`, `droid`, `eve`, `firebender`, `forgecode`, `gemini-cli`, `github-copilot`, `goose`, `hermes-agent`, `inference-sh`, `jazz`, `junie`, `iflow-cli`, `kilo`, `kiro-cli`, `kode`, `lingma`, `mcpjam`, `mistral-vibe`, `moxby`, `mux`, `opencode`, `openhands`, `ona`, `pi`, `qoder`, `qoder-cn`, `qwen-code`, `reasonix`, `rovodev`, `roo`, `tabnine-cli`, `terramind`, `tinycloud`, `trae`, `trae-cn`, `windsurf`, `zencoder`, `zenflow`, `neovate`, `pochi`, `promptscript`, and `adal`. Project-only targets such as `eve`, `promptscript`, and `generic` are excluded from global `--all`.
 
 ## Managed Metadata
 

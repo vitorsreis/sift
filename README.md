@@ -30,7 +30,7 @@ only when they need more detail.
 
 ## Why Sift
 
-- **Manage skills through Composer** for the open Skills CLI target set, including Codex, Cursor, Claude Code,
+- **Manage skills through Composer** for the open agent target set, including Codex, Cursor, Claude Code,
   GitHub Copilot, Gemini CLI, OpenCode, Antigravity, Windsurf, and project or global installs.
 - **Reduce wasted tokens** by replacing raw tool output with compact summaries and paginated history.
 - **Run 15+ PHP tools** through one command layer.
@@ -66,12 +66,14 @@ Supported skill sources:
 
 Other commands include `init`, `list`, `find`, `use`, `update` / `upgrade`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-select before install.
 
-`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. It accepts Skills CLI-style multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. Use `--global` / `-g` for user-level installs, `--subagent reviewer` for Eve subagents, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
+`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. It accepts multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. Use `--global` / `-g` for user-level installs, `--subagent reviewer` for Eve subagents, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
 
 ## Tools
 
 Use `composer sift tools list` to check availability in your project and `composer sift <tool>` to run with compact
 output.
+
+For test runners, Sift injects machine-readable reports when needed. If the runner exits before those reports are written, the normalized payload reports the native error message and keeps raw stdout/stderr in `extra`.
 
 #### Supported tools:
 
@@ -81,6 +83,7 @@ output.
 - `phpstan`
 - `psalm`
 - `phpcs`
+- `phpcbf`
 - `pint`
 - `rector`
 - `mago`
@@ -88,8 +91,8 @@ output.
 - `deptrac`
 - `php-cs-fixer`
 - `phpmd`
-- `composer require-checker`
-- `composer unused`
+- `composer-require-checker`
+- `composer-unused`
 - `parallel-lint`
 - `composer audit|licenses|outdated|show|validate`
 

@@ -128,7 +128,7 @@ it('parses command options after a declared command', function (): void {
     ]);
 });
 
-it('parses public Skills CLI style multi value skill and agent options', function (): void {
+it('parses multi value skill and agent options', function (): void {
     $request = CliParser::forSift()->parse([
         'skills',
         'a',
@@ -151,7 +151,7 @@ it('parses public Skills CLI style multi value skill and agent options', functio
     ]);
 });
 
-it('parses Skills CLI add compatibility options', function (): void {
+it('parses skills add compatibility options', function (): void {
     $request = CliParser::forSift()->parse([
         'skills',
         'add',

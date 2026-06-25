@@ -51,11 +51,13 @@ composer sift --json composer validate
 Supported tool names:
 
 - `pest`, `phpunit`, `paratest`
-- `phpstan`, `psalm`, `phpcs`, `parallel-lint`
+- `phpstan`, `psalm`, `phpcs`, `phpcbf`, `parallel-lint`
 - `pint`, `php-cs-fixer`, `rector`, `mago`
 - `infection`, `deptrac`, `phpmd`
 - `composer-unused`, `composer-require-checker`
 - `composer audit`, `composer licenses`, `composer outdated`, `composer show`, `composer validate`
+
+For `pest`, `phpunit`, and `paratest`, Sift injects JUnit and coverage reports when needed. Coverage output includes per-file coverage items when no `--min` threshold is provided; with `--min`, items are limited to files below the threshold. For `phpunit`, Sift treats `--min` as its own threshold option and removes it before executing PHPUnit. If the runner exits before generated reports are written, inspect `items[].message` for the native error and `extra.stdout` / `extra.stderr` for the raw output.
 
 ## History Commands
 
@@ -89,6 +91,6 @@ composer skills remove [name ...] [--agent=<target>] [--global] --yes
 ```
 
 `composer skills` renders the bannered skills help. `composer skills find` without a query opens interactive typeahead search in terminal mode.
-`composer skills add` can prompt for agents and Project/Global scope in terminal mode. In CI, use `--yes --agent=<target>` or `--all`; use `--global` only for user-level skill directories. Skills commands accept the public Skills CLI multi-value flag style, including `--agent codex cursor` and `--skill pr-review commit`.
+`composer skills add` can prompt for agents and Project/Global scope in terminal mode. In CI, use `--yes --agent=<target>` or `--all`; use `--global` only for user-level skill directories. Skills commands accept multi-value flags, including `--agent codex cursor` and `--skill pr-review commit`.
 
 `composer skills use` prints a prompt for one selected skill without installing. `composer skills update` asks for Project/Global/Both in terminal mode; with `--yes`, it updates project skills when present and otherwise falls back to global.

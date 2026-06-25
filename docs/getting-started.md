@@ -21,11 +21,18 @@ composer sift init -y
 composer sift --compact pest
 composer sift --compact phpstan analyse src
 composer sift --compact pint
+composer sift --compact phpcs src
 composer sift --compact composer audit
 ```
 
 Output is terminal text by default. Use `--json` when you need the normalized payload, and `--full` only when compact output does not include enough information.
 Use `--no-color` when a single terminal command must not include ANSI styling, or set `output.colored=false` in `sift.json` for plain text by default.
+
+Mutating fixers require explicit intent. PHPCBF writes fixes in place, so Sift only runs it with `--repair`:
+
+```bash
+composer sift --compact phpcbf --repair src
+```
 
 ```bash
 composer sift --json --compact pest
@@ -50,4 +57,4 @@ composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills list
 ```
 
-Use `skills add <source> --list` to preview external repositories before installing. `composer skills find` without a query opens an interactive typeahead search in terminal mode.
+Use `composer skills add <source> --list` to preview external repositories before installing. `composer skills find` without a query opens an interactive typeahead search in terminal mode.

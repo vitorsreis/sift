@@ -32,13 +32,18 @@ Use `output.colored=false` for plain terminal output by default, or `--no-color`
 composer sift --compact phpstan analyse src
 composer sift --compact psalm
 composer sift --compact mago analyze src
+composer sift --compact phpcs src
 composer sift --compact pint
 composer sift --compact php-cs-fixer fix --dry-run
 composer sift --compact rector process --dry-run src
 composer sift --compact mago format --check src
 ```
 
-Do not switch to write mode without explicit user intent.
+Do not switch to write mode without explicit user intent. PHPCBF has no dry-run mode, so run it only when the user explicitly wants repairs:
+
+```bash
+composer sift --compact phpcbf --repair src
+```
 
 ## Dependencies
 
