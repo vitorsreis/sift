@@ -78,10 +78,12 @@ composer skills list
 composer skills add vitorsreis/sift --skill sift --agent=codex --yes
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
+composer skills add owner/repo --skill <name> --agent=<target> --global --yes
 composer skills find [query]
 composer skills init [name] [--yes]
-composer skills update [name ...] --yes
-composer skills remove [name ...] --yes
+composer skills update [name ...] [--agent=<target>] [--global] --yes
+composer skills remove [name ...] [--agent=<target>] [--global] --yes
 ```
 
 `composer skills` renders the bannered skills help. `composer skills find` without a query opens interactive typeahead search in terminal mode.
+`composer skills add` can prompt for agents and Project/Global scope in terminal mode. In CI, use `--yes --agent=<target>` or `--all`; use `--global` only for user-level skill directories.

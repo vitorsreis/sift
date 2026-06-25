@@ -68,7 +68,8 @@ final readonly class SkillsAddCommand implements CommandHandler
             }
 
             $selectedSkills = $this->selectedSkills($route, $resolvedSource, $skills);
-            $targets = $this->targets($route);
+            $targets = $this->targets($route, $cwd, $this->optionBool($route, 'global'));
+            $global = $this->installGlobally($route, $targets);
             $this->assertConfirmed(
                 $route,
                 sprintf(
@@ -80,10 +81,10 @@ final readonly class SkillsAddCommand implements CommandHandler
             $results = $this->targetLock->synchronized(
                 $cwd,
                 $targets,
-                fn(): array => $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource),
+                fn(): array => $this->targetInstaller->install($cwd, $selectedSkills, $targets, $resolvedSource, $global),
             );
 
-            return $this->installPayload($route, $resolvedSource, $selectedSkills, $targets, $results);
+            return $this->installPayload($route, $resolvedSource, $selectedSkills, $targets, $results, $global);
         } finally {
             $checkout->cleanup();
         }
@@ -133,7 +134,7 @@ final readonly class SkillsAddCommand implements CommandHandler
      *
      * @return array<string, mixed>
      */
-    private function installPayload(CommandRoute $route, SkillSource $source, array $skills, array $targets, array $results): array
+    private function installPayload(CommandRoute $route, SkillSource $source, array $skills, array $targets, array $results, bool $global): array
     {
         return [
             'tool' => 'sift',
@@ -153,7 +154,7 @@ final readonly class SkillsAddCommand implements CommandHandler
                 'resolved_ref' => $source->resolvedRef(),
                 'warnings' => $source->warnings(),
                 'targets' => $targets,
-                'global' => $this->optionBool($route, 'global'),
+                'global' => $global,
             ],
         ];
     }
@@ -191,6 +192,11 @@ final readonly class SkillsAddCommand implements CommandHandler
     private function optionBool(CommandRoute $route, string $name): bool
     {
         return ($route->options()[$name] ?? false) === true;
+    }
+
+    private function optionProvided(CommandRoute $route, string $name): bool
+    {
+        return array_key_exists($name, $route->options());
     }
 
     private function jsonRequested(CommandRoute $route): bool
@@ -266,10 +272,10 @@ final readonly class SkillsAddCommand implements CommandHandler
     /**
      * @return list<string>
      */
-    private function targets(CommandRoute $route): array
+    private function targets(CommandRoute $route, string $cwd, bool $global): array
     {
         if ($this->optionBool($route, 'all')) {
-            return $this->targetRegistry->writeCapableNames();
+            return $this->targetRegistry->writeCapableNames($global);
         }
 
         $agent = $route->options()['agent'] ?? null;
@@ -281,14 +287,7 @@ final readonly class SkillsAddCommand implements CommandHandler
 
             $selected = $this->interactivePrompt->multiselect(
                 'Which agents do you want to install to?',
-                array_map(
-                    static fn(string $target): array => [
-                        'value' => $target,
-                        'label' => $target,
-                        'selected' => $target === 'codex',
-                    ],
-                    $this->targetRegistry->writeCapableNames(),
-                ),
+                $this->targetRegistry->agentChoices($cwd, $global),
                 $this->colorEnabled($route),
             );
 
@@ -305,13 +304,54 @@ final readonly class SkillsAddCommand implements CommandHandler
             $target = trim($target);
 
             if ($target === '' || in_array($target, ['*', 'all'], true)) {
-                return $this->targetRegistry->writeCapableNames();
+                return $this->targetRegistry->writeCapableNames($global);
             }
 
             $targets[] = $target;
         }
 
         return array_values(array_unique($targets));
+    }
+
+    /**
+     * @param list<string> $targets
+     */
+    private function installGlobally(CommandRoute $route, array $targets): bool
+    {
+        if ($this->optionProvided($route, 'global')) {
+            return $this->optionBool($route, 'global');
+        }
+
+        if ($this->optionBool($route, 'yes') || $this->optionBool($route, 'all')) {
+            return false;
+        }
+
+        if (! $this->targetRegistry->anySupportsGlobal($targets)) {
+            return false;
+        }
+
+        $scope = $this->interactivePrompt->select(
+            'Installation scope',
+            [
+                [
+                    'value' => 'project',
+                    'label' => 'Project',
+                    'hint' => 'Install in current directory.',
+                ],
+                [
+                    'value' => 'global',
+                    'label' => 'Global',
+                    'hint' => 'Install in the user-level directory.',
+                ],
+            ],
+            $this->colorEnabled($route),
+        );
+
+        if ($scope === null) {
+            throw new InvalidUsageException('Skill command cancelled.');
+        }
+
+        return $scope === 'global';
     }
 
     /**

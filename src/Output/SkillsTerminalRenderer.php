@@ -69,25 +69,30 @@ final class SkillsTerminalRenderer
             ], $style), 'Initialize a skill.'),
             '',
             $style->heading('Add Options:'),
+            $this->helpRow('-g, --global', $style->argument('-g') . ', ' . $style->argument('--global'), 'Use user-level skill directories.'),
             $this->helpRow('-a, --agent <agents>', $style->argument('-a') . ', ' . $style->argument('--agent') . ' ' . $style->argument('<agents>'), 'Specify agents to install to.'),
+            $this->helpRow('', '', 'Omit to choose agents and scope interactively.'),
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Specify skill names to install.'),
             $this->helpRow('-l, --list', $style->argument('-l') . ', ' . $style->argument('--list'), 'List available skills without installing.'),
             $this->helpRow('-y, --yes', $style->argument('-y') . ', ' . $style->argument('--yes'), 'Skip confirmation prompts.'),
             $this->helpRow('--all', $style->argument('--all'), 'Install every skill into every supported agent.'),
             '',
             $style->heading('Update Options:'),
+            $this->helpRow('-g, --global', $style->argument('-g') . ', ' . $style->argument('--global'), 'Use user-level skill directories.'),
             $this->helpRow('-a, --agent <agents>', $style->argument('-a') . ', ' . $style->argument('--agent') . ' ' . $style->argument('<agents>'), 'Update specific agents.'),
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Update specific skills.'),
             $this->helpRow('-y, --yes', $style->argument('-y') . ', ' . $style->argument('--yes'), 'Skip confirmation prompts.'),
             $this->helpRow('--all', $style->argument('--all'), 'Update every managed skill in every supported agent.'),
             '',
             $style->heading('Remove Options:'),
+            $this->helpRow('-g, --global', $style->argument('-g') . ', ' . $style->argument('--global'), 'Use user-level skill directories.'),
             $this->helpRow('-a, --agent <agents>', $style->argument('-a') . ', ' . $style->argument('--agent') . ' ' . $style->argument('<agents>'), 'Remove from specific agents.'),
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Specify skills to remove.'),
             $this->helpRow('-y, --yes', $style->argument('-y') . ', ' . $style->argument('--yes'), 'Skip confirmation prompts.'),
             $this->helpRow('--all', $style->argument('--all'), 'Remove every managed skill from every supported agent.'),
             '',
             $style->heading('List Options:'),
+            $this->helpRow('-g, --global', $style->argument('-g') . ', ' . $style->argument('--global'), 'List user-level skill directories.'),
             $this->helpRow('-a, --agent <agents>', $style->argument('-a') . ', ' . $style->argument('--agent') . ' ' . $style->argument('<agents>'), 'Filter by specific agents.'),
             $this->helpRow('-s, --skill <skills>', $style->argument('-s') . ', ' . $style->argument('--skill') . ' ' . $style->argument('<skills>'), 'Filter by specific skills.'),
             $this->helpRow('--json', $style->argument('--json'), 'Output normalized JSON.'),
@@ -100,6 +105,7 @@ final class SkillsTerminalRenderer
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'find'], ['plain', 'php']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo@skill']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--skill'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--yes']], $style),
+            '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--skill'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--global'], ['argument', '--yes']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'add'], ['plain', 'owner/repo'], ['argument', '--list']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'remove']], $style),
             '  ' . $this->syntax([['command', 'composer'], ['command', 'skills'], ['command', 'remove'], ['plain', 'review'], ['argument', '--agent=codex'], ['argument', '--yes']], $style),
@@ -119,10 +125,12 @@ final class SkillsTerminalRenderer
     private function list(array $payload, TerminalStyle $style): string
     {
         $items = $this->items($payload);
-        $lines = [$style->heading('Project Skills'), ''];
+        $meta = $this->object($payload['meta'] ?? null);
+        $global = ($meta['global'] ?? false) === true;
+        $lines = [$style->heading($global ? 'Global Skills' : 'Project Skills'), ''];
 
         if ($items === []) {
-            $lines[] = $style->muted('No project skills installed.');
+            $lines[] = $style->muted($global ? 'No global skills installed.' : 'No project skills installed.');
 
             return implode(PHP_EOL, $lines);
         }

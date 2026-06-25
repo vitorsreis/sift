@@ -11,17 +11,22 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - `composer sift help` now renders a grayscale `SIFT` banner, matching the skills helper visual style.
 - `output.colored` configures terminal ANSI color feedback globally.
 - `--no-color` disables ANSI styling for a single terminal command.
+- Skills targets now include OpenCode, Antigravity, Gemini CLI, OpenClaw, and other `.agents/skills`-based agents.
+- `skills add` now prompts interactively for Project or Global scope when selected agents support user-level installs.
 
 ### Changed
 
 - Terminal renderers now use one color contract: commands in cyan, options and placeholders in yellow, headings in bold, secondary text in gray, success in green, and errors in red.
 - Skills help and Sift help now build styled output from structured rows instead of ad-hoc token replacements.
 - Composer skills entrypoints now accept output flags such as `--json`, `--compact`, and `--no-color` consistently.
+- Native skill targets now install into project skill directories by default; `--global` / `-g` selects the user-level target directory for add, list, remove, and update.
+- The interactive agent picker now preselects existing target folders and falls back to `codex` when no target folder is detected.
 
 ### Fixed
 
 - Composer skills tests now isolate `CODEX_HOME` so local installed skills do not leak into fixture expectations.
 - Terminal output tests now compare plain content after stripping ANSI sequences where color is not the behavior under test.
+- `--global` on skills commands now affects the actual inventory and install/remove/update paths instead of only appearing in metadata.
 
 ## 2.1.0 - 2026-06-24
 

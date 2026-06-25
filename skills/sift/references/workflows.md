@@ -64,6 +64,8 @@ Rules:
 
 - Preview external sources with `--list` before install when possible.
 - Use `composer skills find` without a query for interactive typeahead search in terminal mode.
-- Mutating commands in non-TTY or CI need `--yes`.
-- `--all` means all selected skills and all write-capable targets.
-- Managed blocks and `.sift-skill.json` preserve manual content around Sift-managed areas.
+- Mutating commands in non-TTY or CI need `--yes --agent=<target>` or `--all`.
+- Skill installs target project directories by default. Add `--global` to use each target's user-level skills directory.
+- Interactive `skills add` preselects existing target folders, falls back to `codex`, and prompts for Project or Global scope when the selected target supports it.
+- `--all` means all selected skills and all write-capable targets in the selected project/global scope.
+- Directory targets use `.sift-skill.json`; the `generic` compatibility target uses managed blocks in `AGENTS.md`.

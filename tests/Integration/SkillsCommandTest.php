@@ -134,6 +134,68 @@ it('installs a single skill source without an explicit skill selector', function
     expect($agents)->toContain('name: php-review');
 });
 
+it('installs codex skills into the project by default and global scope with --global', function (): void {
+    $project = FixtureProject::create();
+    $repository = FixtureProject::create('sift-skills-repo-');
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    skillsCommandFixture($repository, 'SKILL.md', 'php-review', 'Use when reviewing PHP.');
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $projectResult = CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent=codex',
+            '--yes',
+        ], $project->root());
+
+        $globalResult = CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'add',
+            $repository->root(),
+            '--agent=codex',
+            '--global',
+            '--yes',
+        ], $project->root());
+
+        $projectList = CliRunner::decode(CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'list',
+            '--agent=codex',
+        ], $project->root())['stdout']);
+
+        $globalList = CliRunner::decode(CliRunner::run([
+            '--json',
+            '--full',
+            '--no-pretty',
+            'skills',
+            'list',
+            '--agent=codex',
+            '--global',
+        ], $project->root())['stdout']);
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($projectResult['exit_code'])->toBe(0);
+    expect($globalResult['exit_code'])->toBe(0);
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
+    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
+    expect(skillsCommandObject($projectList, 'summary')['total'] ?? null)->toBe(1);
+    expect(skillsCommandObject($globalList, 'summary')['total'] ?? null)->toBe(1);
+});
+
 it('installs every discovered skill with the wildcard selector', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
@@ -249,7 +311,7 @@ it('removes only managed generic skill blocks', function (): void {
     expect(skillsCommandObject($list, 'summary')['total'] ?? null)->toBe(0);
 });
 
-it('removes managed codex skill directories', function (): void {
+it('removes managed project codex skill directories', function (): void {
     $project = FixtureProject::create();
     $repository = FixtureProject::create('sift-skills-repo-');
     $codexHome = FixtureProject::create('sift-codex-home-');
@@ -280,31 +342,24 @@ it('removes managed codex skill directories', function (): void {
     expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(1);
     expect($items[0]['target'] ?? null)->toBe('codex');
     expect($items[0]['action'] ?? null)->toBe('removed');
+    expect($project->path('.agents/skills/php-review'))->not->toBeDirectory();
     expect($codexHome->path('skills/php-review'))->not->toBeDirectory();
     expect(skillsCommandObject($list, 'summary')['total'] ?? null)->toBe(0);
 });
 
-it('does not remove unmanaged codex skill directories', function (): void {
+it('does not remove unmanaged project codex skill directories', function (): void {
     $project = FixtureProject::create();
-    $codexHome = FixtureProject::create('sift-codex-home-');
-    $codexHome->write('skills/php-review/SKILL.md', "# PHP Review\n");
+    $project->write('.agents/skills/php-review/SKILL.md', "# PHP Review\n");
 
-    $previousCodexHome = getenv('CODEX_HOME');
-    putenv('CODEX_HOME=' . $codexHome->root());
-
-    try {
-        $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
-        $payload = CliRunner::decode($result['stdout']);
-        $items = skillsCommandItems($payload);
-    } finally {
-        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
-    }
+    $result = CliRunner::run(['--json', '--full', '--no-pretty', 'skills', 'remove', 'php-review', '--agent=codex', '--yes'], $project->root());
+    $payload = CliRunner::decode($result['stdout']);
+    $items = skillsCommandItems($payload);
 
     expect($result['exit_code'])->toBe(0);
     expect(skillsCommandObject($payload, 'summary')['removed'] ?? null)->toBe(0);
     expect($items[0]['target'] ?? null)->toBe('codex');
     expect($items[0]['action'] ?? null)->toBe('missing');
-    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
 });
 
 it('requires confirmation before removing skills', function (): void {

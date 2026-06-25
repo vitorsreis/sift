@@ -204,18 +204,59 @@ final class InteractivePrompt
      */
     public function select(string $message, array $options, bool $color = true): ?string
     {
-        $multiOptions = array_map(
-            static fn(array $option): array => [
-                'value' => $option['value'],
-                'label' => $option['label'],
-                'hint' => $option['hint'] ?? '',
-                'selected' => false,
-            ],
-            $options,
-        );
-        $selected = $this->multiselect($message, $multiOptions, $color);
+        return $this->withTerminal(function () use ($message, $options, $color): ?string {
+            $style = new TerminalStyle($color);
+            $cursor = 0;
+            $lastRenderedLines = 0;
 
-        return $selected[0] ?? null;
+            $render = function () use (&$lastRenderedLines, $message, $options, &$cursor, $style): void {
+                if ($lastRenderedLines > 0) {
+                    $this->write("\033[" . $lastRenderedLines . "A\033[1G");
+                }
+
+                $lines = [...$this->headerLines($style), $style->label($message)];
+
+                foreach ($options as $index => $option) {
+                    $pointer = $index === $cursor ? $style->command('>') : ' ';
+                    $hint = isset($option['hint']) && $option['hint'] !== '' ? ' - ' . $style->muted($option['hint']) : '';
+                    $lines[] = sprintf('  %s %s%s', $pointer, $style->command($option['label']), $hint);
+                }
+
+                $lines[] = '';
+                $lines[] = $style->muted('up/down navigate | enter continue | esc cancel');
+
+                $this->write(self::CLEAR_DOWN . implode(PHP_EOL, $lines) . PHP_EOL);
+                $lastRenderedLines = count($lines);
+            };
+
+            $render();
+
+            while (true) {
+                $key = $this->readKey();
+
+                if ($key === 'escape' || $key === 'ctrl-c') {
+                    return null;
+                }
+
+                if ($key === 'up') {
+                    $cursor = max(0, $cursor - 1);
+                    $render();
+
+                    continue;
+                }
+
+                if ($key === 'down') {
+                    $cursor = min(count($options) - 1, $cursor + 1);
+                    $render();
+
+                    continue;
+                }
+
+                if ($key === 'enter') {
+                    return $options[$cursor]['value'] ?? null;
+                }
+            }
+        });
     }
 
     public function confirm(string $message, bool $color = true): bool

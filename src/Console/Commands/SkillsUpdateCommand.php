@@ -37,7 +37,8 @@ final readonly class SkillsUpdateCommand implements CommandHandler
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $targets = $this->targets($route);
+        $global = $this->optionBool($route, 'global');
+        $targets = $this->targets($route, $global);
         $names = $this->selectedNames($route);
         $this->assertConfirmed(
             $route,
@@ -48,12 +49,12 @@ final readonly class SkillsUpdateCommand implements CommandHandler
             ),
         );
         $installed = [];
-        $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, &$installed): array {
-            $installed = $this->selectedMetadata($this->skillService->inventory($cwd, $targets), $route);
+        $results = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $route, $targets, $global, &$installed): array {
+            $installed = $this->selectedMetadata($this->skillService->inventory($cwd, $targets, $global), $route);
             $results = [];
 
             foreach ($installed as $metadata) {
-                foreach ($this->update($cwd, $metadata, $targets) as $result) {
+                foreach ($this->update($cwd, $metadata, $targets, $global) as $result) {
                     $results[] = $result;
                 }
             }
@@ -75,6 +76,7 @@ final readonly class SkillsUpdateCommand implements CommandHandler
             'meta' => [
                 'subcommand' => 'skills update',
                 'targets' => $targets,
+                'global' => $global,
             ],
         ];
     }
@@ -143,7 +145,7 @@ final readonly class SkillsUpdateCommand implements CommandHandler
      *
      * @return list<SkillTargetInstallResult>
      */
-    private function update(string $cwd, SkillManagedMetadata $metadata, array $requestedTargets): array
+    private function update(string $cwd, SkillManagedMetadata $metadata, array $requestedTargets, bool $global): array
     {
         $source = $this->sourceResolver->resolve($metadata->source(), $cwd);
         $checkout = $this->checkout($source, $cwd);
@@ -160,7 +162,7 @@ final readonly class SkillsUpdateCommand implements CommandHandler
             $selectedSkills = $this->selector->select($skills, $metadata->name(), $resolvedSource->source());
             $targets = array_values(array_intersect($metadata->targets(), $requestedTargets));
 
-            return $this->targetInstaller->install($cwd, $this->assertOneSkill($selectedSkills, $metadata), $targets, $resolvedSource);
+            return $this->targetInstaller->install($cwd, $this->assertOneSkill($selectedSkills, $metadata), $targets, $resolvedSource, $global);
         } finally {
             $checkout->cleanup();
         }
@@ -192,16 +194,16 @@ final readonly class SkillsUpdateCommand implements CommandHandler
     /**
      * @return list<string>
      */
-    private function targets(CommandRoute $route): array
+    private function targets(CommandRoute $route, bool $global): array
     {
         if ($this->optionBool($route, 'all')) {
-            return $this->targetRegistry->writeCapableNames();
+            return $this->targetRegistry->writeCapableNames($global);
         }
 
         $agent = $route->options()['agent'] ?? null;
 
         if (! is_string($agent) || trim($agent) === '' || in_array(trim($agent), ['*', 'all'], true)) {
-            return $this->targetRegistry->writeCapableNames();
+            return $this->targetRegistry->writeCapableNames($global);
         }
 
         $targets = [];

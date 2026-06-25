@@ -22,10 +22,10 @@ final readonly class SkillTargetInstaller
      *
      * @return list<SkillTargetInstallResult>
      */
-    public function install(string $cwd, array $skills, array $targets, SkillSource $source): array
+    public function install(string $cwd, array $skills, array $targets, SkillSource $source, bool $global = false): array
     {
         $results = [];
-        $resolvedTargets = $this->resolveTargets($targets);
+        $resolvedTargets = $this->resolveTargets($targets, $global);
         $canonicalTargets = array_keys($resolvedTargets);
 
         foreach ($resolvedTargets as $target) {
@@ -42,12 +42,12 @@ final readonly class SkillTargetInstaller
      *
      * @return array<string, InstructionTarget>
      */
-    private function resolveTargets(array $targets): array
+    private function resolveTargets(array $targets, bool $global): array
     {
         $resolvedTargets = [];
 
         foreach ($targets as $targetName) {
-            $target = $this->registry->resolve($targetName);
+            $target = $this->registry->resolve($targetName, $global);
             $resolvedTargets[$target->name()] = $target;
         }
 

@@ -93,8 +93,9 @@ it(
         $project = FixtureProject::create();
         $source = FixtureProject::create('sift-critical-skill-');
         criticalCommandSkill($source, 'Interactive guidance');
+        $project->write('AGENTS.md', "Manual instructions\n");
 
-        $keys = ['space', 'down', 'down', 'down', 'down', 'space', 'enter', 'char:y'];
+        $keys = ['enter', 'char:y'];
         $payload = (new SkillsAddCommand(
             interactivePrompt: new InteractivePrompt(
                 keyReader: static function () use (&$keys): string {
@@ -114,6 +115,44 @@ it(
         expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Interactive guidance');
     },
 );
+
+it('prompts for the installation scope after selecting interactive agents', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    $codexHome = FixtureProject::create('sift-critical-codex-home-');
+    $home = FixtureProject::create('sift-critical-home-');
+    criticalCommandSkill($source, 'Global interactive guidance');
+
+    $previousHome = getenv('HOME');
+    $previousUserProfile = getenv('USERPROFILE');
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('HOME=' . $home->root());
+    putenv('USERPROFILE=' . $home->root());
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        $keys = ['enter', 'down', 'enter', 'char:y'];
+        $payload = (new SkillsAddCommand(
+            interactivePrompt: new InteractivePrompt(
+                keyReader: static function () use (&$keys): string {
+                    return array_shift($keys) ?? 'escape';
+                },
+                writer: static function (): void {},
+            ),
+        ))->handle(
+            new CommandRoute('skills.add', [$source->root()]),
+            $project->root(),
+        );
+    } finally {
+        putenv($previousHome === false ? 'HOME' : 'HOME=' . $previousHome);
+        putenv($previousUserProfile === false ? 'USERPROFILE' : 'USERPROFILE=' . $previousUserProfile);
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($payload['meta'])->toMatchArray(['global' => true, 'targets' => ['codex']]);
+    expect($codexHome->path('skills/critical-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/critical-review/SKILL.md'))->not->toBeFile();
+});
 
 it('removes selected skills from the interactive skills remove flow', function (): void {
     $project = FixtureProject::create();

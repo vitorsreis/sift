@@ -104,8 +104,9 @@ it('installs the bundled sift skill during init when yes is explicit', function 
     expect($initSummary['skill_installed'] ?? null)->toBeTrue();
     expect($againSummary['already_initialized'] ?? null)->toBeTrue();
     expect($againSummary['skill_installed'] ?? null)->toBeTrue();
-    expect($codexHome->path('skills/sift/SKILL.md'))->toBeFile();
-    expect($codexHome->path('skills/sift/.sift-skill.json'))->toBeFile();
+    expect($project->path('.agents/skills/sift/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/sift/.sift-skill.json'))->toBeFile();
+    expect($codexHome->path('skills/sift/SKILL.md'))->not->toBeFile();
 });
 
 it('does not install the bundled skill during init without an explicit opt in', function (): void {

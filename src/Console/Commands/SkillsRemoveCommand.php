@@ -25,20 +25,21 @@ final readonly class SkillsRemoveCommand implements CommandHandler
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $targets = $this->targets($route);
+        $global = $this->optionBool($route, 'global');
+        $targets = $this->targets($route, $global);
         $usesInteractivePrompt = $this->usesInteractivePrompt($route);
-        $skillNames = $this->skillNames($route, $cwd, $targets);
+        $skillNames = $this->skillNames($route, $cwd, $targets, $global);
         $this->assertConfirmed(
             $route,
             sprintf('Remove skill(s) %s from target(s) %s?', implode(', ', $skillNames), implode(', ', $targets)),
             $usesInteractivePrompt,
         );
-        $items = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $skillNames, $targets): array {
+        $items = $this->targetLock->synchronized($cwd, $targets, function () use ($cwd, $skillNames, $targets, $global): array {
             $items = [];
 
             foreach ($skillNames as $skillName) {
                 foreach ($targets as $target) {
-                    $items[] = $this->targetRegistry->resolve($target)->remove($cwd, $skillName)->toItem();
+                    $items[] = $this->targetRegistry->resolve($target, $global)->remove($cwd, $skillName)->toItem();
                 }
             }
 
@@ -60,6 +61,7 @@ final readonly class SkillsRemoveCommand implements CommandHandler
                 'subcommand' => 'skills remove',
                 'targets' => $targets,
                 'skills' => $skillNames,
+                'global' => $global,
             ],
         ];
     }
@@ -86,19 +88,19 @@ final readonly class SkillsRemoveCommand implements CommandHandler
      *
      * @return list<string>
      */
-    private function skillNames(CommandRoute $route, string $cwd, array $targets): array
+    private function skillNames(CommandRoute $route, string $cwd, array $targets, bool $global): array
     {
         $requested = $this->requestedSkillNames($route);
 
         if ($this->optionBool($route, 'all') || in_array('*', $requested, true)) {
-            return $this->installedSkillNames($cwd, $targets);
+            return $this->installedSkillNames($cwd, $targets, $global);
         }
 
         if ($requested !== []) {
             return $this->validateSkillNames($requested);
         }
 
-        $installed = $this->skillService->inventory($cwd, $targets);
+        $installed = $this->skillService->inventory($cwd, $targets, $global);
 
         if ($installed === []) {
             throw new InvalidUsageException('No installed skills found.');
@@ -171,11 +173,11 @@ final readonly class SkillsRemoveCommand implements CommandHandler
      *
      * @return list<string>
      */
-    private function installedSkillNames(string $cwd, array $targets): array
+    private function installedSkillNames(string $cwd, array $targets, bool $global): array
     {
         $names = array_map(
             static fn(SkillManagedMetadata $metadata): string => $metadata->name(),
-            $this->skillService->inventory($cwd, $targets),
+            $this->skillService->inventory($cwd, $targets, $global),
         );
 
         if ($names === []) {
@@ -204,12 +206,12 @@ final readonly class SkillsRemoveCommand implements CommandHandler
     /**
      * @return list<string>
      */
-    private function targets(CommandRoute $route): array
+    private function targets(CommandRoute $route, bool $global): array
     {
         $agent = $route->options()['agent'] ?? null;
 
         if (! is_string($agent) || trim($agent) === '' || in_array(trim($agent), ['*', 'all'], true)) {
-            return $this->targetRegistry->writeCapableNames();
+            return $this->targetRegistry->writeCapableNames($global);
         }
 
         $targets = [];

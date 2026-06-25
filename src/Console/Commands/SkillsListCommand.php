@@ -18,8 +18,9 @@ final readonly class SkillsListCommand implements CommandHandler
 
     public function handle(CommandRoute $route, string $cwd): array
     {
-        $targets = $this->targets($route);
-        $items = $this->filterBySkill($this->skillService->inventory($cwd, $targets), $route);
+        $global = $this->optionBool($route, 'global');
+        $targets = $this->targets($route, $global);
+        $items = $this->filterBySkill($this->skillService->inventory($cwd, $targets, $global), $route);
 
         return [
             'tool' => 'sift',
@@ -33,6 +34,7 @@ final readonly class SkillsListCommand implements CommandHandler
             'meta' => [
                 'subcommand' => 'skills list',
                 'targets' => $targets,
+                'global' => $global,
             ],
         ];
     }
@@ -40,12 +42,12 @@ final readonly class SkillsListCommand implements CommandHandler
     /**
      * @return list<string>
      */
-    private function targets(CommandRoute $route): array
+    private function targets(CommandRoute $route, bool $global): array
     {
         $agent = $route->options()['agent'] ?? null;
 
         if (! is_string($agent) || trim($agent) === '' || in_array(trim($agent), ['*', 'all'], true)) {
-            return $this->targetRegistry->writeCapableNames();
+            return $this->targetRegistry->writeCapableNames($global);
         }
 
         $targets = [];
@@ -101,5 +103,10 @@ final readonly class SkillsListCommand implements CommandHandler
         }
 
         return array_values(array_unique($names));
+    }
+
+    private function optionBool(CommandRoute $route, string $name): bool
+    {
+        return ($route->options()[$name] ?? false) === true;
     }
 }

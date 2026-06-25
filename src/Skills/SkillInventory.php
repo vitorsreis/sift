@@ -7,19 +7,16 @@ namespace Sift\Skills;
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
 use Sift\Filesystem\FilesystemException;
-use Sift\Filesystem\JsonFile;
 use Sift\Filesystem\Path;
 use Sift\Filesystem\PathGuard;
-use Sift\Skills\Targets\CodexHomeResolver;
 use Sift\Skills\Targets\InstructionTargetRegistry;
+use Sift\Skills\Targets\SkillDirectoryTarget;
 
 final readonly class SkillInventory
 {
     public function __construct(
         private ManagedBlockEditor $blockEditor = new ManagedBlockEditor(),
         private InstructionTargetRegistry $targetRegistry = new InstructionTargetRegistry(),
-        private CodexHomeResolver $codexHomeResolver = new CodexHomeResolver(),
-        private JsonFile $jsonFile = new JsonFile(),
     ) {}
 
     /**
@@ -27,36 +24,16 @@ final readonly class SkillInventory
      *
      * @return list<SkillManagedMetadata>
      */
-    public function list(string $cwd, array $targets): array
+    public function list(string $cwd, array $targets, bool $global = false): array
     {
         $items = [];
 
         foreach ($targets as $target) {
-            $resolvedTarget = $this->targetRegistry->resolve($target);
+            $resolvedTarget = $this->targetRegistry->resolve($target, $global);
             $targetName = $resolvedTarget->name();
 
-            if ($targetName === 'codex') {
-                foreach ($this->codexMetadata() as $metadata) {
-                    if (in_array($targetName, $metadata->targets(), true)) {
-                        $items[$metadata->name()] = $metadata;
-                    }
-                }
-
-                continue;
-            }
-
-            if ($targetName === 'cursor') {
-                foreach ($this->ruleFileMetadata($cwd, '.cursor/rules', '.mdc') as $metadata) {
-                    if (in_array($targetName, $metadata->targets(), true)) {
-                        $items[$metadata->name()] = $metadata;
-                    }
-                }
-
-                continue;
-            }
-
-            if ($targetName === 'windsurf') {
-                foreach ($this->ruleFileMetadata($cwd, '.windsurf/rules', '.md') as $metadata) {
+            if ($resolvedTarget instanceof SkillDirectoryTarget) {
+                foreach ($resolvedTarget->metadata($cwd) as $metadata) {
                     if (in_array($targetName, $metadata->targets(), true)) {
                         $items[$metadata->name()] = $metadata;
                     }
@@ -85,100 +62,6 @@ final readonly class SkillInventory
         ksort($items);
 
         return array_values($items);
-    }
-
-    /**
-     * @return list<SkillManagedMetadata>
-     */
-    private function codexMetadata(): array
-    {
-        $skillsDirectory = Path::join($this->codexHomeResolver->resolve(), 'skills');
-
-        if (! is_dir($skillsDirectory)) {
-            return [];
-        }
-
-        $entries = scandir($skillsDirectory);
-
-        if ($entries === false) {
-            return [];
-        }
-
-        $items = [];
-
-        foreach ($entries as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-
-            if ($entry === '..') {
-                continue;
-            }
-
-            $metadataPath = Path::join($skillsDirectory, $entry, '.sift-skill.json');
-
-            if (! is_file($metadataPath)) {
-                continue;
-            }
-
-            try {
-                $payload = $this->jsonFile->readObject($metadataPath);
-            } catch (FilesystemException $filesystemException) {
-                throw UserFacingException::withContext(
-                    errorCode: ErrorCode::FilesystemError,
-                    message: $filesystemException->getMessage(),
-                    context: ['path' => $metadataPath],
-                );
-            }
-
-            $metadata = SkillManagedMetadata::fromPayload($payload, $entry);
-
-            if ($metadata instanceof SkillManagedMetadata) {
-                $items[] = $metadata;
-            }
-        }
-
-        return $items;
-    }
-
-    /**
-     * @return list<SkillManagedMetadata>
-     */
-    private function ruleFileMetadata(string $cwd, string $relativeDirectory, string $extension): array
-    {
-        try {
-            $rulesDirectory = (new PathGuard($cwd))->assertInside(Path::join($cwd, $relativeDirectory));
-        } catch (FilesystemException $filesystemException) {
-            throw UserFacingException::withContext(
-                errorCode: ErrorCode::FilesystemError,
-                message: $filesystemException->getMessage(),
-                context: ['path' => $relativeDirectory],
-            );
-        }
-
-        if (! is_dir($rulesDirectory)) {
-            return [];
-        }
-
-        $entries = scandir($rulesDirectory);
-
-        if ($entries === false) {
-            return [];
-        }
-
-        $items = [];
-
-        foreach ($entries as $entry) {
-            if (! str_ends_with($entry, $extension)) {
-                continue;
-            }
-
-            foreach ($this->instructionFileMetadata($cwd, Path::join($relativeDirectory, $entry)) as $metadata) {
-                $items[] = $metadata;
-            }
-        }
-
-        return $items;
     }
 
     private function instructionFilePath(string $targetName): string

@@ -80,6 +80,10 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 `tools list` streams availability and version lines as checks finish, so order may vary.
 
+`skills add`, `skills list`, `skills remove`, and `skills update` use project skill directories by default. Pass `--global` / `-g` to target the matching user-level skill directory.
+
+In terminal mode, `skills add` can prompt for agents and scope. Existing target folders in the current scope are selected in the agent prompt, `codex` is selected when no target folder is detected, and the Project/Global scope prompt appears only when a selected target supports global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; without `--global`, installs remain project-scoped.
+
 When a command is invoked through a Composer script rather than the installed Composer command, pass Composer's end-of-options marker before Sift options:
 
 ```bash

@@ -13,7 +13,7 @@ use Sift\Skills\Targets\SkillTargetInstaller;
 use Sift\Skills\Targets\WindsurfRuleTarget;
 use Tests\Support\FixtureProject;
 
-it('installs managed blocks into stable instruction file targets', function (): void {
+it('installs managed blocks into the generic instruction file target', function (): void {
     $project = FixtureProject::create();
     $source = FixtureProject::create('sift-skill-source-');
     $skillFile = $source->write('SKILL.md', <<<'MD'
@@ -36,15 +36,15 @@ MD);
     $results = (new SkillTargetInstaller())->install(
         $project->root(),
         [$skill],
-        ['generic', 'claude-code', 'github-copilot', 'gemini'],
+        ['generic'],
         new SkillSource('vendor/source', 'local', $source->root()),
     );
 
-    expect($results)->toHaveCount(4);
+    expect($results)->toHaveCount(1);
     expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('sift:skill:php-review:start');
-    expect((string) file_get_contents($project->path('CLAUDE.md')))->toContain('sift:skill:php-review:start');
-    expect((string) file_get_contents($project->path('.github/copilot-instructions.md')))->toContain('sift:skill:php-review:start');
-    expect((string) file_get_contents($project->path('GEMINI.md')))->toContain('sift:skill:php-review:start');
+    expect($project->path('CLAUDE.md'))->not->toBeFile();
+    expect($project->path('.github/copilot-instructions.md'))->not->toBeFile();
+    expect($project->path('GEMINI.md'))->not->toBeFile();
 });
 
 it('copies codex skills with managed metadata', function (): void {
@@ -82,14 +82,54 @@ MD);
         putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
-    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
-    expect($codexHome->path('skills/php-review/references/checklist.md'))->toBeFile();
-    expect($codexHome->readJson('skills/php-review/.sift-skill.json'))->toMatchArray([
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/php-review/references/checklist.md'))->toBeFile();
+    expect($project->readJson('.agents/skills/php-review/.sift-skill.json'))->toMatchArray([
         'name' => 'php-review',
         'source' => 'vendor/source',
         'source_type' => 'local',
         'targets' => ['codex'],
     ]);
+    expect($codexHome->path('skills/php-review/SKILL.md'))->not->toBeFile();
+});
+
+it('copies codex skills globally when requested', function (): void {
+    $project = FixtureProject::create();
+    $codexHome = FixtureProject::create('sift-codex-home-');
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+    $previousCodexHome = getenv('CODEX_HOME');
+    putenv('CODEX_HOME=' . $codexHome->root());
+
+    try {
+        (new SkillTargetInstaller())->install(
+            $project->root(),
+            [$skill],
+            ['codex'],
+            new SkillSource('vendor/source', 'local', $source->root()),
+            true,
+        );
+    } finally {
+        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
+    }
+
+    expect($codexHome->path('skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->not->toBeFile();
 });
 
 it('updates and removes managed codex skill directories', function (): void {
@@ -184,7 +224,7 @@ if (PHP_OS_FAMILY !== 'Windows') {
     });
 }
 
-it('writes cursor rules with escaped frontmatter and managed metadata', function (): void {
+it('copies cursor skills with managed metadata', function (): void {
     $project = FixtureProject::create();
     $source = FixtureProject::create('sift-skill-source-');
     $skillFile = $source->write('SKILL.md', <<<'MD'
@@ -211,14 +251,83 @@ MD);
         new SkillSource('vendor/source', 'local', $source->root()),
     );
 
-    $rule = (string) file_get_contents($project->path('.cursor/rules/php-review.mdc'));
-    $normalizedRule = str_replace("\r\n", "\n", $rule);
-
     expect($results)->toHaveCount(1);
     expect($results[0]->toItem()['target'] ?? null)->toBe('cursor');
-    expect($normalizedRule)->toStartWith("---\ndescription: \"Review \\\"PHP\\\": projects.\"\nalwaysApply: false\n---\n\n");
-    expect($normalizedRule)->toContain('<!-- sift:skill:php-review:start data="');
-    expect($normalizedRule)->toContain('name: php-review');
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->readJson('.agents/skills/php-review/.sift-skill.json'))->toMatchArray([
+        'name' => 'php-review',
+        'targets' => ['cursor'],
+    ]);
+});
+
+it('merges metadata when multiple targets share the same skills directory', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+    $installer = new SkillTargetInstaller();
+    $skillSource = new SkillSource('vendor/source', 'local', $source->root());
+
+    $installer->install($project->root(), [$skill], ['codex'], $skillSource);
+    $installer->install($project->root(), [$skill], ['cursor'], $skillSource);
+
+    expect($project->readJson('.agents/skills/php-review/.sift-skill.json'))->toMatchArray([
+        'name' => 'php-review',
+        'targets' => ['codex', 'cursor'],
+    ]);
+});
+
+it('removes one shared directory target without deleting other target metadata', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-skill-source-');
+    $skillFile = $source->write('SKILL.md', <<<'MD'
+---
+name: php-review
+description: Review PHP projects.
+---
+
+# PHP Review
+MD);
+    $skill = new Skill(
+        name: 'php-review',
+        description: 'Review PHP projects.',
+        path: $source->root(),
+        skillFile: $skillFile,
+        source: 'vendor/source',
+        sourceType: 'local',
+    );
+
+    (new SkillTargetInstaller())->install(
+        $project->root(),
+        [$skill],
+        ['codex', 'cursor'],
+        new SkillSource('vendor/source', 'local', $source->root()),
+    );
+
+    $removed = (new Sift\Skills\Targets\InstructionTargetRegistry())
+        ->resolve('codex')
+        ->remove($project->root(), 'php-review');
+
+    expect($removed->toItem()['action'] ?? null)->toBe('removed');
+    expect($project->path('.agents/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->readJson('.agents/skills/php-review/.sift-skill.json'))->toMatchArray([
+        'name' => 'php-review',
+        'targets' => ['cursor'],
+    ]);
 });
 
 it('updates and removes managed cursor rules', function (): void {
@@ -240,7 +349,7 @@ it('updates and removes managed cursor rules', function (): void {
     expect($project->path('.cursor/rules/php-review.mdc'))->not->toBeFile();
 });
 
-it('writes windsurf rules as managed markdown files', function (): void {
+it('copies windsurf skills to its native skills directory', function (): void {
     $project = FixtureProject::create();
     $source = FixtureProject::create('sift-skill-source-');
     $skillFile = $source->write('SKILL.md', <<<'MD'
@@ -267,13 +376,13 @@ MD);
         new SkillSource('vendor/source', 'local', $source->root()),
     );
 
-    $rule = (string) file_get_contents($project->path('.windsurf/rules/php-review.md'));
-
     expect($results)->toHaveCount(1);
     expect($results[0]->toItem()['target'] ?? null)->toBe('windsurf');
-    expect($rule)->toContain('<!-- sift:skill:php-review:start data="');
-    expect($rule)->toContain('name: php-review');
-    expect($rule)->toContain('# PHP Review');
+    expect($project->path('.windsurf/skills/php-review/SKILL.md'))->toBeFile();
+    expect($project->readJson('.windsurf/skills/php-review/.sift-skill.json'))->toMatchArray([
+        'name' => 'php-review',
+        'targets' => ['windsurf'],
+    ]);
 });
 
 it('updates and removes managed windsurf rules', function (): void {

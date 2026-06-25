@@ -257,3 +257,25 @@ it('supports keyboard multiselect prompts', function (): void {
     expect(stripInteractiveAnsi($output))->toContain('███████╗██╗███████╗████████╗    ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗');
     expect(stripInteractiveAnsi($output))->not->toContain('------');
 });
+
+it('supports keyboard select prompts with enter on the highlighted option', function (): void {
+    $keys = ['down', 'enter'];
+    $output = '';
+    $prompt = new InteractivePrompt(
+        keyReader: static function () use (&$keys): string {
+            return array_shift($keys) ?? 'escape';
+        },
+        writer: static function (string $contents) use (&$output): void {
+            $output .= $contents;
+        },
+    );
+
+    $selected = $prompt->select('Installation scope', [
+        ['value' => 'project', 'label' => 'Project', 'hint' => 'Current directory'],
+        ['value' => 'global', 'label' => 'Global', 'hint' => 'Home directory'],
+    ]);
+
+    expect($selected)->toBe('global');
+    expect(stripInteractiveAnsi($output))->toContain('Installation scope');
+    expect(stripInteractiveAnsi($output))->toContain('up/down navigate | enter continue | esc cancel');
+});

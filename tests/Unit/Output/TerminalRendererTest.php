@@ -333,6 +333,25 @@ it('renders empty skills list without generic payload fields', function (): void
     expect($output)->not->toContain('summary:');
 });
 
+it('renders global skills list heading when global scope is selected', function (): void {
+    $output = (new TerminalRenderer())->render([
+        'tool' => 'sift',
+        'status' => 'passed',
+        'summary' => ['total' => 0],
+        'items' => [],
+        'artifacts' => [],
+        'extra' => [],
+        'meta' => [
+            'subcommand' => 'skills list',
+            'targets' => ['codex'],
+            'global' => true,
+        ],
+    ], terminalRendererPreferences(OutputSize::Compact));
+
+    expect(stripTerminalAnsi($output))->toContain('Global Skills');
+    expect(stripTerminalAnsi($output))->toContain('No global skills installed.');
+});
+
 it('renders skills add list previews like the skills cli', function (): void {
     $output = (new TerminalRenderer())->render([
         'tool' => 'sift',

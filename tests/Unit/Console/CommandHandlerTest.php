@@ -119,6 +119,7 @@ it('lists no installed skills for an empty generic target', function (): void {
         'meta' => [
             'subcommand' => 'skills list',
             'targets' => ['generic'],
+            'global' => false,
         ],
     ]);
 });
@@ -141,6 +142,7 @@ it('reports missing skill removal for an empty generic target', function (): voi
         'subcommand' => 'skills remove',
         'targets' => ['generic'],
         'skills' => ['sift'],
+        'global' => false,
     ]);
 });
 

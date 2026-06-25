@@ -30,8 +30,8 @@ only when they need more detail.
 
 ## Why Sift
 
-- **Manage skills through Composer** for Codex, Cursor, Claude Code, GitHub Copilot, VS Code, Gemini, Windsurf, and
-  generic `AGENTS.md` targets.
+- **Manage skills through Composer** for the open Skills CLI target set, including Codex, Cursor, Claude Code,
+  GitHub Copilot, Gemini CLI, OpenCode, Antigravity, Windsurf, and project or global installs.
 - **Reduce wasted tokens** by replacing raw tool output with compact summaries and paginated history.
 - **Run 15+ PHP tools** through one command layer.
 - **Keep automation safer** with read-only Composer reports, dry-run refactors, safe formatter modes, blocked arguments,
@@ -65,6 +65,8 @@ Supported skill sources:
 - GitHub URLs.
 
 Other commands include `init`, `list`, `find`, `update`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-install.
+
+`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. Use `--global` / `-g` for user-level installs, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
 
 ## Tools
 

@@ -23,12 +23,12 @@ final class SkillService
      *
      * @return list<SkillManagedMetadata>
      */
-    public function inventory(string $cwd, array $targets): array
+    public function inventory(string $cwd, array $targets, bool $global = false): array
     {
-        $cacheKey = $this->cacheKey($cwd, $targets);
+        $cacheKey = $this->cacheKey($cwd, $targets, $global);
 
         if (! array_key_exists($cacheKey, $this->inventoryCache)) {
-            $this->inventoryCache[$cacheKey] = $this->resolveInventory($cwd, $targets);
+            $this->inventoryCache[$cacheKey] = $this->resolveInventory($cwd, $targets, $global);
         }
 
         return $this->inventoryCache[$cacheKey];
@@ -55,9 +55,9 @@ final class SkillService
     /**
      * @param list<string> $targets
      */
-    private function cacheKey(string $cwd, array $targets): string
+    private function cacheKey(string $cwd, array $targets, bool $global): string
     {
-        return $cwd . "\0" . implode("\0", $targets);
+        return $cwd . "\0" . ($global ? 'global' : 'project') . "\0" . implode("\0", $targets);
     }
 
     /**
@@ -65,10 +65,10 @@ final class SkillService
      *
      * @return list<SkillManagedMetadata>
      */
-    private function resolveInventory(string $cwd, array $targets): array
+    private function resolveInventory(string $cwd, array $targets, bool $global): array
     {
         if ($this->inventoryResolver instanceof Closure) {
-            $items = ($this->inventoryResolver)($cwd, $targets);
+            $items = ($this->inventoryResolver)($cwd, $targets, $global);
 
             if (is_array($items)) {
                 return array_values(array_filter(
@@ -80,6 +80,6 @@ final class SkillService
             return [];
         }
 
-        return $this->inventory->list($cwd, $targets);
+        return $this->inventory->list($cwd, $targets, $global);
     }
 }

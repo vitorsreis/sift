@@ -57,7 +57,7 @@ it('reads managed codex skill metadata files', function (): void {
     putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
-        $items = (new SkillInventory())->list($project->root(), ['codex']);
+        $items = (new SkillInventory())->list($project->root(), ['codex'], true);
     } finally {
         putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
@@ -66,16 +66,15 @@ it('reads managed codex skill metadata files', function (): void {
     expect($items[0]->targets())->toBe(['codex']);
 });
 
-it('reads managed instruction files through target aliases', function (): void {
+it('reads managed skill directories through target aliases', function (): void {
     $project = FixtureProject::create();
-    $contents = (new ManagedBlockEditor())->upsert('', 'php-review', [
+    $project->writeJson('.claude/skills/php-review/.sift-skill.json', [
         'name' => 'php-review',
         'source' => 'repo',
         'source_type' => 'local',
         'installed_at' => '2026-06-01T00:00:00+00:00',
         'targets' => ['claude-code'],
-    ], "PHP body\n");
-    $project->write('CLAUDE.md', $contents);
+    ]);
 
     $items = (new SkillInventory())->list($project->root(), ['claude']);
 
