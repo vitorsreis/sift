@@ -6,7 +6,7 @@ instructions:
   - Use `--no-json` to force terminal output when config selects JSON.
   - Use `output.colored=false` for plain terminal text by default, or `--no-color` when ANSI styling would pollute copied logs or snapshots for one command.
   - Use `composer skills <command>` for skill installation, one-off use prompts, preview, update, and removal.
-  - Skills commands accept Sift syntax such as `skills a`, `skills upgrade`, `--agent codex cursor`, `--skill pr-review commit`, and Eve `--subagent <name>`.
+  - Skills commands accept Sift syntax such as `skills a`, `skills upgrade`, `--agent standard cursor`, `--skill pr-review commit`, and Eve `--subagent <name>`.
   - Use `composer skills` for skill management in a Sift project.
   - Inspect `composer sift history view <run_id> <section>` before rerunning noisy tools.
   - Treat `help`, `version`, `tools list`, and root `composer skills` help as terminal-only commands.

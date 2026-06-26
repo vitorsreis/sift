@@ -30,7 +30,7 @@ only when they need more detail.
 
 ## Why Sift
 
-- **Manage skills through Composer** for the open agent target set, including Codex, Cursor, Claude Code,
+- **Manage skills through Composer** for the open agent target set, including a standard shared target, Cursor, Claude Code,
   GitHub Copilot, Gemini CLI, OpenCode, Antigravity, Windsurf, and project or global installs.
 - **Reduce wasted tokens** by replacing raw tool output with compact summaries and paginated history.
 - **Run 15+ PHP tools** through one command layer.
@@ -78,7 +78,7 @@ Supported skill sources:
 
 Other commands include `init`, `list`, `find`, `use`, `update` / `upgrade`, and `remove`. In terminal mode, `composer skills` opens a bannered help screen and `composer skills find` opens an interactive search with typeahead, arrow-key selection, and Enter-to-select before install.
 
-`composer skills add` installs to project skill directories by default, including `.agents/skills` for Codex and other shared targets. It accepts multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. Use `--global` / `-g` for user-level installs, `--subagent reviewer` for Eve subagents, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
+Without a scope flag, `composer skills add` installs to project skill directories, including the `standard` `.agents/skills` target for Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and other shared project installs. It accepts multi-value flags such as `--agent standard cursor` and `--skill pr-review commit`. Use `--global` / `-g` for user-level installs, `--subagent reviewer` for Eve subagents, or omit `--agent` in terminal mode to choose agents interactively; existing target folders in the current scope are preselected and Sift prompts for Project or Global scope when applicable.
 
 ## Tools
 

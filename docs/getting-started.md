@@ -62,7 +62,7 @@ History records are flat JSON files keyed by sortable `run_id`.
 
 ```bash
 composer skills find
-composer skills add vitorsreis/sift --skill sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift --agent=standard --yes
 composer skills list
 ```
 

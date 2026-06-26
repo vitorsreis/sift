@@ -91,9 +91,9 @@ Sift v2 keeps command names explicit. Ambiguous top-level aliases such as `add`,
 
 `skills add`, `skills list`, `skills remove`, and `skills update` use project skill directories by default. Pass `--global` / `-g` to target the matching user-level skill directory. `skills update` also accepts `--project` / `-p`; named updates check both project and global unless a scope flag is passed.
 
-In terminal mode, `skills add` can prompt for agents and scope. Existing target folders in the current scope are selected in the agent prompt, `codex` is selected when no target folder is detected, and the Project/Global scope prompt appears only when a selected target supports global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; without `--global`, installs remain project-scoped.
+In terminal mode, `skills add` can prompt for agents and scope. The `standard` `.agents/skills` target appears first with Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and the remaining target count in the hint; `generic` `AGENTS.md` appears second and stays unselected, existing target folders in the current scope are selected, and `standard` is selected when no target folder is detected. The Project/Global scope prompt appears only when a selected target supports global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; without `--global`, installs remain project-scoped.
 
-Skills commands accept multi-value options, for example `--agent codex cursor` and `--skill pr-review commit`. `skills add --subagent reviewer` targets Eve at `agent/subagents/reviewer/skills`; `--subagent root` targets Eve's root `agent/skills`.
+Skills commands accept multi-value options, for example `--agent standard cursor` and `--skill pr-review commit`. `skills add --subagent reviewer` targets Eve at `agent/subagents/reviewer/skills`; `--subagent root` targets Eve's root `agent/skills`.
 
 `skills use` prints a prompt for one selected skill without installing it. It supports `<source>@<skill>` and `--skill <skill>` selection and returns terminal prompt text by default.
 

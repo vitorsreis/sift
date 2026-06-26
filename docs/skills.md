@@ -34,19 +34,19 @@ Preview discovers skills and returns output without writing targets. Output is t
 
 ```bash
 composer skills add owner/repo@skill
-composer skills add vitorsreis/sift --skill sift --agent=codex
-composer skills add owner/repo --skill pr-review commit --agent codex cursor --yes
-composer skills add owner/repo --skill review --agent=codex --global --yes
+composer skills add vitorsreis/sift --skill sift --agent=standard
+composer skills add owner/repo --skill pr-review commit --agent standard cursor --yes
+composer skills add owner/repo --skill review --agent=standard --global --yes
 composer skills add owner/repo --subagent reviewer --yes
 composer skills add owner/repo --skill review --agent=generic --yes
 composer skills add owner/repo --all
 ```
 
-In TTY mode, `skills add` can prompt for skills, target agents, installation scope, and explicit confirmation. If `--agent` is omitted, the agent prompt preselects existing target folders in the current scope, such as `.agents/skills`, `.windsurf/skills`, `AGENTS.md`, or the matching global directory when `--global` is used; when nothing is detected, `codex` is selected by default. After agents are selected, Sift prompts for Project or Global scope when at least one selected target supports global installs and `--global` was not passed.
+In TTY mode, `skills add` can prompt for skills, target agents, installation scope, and explicit confirmation. If `--agent` is omitted, the agent prompt lists `standard` first for `.agents/skills` with Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and the remaining target count in the hint; it lists `generic` second for `AGENTS.md` and never preselects `generic` automatically. When nothing is detected, `standard` is selected. After agents are selected, Sift prompts for Project or Global scope when at least one selected target supports global installs and `--global` was not passed.
 
 In non-TTY or CI, pass `--yes` with `--agent=<target>`, or use `--all`; Sift never relies on an unavailable prompt. Without `--global`, non-interactive installs stay in project scope.
 
-Sift accepts multi-value flags: `--agent codex cursor`, `--skill pr-review commit`, and repeated flags all resolve to the same target/skill lists. `skills a` is an alias for `skills add`. `--copy`, `--full-depth`, and `--dangerously-accept-openclaw-risks` are accepted for compatibility with existing skill-manager invocations; Sift installs by copying files into managed targets.
+Sift accepts multi-value flags: `--agent standard cursor`, `--skill pr-review commit`, and repeated flags all resolve to the same target/skill lists. `skills a` is an alias for `skills add`. `--copy`, `--full-depth`, and `--dangerously-accept-openclaw-risks` are accepted for compatibility with existing skill-manager invocations; Sift installs by copying files into managed targets.
 
 For Eve, use `--subagent <name>` to install into `agent/subagents/<name>/skills/<skill>/`. Use `--subagent root` for the root `agent/skills/<skill>/` target. If `--subagent` is provided without `--agent`, Sift targets Eve automatically.
 
@@ -65,7 +65,7 @@ Sift installs native skill-directory targets in project scope by default. Pass `
 
 Common project paths:
 
-- `codex`, `cursor`, `gemini-cli` / `gemini`, `github-copilot` / `vscode`, `opencode`, `antigravity`, `amp`, and most shared targets: `.agents/skills/<skill>/`.
+- `standard` for Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and most shared project targets: `.agents/skills/<skill>/`.
 - `claude-code` / `claude`: `.claude/skills/<skill>/`.
 - `windsurf`: `.windsurf/skills/<skill>/`.
 - `openclaw`: `skills/<skill>/`.
@@ -77,12 +77,13 @@ Common global paths:
 - `codex`: `$CODEX_HOME/skills/<skill>/` or `~/.codex/skills/<skill>/`.
 - `claude-code`: `$CLAUDE_CONFIG_DIR/skills/<skill>/` or `~/.claude/skills/<skill>/`.
 - `cursor`: `~/.cursor/skills/<skill>/`.
+- `standard`: `~/.config/agents/skills/<skill>/`.
 - `gemini-cli`: `~/.gemini/skills/<skill>/`.
 - `github-copilot`: `~/.copilot/skills/<skill>/`.
 - `opencode`: `~/.config/opencode/skills/<skill>/`.
 - `windsurf`: `~/.codeium/windsurf/skills/<skill>/`.
 
-Sift supports target names including `aider-desk`, `amp`, `replit`, `universal`, `antigravity`, `antigravity-cli`, `astrbot`, `autohand-code`, `augment`, `bob`, `claude-code`, `openclaw`, `cline`, `dexto`, `kimi-code-cli`, `loaf`, `warp`, `zed`, `codearts-agent`, `codebuddy`, `codemaker`, `codestudio`, `codex`, `command-code`, `continue`, `cortex`, `crush`, `cursor`, `deepagents`, `devin`, `droid`, `eve`, `firebender`, `forgecode`, `gemini-cli`, `github-copilot`, `goose`, `hermes-agent`, `inference-sh`, `jazz`, `junie`, `iflow-cli`, `kilo`, `kiro-cli`, `kode`, `lingma`, `mcpjam`, `mistral-vibe`, `moxby`, `mux`, `opencode`, `openhands`, `ona`, `pi`, `qoder`, `qoder-cn`, `qwen-code`, `reasonix`, `rovodev`, `roo`, `tabnine-cli`, `terramind`, `tinycloud`, `trae`, `trae-cn`, `windsurf`, `zencoder`, `zenflow`, `neovate`, `pochi`, `promptscript`, and `adal`. Project-only targets such as `eve`, `promptscript`, and `generic` are excluded from global `--all`.
+Sift supports target names including `standard`, `aider-desk`, `amp`, `replit`, `universal`, `antigravity`, `antigravity-cli`, `astrbot`, `autohand-code`, `augment`, `bob`, `claude-code`, `openclaw`, `cline`, `dexto`, `kimi-code-cli`, `loaf`, `warp`, `zed`, `codearts-agent`, `codebuddy`, `codemaker`, `codestudio`, `codex`, `command-code`, `continue`, `cortex`, `crush`, `cursor`, `deepagents`, `devin`, `droid`, `eve`, `firebender`, `forgecode`, `gemini-cli`, `github-copilot`, `goose`, `hermes-agent`, `inference-sh`, `jazz`, `junie`, `iflow-cli`, `kilo`, `kiro-cli`, `kode`, `lingma`, `mcpjam`, `mistral-vibe`, `moxby`, `mux`, `opencode`, `openhands`, `ona`, `pi`, `qoder`, `qoder-cn`, `qwen-code`, `reasonix`, `rovodev`, `roo`, `tabnine-cli`, `terramind`, `tinycloud`, `trae`, `trae-cn`, `windsurf`, `zencoder`, `zenflow`, `neovate`, `pochi`, `promptscript`, and `adal`. Project-only targets such as `eve`, `promptscript`, and `generic` are excluded from global `--all`.
 
 ## Managed Metadata
 
@@ -102,7 +103,7 @@ Skill-directory targets use `.sift-skill.json` inside the installed skill direct
 
 ```bash
 composer skills update
-composer skills upgrade review --agent codex --yes
+composer skills upgrade review --agent standard --yes
 composer skills update --project --yes
 composer skills update --global --yes
 ```

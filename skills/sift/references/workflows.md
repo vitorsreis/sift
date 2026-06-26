@@ -7,7 +7,7 @@ Use this file for task recipes. Use `commands.md` for full syntax.
 ```bash
 composer sift init
 composer sift validate
-composer skills add vitorsreis/sift --skill sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift --agent=standard --yes
 composer sift tools list
 ```
 
@@ -69,7 +69,7 @@ Keep Composer actions read-only through Sift.
 composer skills find
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
-composer skills add owner/repo --skill pr-review commit --agent codex cursor --yes
+composer skills add owner/repo --skill pr-review commit --agent standard cursor --yes
 composer skills list
 ```
 
@@ -79,7 +79,7 @@ Rules:
 - Use `composer skills find` without a query for interactive typeahead search in terminal mode.
 - Mutating commands in non-TTY or CI need `--yes --agent=<target>` or `--all`.
 - Skill installs target project directories by default. Add `--global` to use each target's user-level skills directory.
-- Interactive `skills add` preselects existing target folders, falls back to `codex`, and prompts for Project or Global scope when the selected target supports it.
+- Interactive `skills add` puts `standard` first for `.agents/skills` with Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and the remaining target count in the hint, keeps `generic` unselected for `AGENTS.md`, preselects existing target folders, and prompts for Project or Global scope when the selected target supports it.
 - Use `composer skills use owner/repo@skill` when the user wants a one-off prompt without installation.
 - Use `--subagent <name>` for Eve subagent installs and `--subagent root` for Eve's root `agent/skills`.
 - `composer skills upgrade` aliases `composer skills update`; named updates check project and global installs unless a scope flag is passed.

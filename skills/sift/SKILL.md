@@ -51,6 +51,30 @@ composer sift --compact phpcbf --repair src
 
 Use `composer sift tools list` to verify tool availability.
 
+## Supported Sift Commands
+
+- `composer sift help`
+- `composer sift version`
+- `composer sift init`
+- `composer sift validate`
+- `composer sift tools list`
+- `composer sift history list`
+- `composer sift history view <run_id> [summary|items|meta|artifacts|extra]`
+- `composer sift history remove <run_id>...`
+- `composer sift history clear`
+- `composer sift run <tool> [args]`
+- `composer sift <tool> [args]`
+
+## Supported Tools
+
+- Test: `pest`, `phpunit`, `paratest`
+- Analysis: `phpstan`, `psalm`
+- Style and syntax: `phpcs`, `phpcbf`, `pint`, `php-cs-fixer`, `parallel-lint`
+- Refactor and quality: `rector`, `mago`, `phpmd`
+- Mutation and architecture: `infection`, `deptrac`
+- Dependencies: `composer-unused`, `composer-require-checker`
+- Composer reports: `composer audit`, `composer licenses`, `composer outdated`, `composer show`, `composer validate`
+
 Global install for user-level access outside one project:
 
 ```bash
@@ -75,15 +99,27 @@ composer sift history view <run_id> meta
 composer skills find
 composer skills add owner/repo --list
 composer skills add owner/repo --skill <name> --agent=<target> --yes
-composer skills add vitorsreis/sift --skill sift --agent=codex --yes
+composer skills add vitorsreis/sift --skill sift --agent=standard --yes
 composer skills list
 ```
 
-`composer skills add` targets project skill directories by default and accepts multi-value flags such as `--agent codex cursor` and `--skill pr-review commit`. In terminal mode it can prompt for agents, preselect existing target folders, then prompt for Project or Global scope when selected targets support global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; add `--global` only for user-level installs. Use `--subagent <name>` for Eve subagents.
+Without a scope flag, `composer skills add` targets project skill directories and accepts multi-value flags such as `--agent standard cursor` and `--skill pr-review commit`. In terminal mode it can prompt for agents, put `standard` first for `.agents/skills` with Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and the remaining target count in the hint, keep `generic` unselected for `AGENTS.md`, preselect existing target folders, then prompt for Project or Global scope when selected targets support global installs. In non-interactive mode, use `--yes --agent=<target>` or `--all`; add `--global` only for user-level installs. Use `--subagent <name>` for Eve subagents.
 
 `help`, `version`, `tools list`, and the root `composer skills` help always render terminal output. `tools list` streams results as version checks finish. `composer skills find` without a query opens the interactive Skills search in terminal mode.
 
 `composer skills use <source>@<skill>` prints a one-off prompt without installing. `composer skills upgrade` aliases `composer skills update`; named updates check project and global installs unless `--project` or `--global` is passed.
+
+## Supported Skills Commands
+
+- `composer skills`
+- `composer skills list`
+- `composer skills add <source>`
+- `composer skills add <source> --list`
+- `composer skills use <source>[@<skill>]`
+- `composer skills find [query]`
+- `composer skills init [name]`
+- `composer skills update|upgrade [name ...]`
+- `composer skills remove [name ...]`
 
 ## Safety
 
