@@ -144,17 +144,24 @@ it('runs the real application through composer sift', function (): void {
 });
 
 it('runs the real application through composer skills', function (): void {
+    $project = FixtureProject::create('sift-composer-command-');
     $codexHome = FixtureProject::create('sift-codex-home-');
     $previousCodexHome = getenv('CODEX_HOME');
+    $previousCwd = getcwd();
     $tester = composerCommandTester(new ComposerSkillsCommand());
 
     putenv('CODEX_HOME=' . $codexHome->root());
+    chdir($project->root());
 
     try {
         $exitCode = $tester->execute([
             'arguments' => ['--json', '--no-pretty', '--compact', 'list'],
         ]);
     } finally {
+        if (is_string($previousCwd)) {
+            chdir($previousCwd);
+        }
+
         putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
