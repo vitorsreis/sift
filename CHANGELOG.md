@@ -4,6 +4,18 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.2 - 2026-06-26
+
+### Changed
+
+- The interactive agent picker now shows the shared `.agents/skills` target as `standard`, keeps it first, lists Cursor, Gemini CLI, GitHub Copilot, OpenCode, Antigravity, Amp, Replit, and the remaining target count in the hint, and keeps `generic` / `AGENTS.md` second and unselected.
+- Skill confirmation prompts now use `[Y/n]`, so pressing Enter accepts the action.
+
+### Fixed
+
+- Pressing Enter in an empty multiselect now chooses the highlighted option.
+- Interactive `skills remove` now limits removal to the targets recorded on the selected skill instead of expanding to every writable target.
+
 ## 2.3.1 - 2026-06-25
 
 ### Changed
@@ -52,8 +64,8 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Skills help and Sift help now build styled output from structured rows instead of ad-hoc token replacements.
 - Composer skills entrypoints now accept output flags such as `--json`, `--compact`, and `--no-color` consistently.
 - Native skill targets now install into project skill directories by default; `--global` / `-g` selects the user-level target directory for add, list, remove, and update.
-- The interactive agent picker now preselects existing target folders and falls back to `codex` when no target folder is detected.
-- Skills commands now accept Composer-native aliases and multi-value flags, including `skills a`, `skills upgrade`, `--agent codex cursor`, and `--skill pr-review commit`.
+- The interactive agent picker now preselects existing target folders and falls back to the shared `.agents/skills` target when no target folder is detected.
+- Skills commands now accept Composer-native aliases and multi-value flags, including `skills a`, `skills upgrade`, multi-agent `--agent` values, and `--skill pr-review commit`.
 - `skills update` now follows project/global scope rules: named updates check project and global unless `--project` or `--global` is provided, and `--yes` autodetects project skills before falling back to global.
 
 ### Fixed
