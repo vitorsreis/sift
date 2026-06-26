@@ -134,7 +134,7 @@ it(
         criticalCommandSkill($source, 'Interactive guidance');
         $project->write('AGENTS.md', "Manual instructions\n");
 
-        $keys = ['enter', 'char:y'];
+        $keys = ['enter', 'enter', 'enter'];
         $payload = (new SkillsAddCommand(
             interactivePrompt: new InteractivePrompt(
                 keyReader: static function () use (&$keys): string {
@@ -150,27 +150,24 @@ it(
         $firstItem = criticalCommandPayloadMap($items[0] ?? null);
 
         expect($payload['summary'])->toMatchArray(['installed' => 1, 'skills' => 1, 'targets' => 1]);
-        expect($firstItem['target'] ?? null)->toBe('generic');
-        expect((string) file_get_contents($project->path('AGENTS.md')))->toContain('Interactive guidance');
+        expect($firstItem['target'] ?? null)->toBe('standard');
+        expect((string) file_get_contents($project->path('.agents/skills/critical-review/SKILL.md')))->toContain('Interactive guidance');
     },
 );
 
 it('prompts for the installation scope after selecting interactive agents', function (): void {
     $project = FixtureProject::create();
     $source = FixtureProject::create('sift-critical-skill-');
-    $codexHome = FixtureProject::create('sift-critical-codex-home-');
     $home = FixtureProject::create('sift-critical-home-');
     criticalCommandSkill($source, 'Global interactive guidance');
 
     $previousHome = getenv('HOME');
     $previousUserProfile = getenv('USERPROFILE');
-    $previousCodexHome = getenv('CODEX_HOME');
     putenv('HOME=' . $home->root());
     putenv('USERPROFILE=' . $home->root());
-    putenv('CODEX_HOME=' . $codexHome->root());
 
     try {
-        $keys = ['enter', 'down', 'enter', 'char:y'];
+        $keys = ['enter', 'down', 'enter', 'enter'];
         $payload = (new SkillsAddCommand(
             interactivePrompt: new InteractivePrompt(
                 keyReader: static function () use (&$keys): string {
@@ -185,11 +182,10 @@ it('prompts for the installation scope after selecting interactive agents', func
     } finally {
         putenv($previousHome === false ? 'HOME' : 'HOME=' . $previousHome);
         putenv($previousUserProfile === false ? 'USERPROFILE' : 'USERPROFILE=' . $previousUserProfile);
-        putenv($previousCodexHome === false ? 'CODEX_HOME' : 'CODEX_HOME=' . $previousCodexHome);
     }
 
-    expect($payload['meta'])->toMatchArray(['global' => true, 'targets' => ['codex']]);
-    expect($codexHome->path('skills/critical-review/SKILL.md'))->toBeFile();
+    expect($payload['meta'])->toMatchArray(['global' => true, 'targets' => ['standard']]);
+    expect($home->path('.config/agents/skills/critical-review/SKILL.md'))->toBeFile();
     expect($project->path('.agents/skills/critical-review/SKILL.md'))->not->toBeFile();
 });
 
