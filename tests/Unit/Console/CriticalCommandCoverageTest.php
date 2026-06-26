@@ -216,6 +216,38 @@ it('removes selected skills from the interactive skills remove flow', function (
     expect((string) file_get_contents($project->path('AGENTS.md')))->not->toContain('Interactive removal guidance');
 });
 
+it('limits interactive remove targets to the selected skill metadata', function (): void {
+    $project = FixtureProject::create();
+    $source = FixtureProject::create('sift-critical-skill-');
+    criticalCommandSkill($source, 'Standard removal guidance');
+
+    (new SkillsAddCommand())->handle(
+        new CommandRoute('skills.add', [$source->root()], ['agent' => 'standard', 'yes' => true]),
+        $project->root(),
+    );
+
+    $keys = ['enter', 'enter'];
+    $output = '';
+    $payload = (new SkillsRemoveCommand(
+        interactivePrompt: new InteractivePrompt(
+            keyReader: static function () use (&$keys): string {
+                return array_shift($keys) ?? 'escape';
+            },
+            writer: static function (string $message) use (&$output): void {
+                $output .= $message;
+            },
+        ),
+    ))->handle(
+        new CommandRoute('skills.remove'),
+        $project->root(),
+    );
+
+    expect($payload['meta'])->toMatchArray(['targets' => ['standard'], 'skills' => ['critical-review']]);
+    expect(stripCriticalCommandAnsi($output))->toContain('Remove skill(s) critical-review from target(s) standard? [Y/n]');
+    expect(stripCriticalCommandAnsi($output))->not->toContain('aider-desk');
+    expect($project->path('.agents/skills/critical-review'))->not->toBeDirectory();
+});
+
 it('runs a normalized tool handler directly with process reporting and history disabled', function (): void {
     $project = FixtureProject::create();
     $stderr = '';

@@ -29,6 +29,11 @@ final readonly class SkillsRemoveCommand implements CommandHandler
         $targets = $this->targets($route, $global);
         $usesInteractivePrompt = $this->usesInteractivePrompt($route);
         $skillNames = $this->skillNames($route, $cwd, $targets, $global);
+
+        if ($usesInteractivePrompt && ! $this->hasExplicitTargets($route)) {
+            $targets = $this->installedTargetsForSkills($cwd, $targets, $global, $skillNames);
+        }
+
         $this->assertConfirmed(
             $route,
             sprintf('Remove skill(s) %s from target(s) %s?', implode(', ', $skillNames), implode(', ', $targets)),
@@ -166,6 +171,35 @@ final readonly class SkillsRemoveCommand implements CommandHandler
     private function usesInteractivePrompt(CommandRoute $route): bool
     {
         return ! $this->optionBool($route, 'all') && $this->requestedSkillNames($route) === [];
+    }
+
+    private function hasExplicitTargets(CommandRoute $route): bool
+    {
+        return $this->stringOptionValues($route, 'agent') !== [];
+    }
+
+    /**
+     * @param list<string> $targets
+     * @param list<string> $skillNames
+     *
+     * @return list<string>
+     */
+    private function installedTargetsForSkills(string $cwd, array $targets, bool $global, array $skillNames): array
+    {
+        $selected = array_flip($skillNames);
+        $installedTargets = [];
+
+        foreach ($this->skillService->inventory($cwd, $targets, $global) as $metadata) {
+            if (! array_key_exists($metadata->name(), $selected)) {
+                continue;
+            }
+
+            foreach ($metadata->targets() as $target) {
+                $installedTargets[] = $target;
+            }
+        }
+
+        return array_values(array_unique($installedTargets));
     }
 
     /**
