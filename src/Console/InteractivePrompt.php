@@ -129,6 +129,8 @@ final class InteractivePrompt
             $style = new TerminalStyle($color);
             $cursor = 0;
             $selected = [];
+            $navigated = false;
+            $selectionTouched = false;
             $lastRenderedLines = 0;
 
             foreach ($options as $option) {
@@ -170,7 +172,7 @@ final class InteractivePrompt
                 }
 
                 $lines[] = '';
-                $lines[] = $style->muted('up/down navigate | space toggle | enter continue | esc cancel');
+                $lines[] = $style->muted('up/down navigate | space toggle | enter select/continue | esc cancel');
 
                 $this->write(self::CLEAR_DOWN . implode(PHP_EOL, $lines) . PHP_EOL);
                 $lastRenderedLines = count($lines);
@@ -187,6 +189,7 @@ final class InteractivePrompt
 
                 if ($key === 'up') {
                     $cursor = max(0, $cursor - 1);
+                    $navigated = true;
                     $render();
 
                     continue;
@@ -194,6 +197,7 @@ final class InteractivePrompt
 
                 if ($key === 'down') {
                     $cursor = min(max(0, count($options) - 1), $cursor + 1);
+                    $navigated = true;
                     $render();
 
                     continue;
@@ -211,12 +215,25 @@ final class InteractivePrompt
                         $selected[$value] = true;
                     }
 
+                    $selectionTouched = true;
                     $render();
 
                     continue;
                 }
 
-                if ($key === 'enter' && $selected !== []) {
+                if ($key === 'enter') {
+                    if (! isset($options[$cursor])) {
+                        continue;
+                    }
+
+                    if ($selectionTouched && $selected !== []) {
+                        return array_keys($selected);
+                    }
+
+                    if ($navigated || $selected === []) {
+                        return [$options[$cursor]['value']];
+                    }
+
                     return array_keys($selected);
                 }
             }

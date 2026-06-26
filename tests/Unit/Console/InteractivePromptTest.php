@@ -266,6 +266,40 @@ it('supports keyboard multiselect prompts', function (): void {
     expect(stripInteractiveAnsi($output))->not->toContain('------');
 });
 
+it('selects the highlighted multiselect option when enter is pressed with nothing checked', function (): void {
+    $keys = ['down', 'enter'];
+    $prompt = new InteractivePrompt(
+        keyReader: static function () use (&$keys): string {
+            return array_shift($keys) ?? 'escape';
+        },
+        writer: static function (): void {},
+    );
+
+    $selected = $prompt->multiselect('Which agents do you want to install to?', [
+        ['value' => 'standard', 'label' => 'standard'],
+        ['value' => 'generic', 'label' => 'generic'],
+    ]);
+
+    expect($selected)->toBe(['generic']);
+});
+
+it('selects the highlighted multiselect option after navigating away from defaults', function (): void {
+    $keys = ['down', 'enter'];
+    $prompt = new InteractivePrompt(
+        keyReader: static function () use (&$keys): string {
+            return array_shift($keys) ?? 'escape';
+        },
+        writer: static function (): void {},
+    );
+
+    $selected = $prompt->multiselect('Which agents do you want to install to?', [
+        ['value' => 'standard', 'label' => 'standard', 'selected' => true],
+        ['value' => 'generic', 'label' => 'generic'],
+    ]);
+
+    expect($selected)->toBe(['generic']);
+});
+
 it('limits rendered multiselect options while keeping navigation across all choices', function (): void {
     $keys = [...array_fill(0, 12, 'down'), 'space', 'enter'];
     $output = '';
