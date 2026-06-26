@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Sift\Console\ConfirmationPrompt;
 use Sift\Console\InvalidUsageException;
 
-it('accepts explicit interactive confirmation', function (): void {
+it('accepts enter as the default interactive confirmation', function (): void {
     $output = '';
     $prompt = new ConfirmationPrompt(
         interactive: static fn(): bool => true,
-        reader: static fn(): string => "yes\n",
+        reader: static fn(): string => "\n",
         writer: static function (string $message) use (&$output): void {
             $output .= $message;
         },
@@ -17,7 +17,7 @@ it('accepts explicit interactive confirmation', function (): void {
 
     $prompt->confirm('Install skill sift?', color: false);
 
-    expect($output)->toBe('Install skill sift? [y/N] ');
+    expect($output)->toBe('Install skill sift? [Y/n] ');
 });
 
 it('rejects declined and non interactive confirmations', function (): void {

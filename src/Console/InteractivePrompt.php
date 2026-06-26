@@ -304,15 +304,21 @@ final class InteractivePrompt
     {
         return $this->withTerminal(function () use ($message, $color): bool {
             $style = new TerminalStyle($color);
-            $this->write($style->label($message) . ' ' . $style->argument('[y/N]') . ' ');
+            $this->write($style->label($message) . ' ' . $style->argument('[Y/n]') . ' ');
 
             while (true) {
                 $key = $this->readKey();
 
-                if (in_array($key, ['escape', 'ctrl-c', 'enter'], true)) {
+                if (in_array($key, ['escape', 'ctrl-c'], true)) {
                     $this->write(PHP_EOL);
 
                     return false;
+                }
+
+                if ($key === 'enter') {
+                    $this->write(PHP_EOL);
+
+                    return true;
                 }
 
                 if ($key === 'char:y' || $key === 'char:Y') {

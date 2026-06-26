@@ -20,10 +20,10 @@ final readonly class ConfirmationPrompt
         $this->assertInteractive();
 
         $style = new TerminalStyle($color);
-        $this->write($style->label($message) . ' ' . $style->argument('[y/N]') . ' ');
+        $this->write($style->label($message) . ' ' . $style->argument('[Y/n]') . ' ');
         $answer = strtolower(trim($this->read()));
 
-        if (! in_array($answer, ['y', 'yes'], true)) {
+        if (! in_array($answer, ['', 'y', 'yes'], true)) {
             throw new InvalidUsageException('Skill command cancelled.');
         }
     }

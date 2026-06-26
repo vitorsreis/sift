@@ -354,3 +354,21 @@ it('supports keyboard select prompts with enter on the highlighted option', func
     expect(stripInteractiveAnsi($output))->toContain('Installation scope');
     expect(stripInteractiveAnsi($output))->toContain('up/down navigate | enter continue | esc cancel');
 });
+
+it('accepts enter as the default interactive confirmation', function (): void {
+    $keys = ['enter'];
+    $output = '';
+    $prompt = new InteractivePrompt(
+        keyReader: static function () use (&$keys): string {
+            return array_shift($keys) ?? 'escape';
+        },
+        writer: static function (string $contents) use (&$output): void {
+            $output .= $contents;
+        },
+    );
+
+    $confirmed = $prompt->confirm('Install skill sift?', color: false);
+
+    expect($confirmed)->toBeTrue();
+    expect($output)->toContain('Install skill sift? [Y/n] ');
+});
