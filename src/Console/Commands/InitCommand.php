@@ -120,8 +120,8 @@ final readonly class InitCommand implements CommandHandler
 
         return $this->skillTargetLock->synchronized(
             $cwd,
-            ['codex'],
-            fn(): array => $this->skillTargetInstaller->install($cwd, $selectedSkills, ['codex'], $source),
+            ['standard'],
+            fn(): array => $this->skillTargetInstaller->install($cwd, $selectedSkills, ['standard'], $source),
         );
     }
 }

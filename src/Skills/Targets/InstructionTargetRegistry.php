@@ -14,6 +14,7 @@ final readonly class InstructionTargetRegistry
     private const int SHARED_TARGET_HINT_LIMIT = 5;
 
     private const array SHARED_TARGET_PRIORITY = [
+        'standard',
         'codex',
         'cursor',
         'github-copilot',
@@ -129,16 +130,18 @@ final readonly class InstructionTargetRegistry
         $choices = $this->groupSharedDirectoryChoices($directoryChoices);
 
         if (! $global) {
+            $descriptorChoices = [];
+
             foreach ($this->descriptors() as $descriptor) {
-                $path = Path::join($cwd, $descriptor->relativePath());
-                $selected = is_file($path);
-                $choices[] = [
+                $descriptorChoices[] = [
                     'value' => $descriptor->name(),
                     'label' => $descriptor->name(),
                     'hint' => $descriptor->relativePath(),
-                    'selected' => $selected,
+                    'selected' => false,
                 ];
             }
+
+            $choices = $this->orderedProjectAgentChoices($choices, $descriptorChoices);
         }
 
         $hasSelected = array_filter(
@@ -148,7 +151,7 @@ final readonly class InstructionTargetRegistry
 
         if (! $hasSelected) {
             foreach ($choices as $index => $choice) {
-                if ($choice['value'] === 'codex') {
+                if ($choice['value'] === 'standard') {
                     $choices[$index]['selected'] = true;
 
                     break;
@@ -157,6 +160,48 @@ final readonly class InstructionTargetRegistry
         }
 
         return $choices;
+    }
+
+    /**
+     * @param list<array{value: string, label: string, hint: string, selected: bool}> $directoryChoices
+     * @param list<array{value: string, label: string, hint: string, selected: bool}> $descriptorChoices
+     *
+     * @return list<array{value: string, label: string, hint: string, selected: bool}>
+     */
+    private function orderedProjectAgentChoices(array $directoryChoices, array $descriptorChoices): array
+    {
+        $standardChoices = [];
+        $otherDirectoryChoices = [];
+
+        foreach ($directoryChoices as $choice) {
+            if ($choice['value'] === 'standard') {
+                $standardChoices[] = $choice;
+
+                continue;
+            }
+
+            $otherDirectoryChoices[] = $choice;
+        }
+
+        $genericChoices = [];
+        $otherDescriptorChoices = [];
+
+        foreach ($descriptorChoices as $choice) {
+            if ($choice['value'] === 'generic') {
+                $genericChoices[] = $choice;
+
+                continue;
+            }
+
+            $otherDescriptorChoices[] = $choice;
+        }
+
+        return [
+            ...$standardChoices,
+            ...$genericChoices,
+            ...$otherDirectoryChoices,
+            ...$otherDescriptorChoices,
+        ];
     }
 
     /**
@@ -196,8 +241,12 @@ final readonly class InstructionTargetRegistry
 
             $grouped[] = [
                 'value' => $representative['value'],
-                'label' => sprintf('%s (+%d)', $representative['value'], count($items) - 1),
-                'hint' => $this->sharedDirectoryHint($representative['hint'], $names, $representative['value']),
+                'label' => $representative['value'] === 'standard'
+                    ? 'standard'
+                    : sprintf('%s (+%d)', $representative['value'], count($items) - 1),
+                'hint' => $representative['value'] === 'standard'
+                    ? $this->standardSharedDirectoryHint($representative['hint'], $names)
+                    : $this->sharedDirectoryHint($representative['hint'], $names, $representative['value']),
                 'selected' => array_filter(
                     $items,
                     static fn(array $choice): bool => $choice['selected'] === true,
@@ -249,6 +298,47 @@ final readonly class InstructionTargetRegistry
         });
 
         return $names;
+    }
+
+    /**
+     * @param list<string> $names
+     */
+    private function standardSharedDirectoryHint(string $directory, array $names): string
+    {
+        $orderedNames = array_values(array_filter(
+            $this->prioritizedTargetNames($names),
+            static fn(string $name): bool => $name !== 'standard',
+        ));
+        $preferredProjectNames = [
+            'cursor' => 'Cursor',
+            'gemini-cli' => 'Gemini CLI',
+            'github-copilot' => 'GitHub Copilot',
+            'opencode' => 'OpenCode',
+            'antigravity' => 'Antigravity',
+            'amp' => 'Amp',
+            'replit' => 'Replit',
+        ];
+        $preferredGlobalNames = [
+            'amp' => 'Amp',
+            'replit' => 'Replit',
+            'universal' => 'Universal',
+        ];
+        $preferredNames = str_contains($directory, '.agents/skills') ? $preferredProjectNames : $preferredGlobalNames;
+        $preview = [];
+
+        foreach ($preferredNames as $name => $label) {
+            if (in_array($name, $orderedNames, true)) {
+                $preview[] = $label;
+            }
+        }
+
+        $remaining = count(array_values(array_diff($orderedNames, array_keys($preferredNames))));
+
+        if ($remaining > 0) {
+            $preview[] = '+' . $remaining . ' more';
+        }
+
+        return sprintf('%s (%s)', $directory, implode(', ', $preview));
     }
 
     /**
@@ -347,6 +437,7 @@ final readonly class InstructionTargetRegistry
     private function directoryTargets(): array
     {
         return [
+            'standard' => ['project' => '.agents/skills', 'global' => '.config/agents/skills'],
             'aider-desk' => ['project' => '.aider-desk/skills', 'global' => '.aider-desk/skills'],
             'amp' => ['project' => '.agents/skills', 'global' => '.config/agents/skills'],
             'replit' => ['project' => '.agents/skills', 'global' => '.config/agents/skills'],

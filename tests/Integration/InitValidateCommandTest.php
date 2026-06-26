@@ -98,12 +98,18 @@ it('installs the bundled sift skill during init when yes is explicit', function 
     $againPayload = CliRunner::decode($again['stdout']);
     $initSummary = initValidateObject($initPayload, 'summary');
     $againSummary = initValidateObject($againPayload, 'summary');
+    $initItems = $initPayload['items'] ?? null;
+
+    if (! is_array($initItems) || ! isset($initItems[0]) || ! is_array($initItems[0])) {
+        throw new RuntimeException('Expected init payload item.');
+    }
 
     expect($init['exit_code'])->toBe(0);
     expect($again['exit_code'])->toBe(0);
     expect($initSummary['skill_installed'] ?? null)->toBeTrue();
     expect($againSummary['already_initialized'] ?? null)->toBeTrue();
     expect($againSummary['skill_installed'] ?? null)->toBeTrue();
+    expect($initItems[0]['target'] ?? null)->toBe('standard');
     expect($project->path('.agents/skills/sift/SKILL.md'))->toBeFile();
     expect($project->path('.agents/skills/sift/.sift-skill.json'))->toBeFile();
     expect($codexHome->path('skills/sift/SKILL.md'))->not->toBeFile();
