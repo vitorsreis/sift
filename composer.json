@@ -28,7 +28,7 @@
     "deptrac/deptrac": "^4.6",
     "friendsofphp/php-cs-fixer": "^3.95",
     "icanhazstring/composer-unused": "^0.9.6",
-    "infection/infection": "^0.33.2",
+    "infection/infection": "^0.34.0",
     "laravel/pint": "^1.29",
     "maglnet/composer-require-checker": "^4.20",
     "pestphp/pest": "^4.7",
