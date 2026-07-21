@@ -23,6 +23,7 @@ it('catalogs all public item types', function (): void {
         'package',
         'architecture_violation',
         'mutation',
+        'benchmark',
     ]);
 });
 

@@ -33,7 +33,7 @@ only when they need more detail.
 - **Manage skills through Composer** for the open agent target set, including a standard shared target, Cursor, Claude Code,
   GitHub Copilot, Gemini CLI, OpenCode, Antigravity, Windsurf, and project or global installs.
 - **Reduce wasted tokens** by replacing raw tool output with compact summaries and paginated history.
-- **Run 15+ PHP tools** through one command layer.
+- **Run 20+ PHP tools** through one command layer.
 - **Keep automation safer** with read-only Composer reports, dry-run refactors, safe formatter modes, blocked arguments,
   timeouts, and redacted history.
 - **Use the same core everywhere** through `composer sift`, `composer skills`, `vendor/bin/sift`, or the PHAR.
@@ -92,19 +92,25 @@ For test runners, Sift injects machine-readable reports when needed. If the runn
 - `pest`
 - `phpunit`
 - `paratest`
+- `behat`
+- `codeception` / `codecept`
+- `phpbench`
 - `phpstan`
 - `psalm`
 - `phpcs`
 - `phpcbf`
 - `pint`
+- `ecs` / `easy-coding-standard`
 - `rector`
 - `mago`
+- `grumphp`
 - `infection`
 - `deptrac`
 - `php-cs-fixer`
 - `phpmd`
 - `composer-require-checker`
 - `composer-unused`
+- `composer-normalize` / `normalize`
 - `parallel-lint`
 - `composer audit|licenses|outdated|show|validate`
 

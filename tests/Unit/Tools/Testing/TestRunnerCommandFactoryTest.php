@@ -86,6 +86,25 @@ it('injects clover output when coverage is requested', function (): void {
     ]);
 });
 
+it('supports custom inline report options', function (): void {
+    $project = FixtureProject::create();
+    $factory = testRunnerFactory($project);
+
+    $command = $factory->prepare(
+        toolName: 'codeception',
+        tool: testRunnerLocatedTool($project),
+        context: new ToolContext('codeception', cwd: $project->root(), coverage: true),
+        config: new ToolConfig('codeception', true, null, [], 120),
+        arguments: ['run'],
+        junitOption: '--xml',
+        coverageOption: '--coverage-xml',
+        inlineOutputOptions: true,
+    );
+
+    expect(implode(' ', $command->arguments()))->toContain('--xml=', '--coverage-xml=');
+    expect($command->artifacts())->toHaveKeys(['junit', 'coverage_clover']);
+});
+
 it('fails early when output options miss their values', function (): void {
     $project = FixtureProject::create();
     $factory = testRunnerFactory($project);

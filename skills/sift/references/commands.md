@@ -60,14 +60,15 @@ composer sift --json composer validate
 
 Supported tool names:
 
-- `pest`, `phpunit`, `paratest`
+- `pest`, `phpunit`, `paratest`, `behat`, `codeception`
+- `phpbench`
 - `phpstan`, `psalm`, `phpcs`, `phpcbf`, `parallel-lint`
-- `pint`, `php-cs-fixer`, `rector`, `mago`
+- `pint`, `ecs`, `php-cs-fixer`, `rector`, `mago`, `grumphp`
 - `infection`, `deptrac`, `phpmd`
-- `composer-unused`, `composer-require-checker`
+- `composer-normalize`, `composer-unused`, `composer-require-checker`
 - `composer audit`, `composer licenses`, `composer outdated`, `composer show`, `composer validate`
 
-For `pest`, `phpunit`, and `paratest`, Sift injects JUnit and coverage reports when needed. Coverage output includes per-file coverage items when no `--min` threshold is provided; with `--min`, items are limited to files below the threshold. For `phpunit`, Sift treats `--min` as its own threshold option and removes it before executing PHPUnit. If the runner exits before generated reports are written, inspect `items[].message` for the native error and `extra.stdout` / `extra.stderr` for the raw output.
+For `pest`, `phpunit`, `paratest`, and `codeception`, Sift injects JUnit and coverage reports when needed. Coverage output includes per-file coverage items when no `--min` threshold is provided; with `--min`, items are limited to files below the threshold. For `phpunit` and `codeception`, Sift treats `--min` as its own threshold option and removes it before execution. Behat uses JSON scenario reports, while PHPBench uses XML benchmark dumps. If a runner exits before generated reports are written, inspect `items[].message` for the native error and `extra.stdout` / `extra.stderr` for the raw output.
 
 ## History Commands
 

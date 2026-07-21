@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Sift\Registry;
 
 use InvalidArgumentException;
+use Sift\Tools\Behat\BehatToolAdapter;
+use Sift\Tools\Codeception\CodeceptionToolAdapter;
 use Sift\Tools\Composer\ComposerToolAdapter;
+use Sift\Tools\ComposerNormalize\ComposerNormalizeToolAdapter;
 use Sift\Tools\ComposerRequireChecker\ComposerRequireCheckerToolAdapter;
 use Sift\Tools\ComposerUnused\ComposerUnusedToolAdapter;
 use Sift\Tools\Deptrac\DeptracToolAdapter;
+use Sift\Tools\EasyCodingStandard\EasyCodingStandardToolAdapter;
+use Sift\Tools\GrumPhp\GrumPhpToolAdapter;
 use Sift\Tools\Infection\InfectionToolAdapter;
 use Sift\Tools\Mago\MagoToolAdapter;
 use Sift\Tools\ParallelLint\ParallelLintToolAdapter;
+use Sift\Tools\PhpBench\PhpBenchToolAdapter;
 use Sift\Tools\PhpCs\PhpcbfToolAdapter;
 use Sift\Tools\PhpCs\PhpcsToolAdapter;
 use Sift\Tools\PhpCsFixer\PhpCsFixerToolAdapter;
@@ -66,17 +72,23 @@ final readonly class ToolRegistry implements ToolRegistryInterface
             new PestToolAdapter(),
             new PhpunitToolAdapter(),
             new ParatestToolAdapter(),
+            new BehatToolAdapter(),
+            new CodeceptionToolAdapter(),
+            new PhpBenchToolAdapter(),
             new PhpstanToolAdapter(),
             new PsalmToolAdapter(),
             new PhpcsToolAdapter(),
             new PhpcbfToolAdapter(),
             new RectorToolAdapter(),
             new PintToolAdapter(),
+            new EasyCodingStandardToolAdapter(),
             new MagoToolAdapter(),
+            new GrumPhpToolAdapter(),
             new InfectionToolAdapter(),
             new DeptracToolAdapter(),
             new PhpCsFixerToolAdapter(),
             new PhpmdToolAdapter(),
+            new ComposerNormalizeToolAdapter(),
             new ComposerUnusedToolAdapter(),
             new ComposerRequireCheckerToolAdapter(),
             new ParallelLintToolAdapter(),

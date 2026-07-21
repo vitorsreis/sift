@@ -144,11 +144,11 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
 
     private function isRunnerBanner(string $line): bool
     {
-        return preg_match('/^(?:PHPUnit|Pest|ParaTest)\b/i', $line) === 1
+        return preg_match('/^(?:PHPUnit|Pest|ParaTest|Codeception)\b/i', $line) === 1
             || preg_match('/^by Sebastian Bergmann and contributors\.?$/i', $line) === 1;
     }
 
-    private function commandFactory(): TestRunnerCommandFactory
+    protected function commandFactory(): TestRunnerCommandFactory
     {
         return $this->commandFactory ?? new TestRunnerCommandFactory(new TempFileFactory(sys_get_temp_dir()));
     }

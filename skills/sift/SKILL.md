@@ -28,6 +28,12 @@ Use these forms first:
 composer sift --compact pest
 composer sift --compact phpunit
 composer sift --compact paratest
+composer sift --compact behat
+composer sift --compact codeception
+composer sift --compact phpbench
+composer sift --compact ecs src
+composer sift --compact grumphp
+composer sift --compact composer-normalize
 composer sift --compact phpstan analyse src
 composer sift --compact psalm
 composer sift --compact phpcs src
@@ -67,10 +73,11 @@ Use `composer sift tools list` to verify tool availability.
 
 ## Supported Tools
 
-- Test: `pest`, `phpunit`, `paratest`
+- Test: `pest`, `phpunit`, `paratest`, `behat`, `codeception`
+- Benchmark: `phpbench`
 - Analysis: `phpstan`, `psalm`
-- Style and syntax: `phpcs`, `phpcbf`, `pint`, `php-cs-fixer`, `parallel-lint`
-- Refactor and quality: `rector`, `mago`, `phpmd`
+- Style and syntax: `phpcs`, `phpcbf`, `pint`, `ecs`, `php-cs-fixer`, `parallel-lint`, `composer-normalize`
+- Refactor and quality: `rector`, `mago`, `grumphp`, `phpmd`
 - Mutation and architecture: `infection`, `deptrac`
 - Dependencies: `composer-unused`, `composer-require-checker`
 - Composer reports: `composer audit`, `composer licenses`, `composer outdated`, `composer show`, `composer validate`

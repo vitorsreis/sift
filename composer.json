@@ -22,10 +22,13 @@
     "ext-simplexml": "*"
   },
   "require-dev": {
+    "behat/behat": "^3.32",
     "brianium/paratest": "^7.20",
     "carthage-software/mago": "^1.29",
+    "codeception/codeception": "^5.3",
     "composer/composer": "^2.10",
     "deptrac/deptrac": "^4.6",
+    "ergebnis/composer-normalize": "^2.52",
     "friendsofphp/php-cs-fixer": "^3.95",
     "icanhazstring/composer-unused": "^0.9.6",
     "infection/infection": "^0.33.2",
@@ -33,11 +36,14 @@
     "maglnet/composer-require-checker": "^4.20",
     "pestphp/pest": "^4.7",
     "php-parallel-lint/php-parallel-lint": "^1.4",
+    "phpbench/phpbench": "^1.7",
     "phpmd/phpmd": "^2.15",
+    "phpro/grumphp": "^2.22",
     "phpstan/phpstan": "^2.2",
     "phpunit/phpunit": "^12.5",
     "rector/rector": "^2.4",
     "squizlabs/php_codesniffer": "^4.0",
+    "symplify/easy-coding-standard": "^13.2",
     "vimeo/psalm": "^6.5"
   },
   "autoload": {
@@ -64,8 +70,10 @@
     },
     "sort-packages": true,
     "allow-plugins": {
+      "ergebnis/composer-normalize": true,
       "infection/extension-installer": false,
-      "pestphp/pest-plugin": true
+      "pestphp/pest-plugin": true,
+      "phpro/grumphp": true
     }
   },
   "scripts": {

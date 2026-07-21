@@ -23,4 +23,5 @@ enum ItemType: string
     case Package = 'package';
     case ArchitectureViolation = 'architecture_violation';
     case Mutation = 'mutation';
+    case Benchmark = 'benchmark';
 }
