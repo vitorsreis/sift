@@ -83,6 +83,18 @@ final readonly class InfectionToolAdapter extends AbstractCliToolAdapter
         }
 
         $this->assertJsonCanBeWritten($arguments);
+        $arguments = $this->withoutArguments($arguments, [
+            '--no-progress',
+            '--force-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+        ]);
+        $quietArguments = ['--no-progress', '--no-ansi', '--no-interaction'];
+        $arguments = ($arguments[0] ?? null) === 'run'
+            ? ['run', ...$quietArguments, ...array_slice($arguments, 1)]
+            : [...$quietArguments, ...$arguments];
         $summaryPath = $this->optionValue($arguments, '--logger-summary-json');
         $temporaryFiles = [];
 

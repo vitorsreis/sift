@@ -34,7 +34,7 @@ it('prepares the grumphp run command', function (): void {
         config: new ToolConfig('grumphp', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['run', '--no-ansi', '--tasks=phpstan,phpunit']);
+    expect($command->arguments())->toBe(['run', '--no-ansi', '--no-interaction', '--tasks=phpstan,phpunit']);
 });
 
 it('rejects grumphp commands other than run outside raw mode', function (): void {

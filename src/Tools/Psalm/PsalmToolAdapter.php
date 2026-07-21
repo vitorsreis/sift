@@ -58,7 +58,7 @@ final readonly class PsalmToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments($context->userArgs()),
+            arguments: $context->raw() ? $context->userArgs() : $this->arguments($context->userArgs()),
         );
     }
 
@@ -81,14 +81,18 @@ final readonly class PsalmToolAdapter extends AbstractCliToolAdapter
     private function arguments(array $userArguments): array
     {
         $arguments = [];
+        $userArguments = $this->withoutArguments($userArguments, [
+            '--no-progress',
+            '--long-progress',
+            '--monochrome',
+        ]);
 
         if (! $this->hasOption($userArguments, '--output-format')) {
             $arguments[] = '--output-format=json';
         }
 
-        if (! in_array('--no-progress', $userArguments, true)) {
-            $arguments[] = '--no-progress';
-        }
+        $arguments[] = '--no-progress';
+        $arguments[] = '--monochrome';
 
         return [...$arguments, ...$userArguments];
     }

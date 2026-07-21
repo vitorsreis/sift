@@ -36,7 +36,7 @@ it('prepares deptrac with json analyse defaults', function (): void {
     );
 
     expect($context->subcommand())->toBe('analyse');
-    expect($command->arguments())->toBe(['--formatter=json', '--no-progress', '--report-skipped']);
+    expect($command->arguments())->toBe(['--formatter=json', '--no-progress', '--no-ansi', '--no-interaction', '--report-skipped']);
 });
 
 it('accepts analyse as a pseudo subcommand without passing it to deptrac v4', function (): void {
@@ -50,7 +50,7 @@ it('accepts analyse as a pseudo subcommand without passing it to deptrac v4', fu
         config: new ToolConfig('deptrac', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--no-progress', '--report-skipped', '--formatter=json']);
+    expect($command->arguments())->toBe(['--no-progress', '--no-ansi', '--no-interaction', '--report-skipped', '--formatter=json']);
 });
 
 it('rejects deptrac commands outside analyse', function (): void {

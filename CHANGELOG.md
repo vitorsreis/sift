@@ -17,6 +17,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ### Changed
 
+- Normalized tool runs now force each supported machine-readable format and suppress progress, colors, ANSI output, and interactive prompts when the underlying tool supports those controls; `--raw` keeps native presentation arguments.
 - The configuration schema now suggests supported tool names and tool-specific binary candidates while continuing to accept custom tools and executable paths.
 - Consolidated PHPStan, PHPUnit, and Sift history caches under `.cache`, which is now ignored by Git and excluded from release archives.
 - PHPUnit now validates its configuration against the bundled XSD, explicitly caches results, and randomizes test execution while preserving dependency order.

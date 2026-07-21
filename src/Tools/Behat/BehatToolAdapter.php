@@ -80,16 +80,23 @@ final readonly class BehatToolAdapter extends AbstractCliToolAdapter
 
         $this->assertOutputAvailable($context->userArgs());
         $report = $this->tempFileFactory()->create('sift-behat-', '.json');
-        $arguments = ['--format=json', '--out=' . $report->path()];
-
-        if (! in_array('--no-colors', $context->userArgs(), true)) {
-            $arguments[] = '--no-colors';
-        }
+        $userArguments = $this->withoutArguments($context->userArgs(), [
+            '--colors',
+            '--no-colors',
+            '-n',
+            '--no-interaction',
+        ]);
+        $arguments = [
+            '--format=json',
+            '--out=' . $report->path(),
+            '--no-colors',
+            '--no-interaction',
+        ];
 
         return new PreparedCommand(
             tool: $this->name(),
             binary: $tool->binary(),
-            arguments: [...$arguments, ...$context->userArgs()],
+            arguments: [...$arguments, ...$userArguments],
             cwd: $context->cwd(),
             timeout: $config->timeout(),
             temporaryFiles: [$report->path()],

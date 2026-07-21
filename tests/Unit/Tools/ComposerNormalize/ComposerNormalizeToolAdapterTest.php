@@ -37,7 +37,7 @@ it('prepares composer normalize in safe dry-run mode by default', function (): v
     );
 
     expect($context->repair())->toBeFalse();
-    expect($command->arguments())->toBe(['normalize', '--dry-run', '--diff']);
+    expect($command->arguments())->toBe(['normalize', '--no-progress', '--no-ansi', '--no-interaction', '--dry-run', '--diff']);
 });
 
 it('prepares composer normalize repair only when explicit', function (): void {
@@ -52,7 +52,7 @@ it('prepares composer normalize repair only when explicit', function (): void {
     );
 
     expect($context->repair())->toBeTrue();
-    expect($command->arguments())->toBe(['normalize', '--diff', 'fixtures/composer.json']);
+    expect($command->arguments())->toBe(['normalize', '--no-progress', '--no-ansi', '--no-interaction', '--diff', 'fixtures/composer.json']);
 });
 
 it('parses an unnormalized composer manifest as a finding', function (): void {

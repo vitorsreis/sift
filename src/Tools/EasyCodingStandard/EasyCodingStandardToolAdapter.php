@@ -80,6 +80,7 @@ final readonly class EasyCodingStandardToolAdapter extends AbstractCliToolAdapte
         }
 
         $arguments = $this->withoutCheckCommand($context->userArgs());
+        $arguments = $this->withoutArguments($arguments, ['--no-progress-bar']);
 
         if (! $context->repair() && $this->hasOption($arguments, '--fix')) {
             throw new InvalidUsageException('ECS modifies files with --fix; pass --repair instead.');
@@ -100,6 +101,8 @@ final readonly class EasyCodingStandardToolAdapter extends AbstractCliToolAdapte
         if ($format === null) {
             $defaults[] = '--output-format=json';
         }
+
+        $defaults[] = '--no-progress-bar';
 
         return $this->prepareBaseCommand(
             tool: $tool,

@@ -92,10 +92,20 @@ final readonly class PhpBenchToolAdapter extends AbstractCliToolAdapter
             $arguments[] = '--dump-file=' . $dumpPath;
         }
 
+        $arguments = $this->withoutArguments($arguments, [
+            '--silent',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+
         return new PreparedCommand(
             tool: $this->name(),
             binary: $tool->binary(),
-            arguments: ['run', ...$arguments],
+            arguments: ['run', '--silent', '--no-ansi', '--no-interaction', ...$arguments],
             cwd: $context->cwd(),
             timeout: $config->timeout(),
             temporaryFiles: $temporaryFiles,

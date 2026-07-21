@@ -36,7 +36,7 @@ it('prepares infection with generated summary json output', function (): void {
     );
 
     expect($command->arguments()[0])->toBe('--logger-summary-json');
-    expect($command->arguments()[2])->toBe('--min-msi=80');
+    expect($command->arguments())->toContain('--no-progress', '--no-ansi', '--no-interaction', '--min-msi=80');
     expect($command->artifacts())->toHaveKey('mutation_summary');
     expect($command->temporaryFiles())->toBe([$command->artifacts()['mutation_summary']]);
     expect(is_file($command->artifacts()['mutation_summary']))->toBeTrue();
@@ -55,8 +55,7 @@ it('keeps run command before injected infection output options', function (): vo
 
     expect($command->arguments()[0])->toBe('run');
     expect($command->arguments()[1])->toBe('--logger-summary-json');
-    expect($command->arguments()[3])->toBe('--min-msi');
-    expect($command->arguments()[4])->toBe('80');
+    expect($command->arguments())->toContain('--no-progress', '--no-ansi', '--no-interaction', '--min-msi', '80');
 });
 
 it('respects explicit infection summary json output path', function (): void {
@@ -70,7 +69,12 @@ it('respects explicit infection summary json output path', function (): void {
         config: new ToolConfig('infection', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--logger-summary-json=build/infection.json']);
+    expect($command->arguments())->toBe([
+        '--no-progress',
+        '--no-ansi',
+        '--no-interaction',
+        '--logger-summary-json=build/infection.json',
+    ]);
     expect($command->artifacts())->toBe(['mutation_summary' => $project->path('build/infection.json')]);
     expect($command->temporaryFiles())->toBe([]);
 });

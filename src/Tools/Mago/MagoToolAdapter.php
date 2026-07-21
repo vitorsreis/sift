@@ -79,7 +79,7 @@ final readonly class MagoToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments->prepare($context->userArgs())->arguments(),
+            arguments: $this->arguments->prepare($context->userArgs(), ! $context->raw())->arguments(),
         );
     }
 

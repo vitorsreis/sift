@@ -36,10 +36,28 @@ it('prepares phpunit with junit output', function (): void {
     );
 
     expect($command->tool())->toBe('phpunit');
-    expect($command->arguments()[0])->toBe('--filter');
-    expect($command->arguments()[2])->toBe('--log-junit');
+    expect($command->arguments())->toContain('--no-output', '--colors=never', '--filter', 'CheckoutTest', '--log-junit');
     expect($command->artifacts())->toHaveKey('junit');
     expect($command->temporaryFiles())->toBe([$command->artifacts()['junit']]);
+});
+
+it('passes phpunit arguments through without reports in raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpunitToolAdapter(commandFactory: phpunitAdapterCommandFactory($project));
+    $context = $adapter->context(
+        new CliArguments('phpunit', ['--colors=always', '--filter', 'CheckoutTest'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('phpunit', $project->path('vendor/bin/phpunit'), 'vendor/bin/phpunit', 'relative'),
+        context: $context,
+        config: new ToolConfig('phpunit', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--colors=always', '--filter', 'CheckoutTest']);
+    expect($command->artifacts())->toBe([]);
+    expect($command->temporaryFiles())->toBe([]);
 });
 
 it('treats phpunit separate min coverage as a sift threshold without passing it to phpunit', function (): void {

@@ -34,7 +34,7 @@ it('prepares composer-unused with json output defaults', function (): void {
         config: new ToolConfig('composer-unused', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--output-format=json', '--no-progress']);
+    expect($command->arguments())->toBe(['--output-format=json', '--no-progress', '--no-ansi', '--no-interaction']);
 });
 
 it('preserves explicit composer-unused json output format', function (): void {
@@ -48,7 +48,7 @@ it('preserves explicit composer-unused json output format', function (): void {
         config: new ToolConfig('composer-unused', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--no-progress', 'composer.json', '-o', 'json']);
+    expect($command->arguments())->toBe(['--no-progress', '--no-ansi', '--no-interaction', 'composer.json', '-o', 'json']);
 });
 
 it('rejects composer-unused output files because json must remain on stdout', function (): void {

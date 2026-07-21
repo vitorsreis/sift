@@ -46,12 +46,16 @@ final readonly class MagoArguments
     /**
      * @param list<string> $userArguments
      */
-    public function prepare(array $userArguments): MagoPreparedArguments
+    public function prepare(array $userArguments, bool $machineOutput = true): MagoPreparedArguments
     {
         [$globalArguments, $remaining] = $this->splitGlobalArguments($userArguments);
         [$subcommand, $toolArguments] = $this->splitSubcommand($remaining);
-        $globalArguments = $this->withColorsDisabled($globalArguments);
-        $toolArguments = $this->withSafeDefaults($subcommand, $toolArguments);
+
+        if ($machineOutput) {
+            $globalArguments = $this->withColorsDisabled($globalArguments);
+        }
+
+        $toolArguments = $this->withSafeDefaults($subcommand, $toolArguments, $machineOutput);
 
         return new MagoPreparedArguments(
             subcommand: $subcommand,
@@ -139,18 +143,35 @@ final readonly class MagoArguments
      */
     private function withColorsDisabled(array $globalArguments): array
     {
-        if ($this->hasOption($globalArguments, '--colors')) {
-            return $globalArguments;
+        $remaining = [];
+        $skipNext = false;
+
+        foreach ($globalArguments as $argument) {
+            if ($skipNext) {
+                $skipNext = false;
+                continue;
+            }
+
+            if ($argument === '--colors') {
+                $skipNext = true;
+                continue;
+            }
+
+            if (str_starts_with($argument, '--colors=')) {
+                continue;
+            }
+
+            $remaining[] = $argument;
         }
 
-        return [...$globalArguments, '--colors=never'];
+        return [...$remaining, '--colors=never'];
     }
 
     /**
      * @param list<string> $toolArguments
      * @return list<string>
      */
-    private function withSafeDefaults(string $subcommand, array $toolArguments): array
+    private function withSafeDefaults(string $subcommand, array $toolArguments, bool $machineOutput): array
     {
         if ($subcommand === 'format') {
             if (! $this->hasAnyExact($toolArguments, ['--check', '-c', '--dry-run', '-d', '--stdin-input', '-i'])) {
@@ -160,7 +181,7 @@ final readonly class MagoArguments
             return $toolArguments;
         }
 
-        if (! $this->hasOption($toolArguments, '--reporting-format')) {
+        if ($machineOutput && ! $this->hasOption($toolArguments, '--reporting-format')) {
             return ['--reporting-format=json', ...$toolArguments];
         }
 

@@ -47,7 +47,7 @@ it('runs infection through a fake binary with generated summary json output', fu
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['total_mutants' => 4, 'msi' => 75.0]);
     expect($argv[0])->toBe('--logger-summary-json');
-    expect($argv[2])->toBe('--min-msi=80');
+    expect($argv)->toContain('--no-progress', '--no-ansi', '--no-interaction', '--min-msi=80');
 });
 
 function infectionFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

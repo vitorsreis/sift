@@ -229,23 +229,34 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
             throw new InvalidUsageException('Composer adapter supports only audit, licenses, outdated, show and validate.');
         }
 
+        $commandArguments = $this->withoutArguments($command['arguments'], [
+            '--no-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+        $quietArguments = ['--no-progress', '--no-ansi', '--no-interaction'];
+
         if ($subcommand === 'validate') {
-            return [$subcommand, ...$command['arguments']];
+            return [$subcommand, ...$quietArguments, ...$commandArguments];
         }
 
-        $format = $this->optionValue($command['arguments'], '--format', '-f');
+        $format = $this->optionValue($commandArguments, '--format', '-f');
 
         if ($format !== null && strtolower($format) !== 'json') {
             throw new InvalidUsageException('Composer adapter requires JSON output outside raw mode.');
         }
 
-        $arguments = [$subcommand];
+        $arguments = [$subcommand, ...$quietArguments];
 
         if ($format === null) {
             $arguments[] = '--format=json';
         }
 
-        return [...$arguments, ...$command['arguments']];
+        return [...$arguments, ...$commandArguments];
     }
 
     /**

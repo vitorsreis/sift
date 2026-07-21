@@ -33,7 +33,7 @@ it('prepares behat with a generated json report', function (): void {
     );
 
     expect($context->filter())->toBe('Checkout');
-    expect($command->arguments())->toContain('--format=json', '--no-colors', '--name=Checkout');
+    expect($command->arguments())->toContain('--format=json', '--no-colors', '--no-interaction', '--name=Checkout');
     expect($command->artifacts())->toHaveKey('behat_json');
     expect($command->arguments())->toContain('--out=' . $command->artifacts()['behat_json']);
     expect($command->temporaryFiles())->toBe([$command->artifacts()['behat_json']]);

@@ -45,7 +45,7 @@ it('runs deptrac through a fake binary with json analyse output', function (): v
     expect($payload['tool'])->toBe('deptrac');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['violations' => 1]);
-    expect($fake->argv())->toBe(['--formatter=json', '--no-progress', '--report-skipped']);
+    expect($fake->argv())->toBe(['--formatter=json', '--no-progress', '--no-ansi', '--no-interaction', '--report-skipped']);
 });
 
 function deptracFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

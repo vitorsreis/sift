@@ -37,7 +37,14 @@ it('prepares codeception run with junit and clover reports', function (): void {
     expect($context->coverage())->toBeTrue();
     expect($context->coverageMin())->toBe(80.0);
     expect($command->arguments()[0])->toBe('run');
-    expect($command->arguments())->toContain('acceptance', '--coverage');
+    expect($command->arguments())->toContain(
+        '--silent',
+        '--no-colors',
+        '--no-ansi',
+        '--no-interaction',
+        'acceptance',
+        '--coverage',
+    );
     expect(implode(' ', $command->arguments()))->toContain('--xml=', '--coverage-xml=');
     expect($command->arguments())->not->toContain('--min=80');
     expect($command->artifacts())->toHaveKeys(['junit', 'coverage_clover']);

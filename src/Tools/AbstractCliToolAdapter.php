@@ -73,6 +73,53 @@ abstract readonly class AbstractCliToolAdapter implements ToolAdapter
         );
     }
 
+    /**
+     * @param list<string> $arguments
+     * @param list<string> $values
+     * @return list<string>
+     */
+    protected function withoutArguments(array $arguments, array $values): array
+    {
+        return array_values(array_filter(
+            $arguments,
+            static fn(string $argument): bool => ! in_array($argument, $values, true),
+        ));
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param list<string> $options
+     * @return list<string>
+     */
+    protected function withoutOptions(array $arguments, array $options): array
+    {
+        $remaining = [];
+        $skipNext = false;
+
+        foreach ($arguments as $index => $argument) {
+            if ($skipNext) {
+                $skipNext = false;
+                continue;
+            }
+
+            foreach ($options as $option) {
+                if ($argument === $option) {
+                    $next = $arguments[$index + 1] ?? null;
+                    $skipNext = is_string($next) && ! str_starts_with($next, '-');
+                    continue 2;
+                }
+
+                if (str_starts_with($argument, $option . '=')) {
+                    continue 2;
+                }
+            }
+
+            $remaining[] = $argument;
+        }
+
+        return $remaining;
+    }
+
     abstract protected function name(): string;
 
     /**

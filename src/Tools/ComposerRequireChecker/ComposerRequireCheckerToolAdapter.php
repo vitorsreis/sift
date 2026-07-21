@@ -83,13 +83,21 @@ final readonly class ComposerRequireCheckerToolAdapter extends AbstractCliToolAd
     private function jsonArguments(array $arguments): array
     {
         $arguments = $this->withoutCheckCommand($arguments);
+        $arguments = $this->withoutArguments($arguments, [
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
         $output = $this->optionValue($arguments, '--output');
 
         if ($output !== null && strtolower($output) !== 'json') {
             throw new InvalidUsageException('Composer Require Checker adapter requires JSON output outside raw mode.');
         }
 
-        $defaults = ['check'];
+        $defaults = ['check', '--no-ansi', '--no-interaction'];
 
         if ($output === null) {
             $defaults[] = '--output=json';

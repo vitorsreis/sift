@@ -30,13 +30,36 @@ abstract readonly class AbstractTestRunnerToolAdapter extends AbstractCliToolAda
     #[\Override]
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand
     {
+        if ($context->raw()) {
+            return $this->prepareBaseCommand($tool, $context, $config, $context->userArgs());
+        }
+
         return $this->commandFactory()->prepare(
             toolName: $this->name(),
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: [...$this->defaultArguments($context), ...$this->userArguments($context)],
+            arguments: $this->quietArguments([
+                ...$this->defaultArguments($context),
+                ...$this->userArguments($context),
+            ]),
         );
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @return list<string>
+     */
+    private function quietArguments(array $arguments): array
+    {
+        $arguments = $this->withoutOptions($arguments, ['--colors']);
+        $arguments = $this->withoutArguments($arguments, ['--no-output', '--no-progress']);
+
+        if (in_array($this->name(), ['phpunit', 'pest'], true)) {
+            return ['--no-output', '--colors=never', ...$arguments];
+        }
+
+        return ['--no-progress', '--colors=never', ...$arguments];
     }
 
     /**

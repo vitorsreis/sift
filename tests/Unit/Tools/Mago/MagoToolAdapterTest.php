@@ -80,6 +80,37 @@ it('prepares mago format as check mode by default', function (): void {
     expect($command->arguments())->toBe(['--colors=never', 'format', '--check', 'src']);
 });
 
+it('keeps mago machine output controls out of raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new MagoToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('mago', ['--colors=always', 'lint', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('mago', $project->path('vendor/bin/mago'), 'vendor/bin/mago', 'relative'),
+        context: $context,
+        config: new ToolConfig('mago', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--colors=always', 'lint', 'src']);
+});
+
+it('forces mago colors off outside raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new MagoToolAdapter();
+    $context = $adapter->context(new CliArguments('mago', ['--colors=always', 'lint', 'src']), $project->root());
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('mago', $project->path('vendor/bin/mago'), 'vendor/bin/mago', 'relative'),
+        context: $context,
+        config: new ToolConfig('mago', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--colors=never', 'lint', '--reporting-format=json', 'src']);
+});
+
 it('rejects unsupported mago subcommands', function (): void {
     $project = FixtureProject::create();
     $adapter = new MagoToolAdapter();

@@ -34,7 +34,41 @@ it('prepares rector process with dry-run json defaults', function (): void {
         config: new ToolConfig('rector', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['process', '--dry-run', '--output-format=json', 'src']);
+    expect($command->arguments())->toBe(['process', '--dry-run', '--output-format=json', '--no-progress-bar', '--no-ansi', 'src']);
+});
+
+it('keeps rector machine output controls out of raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new RectorToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('rector', ['process', '--dry-run', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('rector', $project->path('vendor/bin/rector'), 'vendor/bin/rector', 'relative'),
+        context: $context,
+        config: new ToolConfig('rector', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['process', '--dry-run', 'src']);
+});
+
+it('forces rector progress and ansi output off outside raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new RectorToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('rector', ['process', '--dry-run', '--ansi', '--no-progress-bar', 'src']),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('rector', $project->path('vendor/bin/rector'), 'vendor/bin/rector', 'relative'),
+        context: $context,
+        config: new ToolConfig('rector', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['process', '--output-format=json', '--no-progress-bar', '--no-ansi', '--dry-run', 'src']);
 });
 
 it('rejects rector subcommands other than process', function (): void {

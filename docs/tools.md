@@ -13,30 +13,30 @@ Terminal status:
 
 | Tool | Safe default |
 | --- | --- |
-| `phpunit` | JUnit output, coverage parsing, and Sift-level `--min` thresholds |
-| `pest` | JUnit output and coverage parsing |
-| `paratest` | JUnit output and coverage parsing |
-| `behat` | JSON scenario output with failures, pending, and undefined steps |
-| `codeception` | JUnit output, coverage parsing, and Sift-level `--min` thresholds |
-| `phpbench` | XML measurements, assertion failures, and execution errors |
-| `phpstan` | `analyse --error-format=json --no-progress` |
-| `psalm` | JSON output |
+| `phpunit` | JUnit output with `--no-output --colors=never`, coverage parsing, and Sift-level `--min` thresholds |
+| `pest` | JUnit output with `--no-output --colors=never` and coverage parsing |
+| `paratest` | JUnit output with `--no-progress --colors=never` and coverage parsing |
+| `behat` | JSON scenario output with no colors or interaction |
+| `codeception` | Silent JUnit output with no colors or interaction, coverage parsing, and Sift-level `--min` thresholds |
+| `phpbench` | Silent XML measurements with no ANSI or interaction, assertion failures, and execution errors |
+| `phpstan` | `analyse --error-format=json --no-progress --no-ansi --no-interaction` |
+| `psalm` | `--output-format=json --no-progress --monochrome` |
 | `phpcs` | JSON report, quiet, no colors |
 | `phpcbf` | repair-only with `--repair`, quiet, no colors |
-| `rector` | `process --dry-run --output-format=json` |
-| `pint` | `--test --format=json` |
-| `ecs` | JSON style findings; fixes require explicit `--repair` |
+| `rector` | `process --dry-run --output-format=json --no-progress-bar --no-ansi` |
+| `pint` | `--test --format=json --no-ansi --no-interaction` |
+| `ecs` | JSON style findings without a progress bar; fixes require explicit `--repair` |
 | `mago` | safe lint/analyze/guard/format modes |
-| `grumphp` | `run --no-ansi` task results |
-| `infection` | JSON logger |
-| `deptrac` | JSON analyse output only |
-| `php-cs-fixer` | `fix --dry-run --format=json` |
+| `grumphp` | `run --no-ansi --no-interaction` task results |
+| `infection` | JSON logger with no progress, ANSI, or interaction |
+| `deptrac` | JSON analyse output with no progress, ANSI, or interaction |
+| `php-cs-fixer` | `fix --dry-run --format=json --show-progress=none --no-ansi --no-interaction` |
 | `phpmd` | JSON report |
-| `composer-normalize` | `normalize --dry-run --diff`; writes require explicit `--repair` |
-| `composer-unused` | JSON output |
-| `composer-require-checker` | `check --format=json` |
-| `parallel-lint` | JSON output |
-| `composer` | read-only `audit`, `licenses`, `outdated`, `show`, `validate` |
+| `composer-normalize` | Non-interactive `normalize --dry-run --diff` without progress or ANSI; writes require explicit `--repair` |
+| `composer-unused` | JSON output without progress, ANSI, or interaction |
+| `composer-require-checker` | Non-interactive `check --output=json` without ANSI |
+| `parallel-lint` | JSON output without progress or colors |
+| `composer` | Non-interactive, no-progress, no-ANSI read-only `audit`, `licenses`, `outdated`, `show`, `validate` |
 
 ## Test Runners
 
@@ -66,4 +66,4 @@ PHPCBF output is normalized from its text summary:
 - `failed`: PHPCBF fixed what it could, but remaining violations were reported.
 - `passed`: no violations were found.
 
-Machine-readable tool output is required outside `--raw`; native text output is not parsed as a fallback when the adapter contract requires JSON or XML.
+Machine-readable tool output is required outside `--raw`; native text output is not parsed as a fallback when the adapter contract requires JSON or XML. Sift also forces supported no-progress, no-color, no-ANSI, silent, and non-interactive controls so the parser receives the cleanest available result. `--raw` leaves those native presentation controls to the caller while safety policies remain active.

@@ -36,6 +36,23 @@ it('prepares phpcs with json quiet no color defaults', function (): void {
     expect($command->arguments())->toBe(['--report=json', '-q', '--no-colors', 'src']);
 });
 
+it('passes phpcs presentation arguments through in raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpcsToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('phpcs', ['--report=full', '--colors', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('phpcs', $project->path('vendor/bin/phpcs'), 'vendor/bin/phpcs', 'relative'),
+        context: $context,
+        config: new ToolConfig('phpcs', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--report=full', '--colors', 'src']);
+});
+
 it('parses phpcs findings as failed status', function (): void {
     $project = FixtureProject::create();
     $source = $project->write('src/Checkout.php', '<?php');

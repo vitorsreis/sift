@@ -39,7 +39,7 @@ it('prepares ecs with json output and without mutation by default', function ():
     );
 
     expect($context->repair())->toBeFalse();
-    expect($command->arguments())->toBe(['--output-format=json', 'src']);
+    expect($command->arguments())->toBe(['--output-format=json', '--no-progress-bar', 'src']);
 });
 
 it('prepares ecs fix mode only when repair is explicit', function (): void {
@@ -54,7 +54,7 @@ it('prepares ecs fix mode only when repair is explicit', function (): void {
     );
 
     expect($context->repair())->toBeTrue();
-    expect($command->arguments())->toBe(['--fix', '--output-format=json', 'src']);
+    expect($command->arguments())->toBe(['--fix', '--output-format=json', '--no-progress-bar', 'src']);
 });
 
 it('rejects native ecs fix mode without the sift repair flag', function (): void {

@@ -48,9 +48,11 @@ it('runs phpstan through a fake binary with injected json output', function (): 
         'analyse',
         '--error-format=json',
         '--no-progress',
+        '--no-ansi',
+        '--no-interaction',
         'src',
     ]);
-    expect($fake->argv())->toBe(['analyse', '--error-format=json', '--no-progress', 'src']);
+    expect($fake->argv())->toBe(['analyse', '--error-format=json', '--no-progress', '--no-ansi', '--no-interaction', 'src']);
 });
 
 function phpstanFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

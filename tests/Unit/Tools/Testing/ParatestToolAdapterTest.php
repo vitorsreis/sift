@@ -35,8 +35,7 @@ it('prepares paratest with junit output', function (): void {
     );
 
     expect($context->filter())->toBe('CheckoutTest');
-    expect($command->arguments()[0])->toBe('--filter');
-    expect($command->arguments()[2])->toBe('--log-junit');
+    expect($command->arguments())->toContain('--no-progress', '--colors=never', '--filter', 'CheckoutTest', '--log-junit');
     expect($command->artifacts())->toHaveKey('junit');
 });
 

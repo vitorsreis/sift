@@ -46,7 +46,7 @@ it('runs rector through a fake binary with dry-run json output', function (): vo
     expect($payload['tool'])->toBe('rector');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['changed_files' => 1, 'errors' => 0]);
-    expect($fake->argv())->toBe(['process', '--dry-run', '--output-format=json', 'src']);
+    expect($fake->argv())->toBe(['process', '--dry-run', '--output-format=json', '--no-progress-bar', '--no-ansi', 'src']);
 });
 
 function rectorFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

@@ -58,7 +58,7 @@ final readonly class PhpstanToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments($context->userArgs()),
+            arguments: $this->arguments($context->userArgs(), ! $context->raw()),
         );
     }
 
@@ -78,7 +78,7 @@ final readonly class PhpstanToolAdapter extends AbstractCliToolAdapter
      * @param list<string> $userArguments
      * @return list<string>
      */
-    private function arguments(array $userArguments): array
+    private function arguments(array $userArguments, bool $machineOutput): array
     {
         $arguments = [];
         $remaining = $userArguments;
@@ -91,13 +91,27 @@ final readonly class PhpstanToolAdapter extends AbstractCliToolAdapter
             $arguments[] = 'analyse';
         }
 
+        if (! $machineOutput) {
+            return [...$arguments, ...$remaining];
+        }
+
+        $remaining = $this->withoutArguments($remaining, [
+            '--no-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+
         if (! $this->hasOption($remaining, '--error-format')) {
             $arguments[] = '--error-format=json';
         }
 
-        if (! in_array('--no-progress', $remaining, true)) {
-            $arguments[] = '--no-progress';
-        }
+        $arguments[] = '--no-progress';
+        $arguments[] = '--no-ansi';
+        $arguments[] = '--no-interaction';
 
         return [...$arguments, ...$remaining];
     }

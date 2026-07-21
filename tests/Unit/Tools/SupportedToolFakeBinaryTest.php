@@ -131,7 +131,7 @@ it('runs composer normalize through a fake composer binary in dry-run mode', fun
     );
 
     expect($result->toPayload()['status'])->toBe(RunStatus::Failed->value);
-    expect($fake->argv())->toBe(['normalize', '--dry-run', '--diff']);
+    expect($fake->argv())->toBe(['normalize', '--no-progress', '--no-ansi', '--no-interaction', '--dry-run', '--diff']);
 });
 
 it('runs ecs through a fake binary with normalized json output', function (): void {
@@ -153,7 +153,7 @@ it('runs ecs through a fake binary with normalized json output', function (): vo
     );
 
     expect($result->toPayload()['status'])->toBe(RunStatus::Passed->value);
-    expect($fake->argv())->toBe(['--output-format=json', 'src']);
+    expect($fake->argv())->toBe(['--output-format=json', '--no-progress-bar', 'src']);
 });
 
 it('runs grumphp through a fake binary and normalizes task results', function (): void {
@@ -171,7 +171,7 @@ it('runs grumphp through a fake binary and normalizes task results', function ()
     );
 
     expect($result->toPayload()['summary'])->toBe(['tasks' => 1, 'passed' => 1, 'failed' => 0]);
-    expect($fake->argv())->toBe(['run', '--no-ansi']);
+    expect($fake->argv())->toBe(['run', '--no-ansi', '--no-interaction']);
 });
 
 /**

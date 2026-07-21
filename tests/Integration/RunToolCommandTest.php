@@ -158,6 +158,7 @@ it('writes the prepared process to stderr when enabled by config', function (): 
         'cwd' => $project->root(),
     ]);
     expect($command)->toContain('--filter', 'CheckoutTest', '--log-junit');
+    expect($command)->toContain('--no-output', '--colors=never');
 });
 
 it('writes the prepared process to stderr when enabled by option', function (): void {

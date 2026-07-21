@@ -87,13 +87,31 @@ final readonly class CodeceptionToolAdapter extends AbstractTestRunnerToolAdapte
         $arguments = $this->withoutMinimum($arguments);
         $arguments = $this->withoutValuelessOption($arguments, '--xml');
         $arguments = $this->withoutValuelessOption($arguments, '--coverage-xml');
+        $arguments = $this->withoutArguments($arguments, [
+            '--silent',
+            '--colors',
+            '--no-colors',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
 
         return $this->commandFactory()->prepare(
             toolName: $this->name(),
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: ['run', ...$arguments],
+            arguments: [
+                'run',
+                '--silent',
+                '--no-colors',
+                '--no-ansi',
+                '--no-interaction',
+                ...$arguments,
+            ],
             junitOption: '--xml',
             coverageOption: '--coverage-xml',
             inlineOutputOptions: true,

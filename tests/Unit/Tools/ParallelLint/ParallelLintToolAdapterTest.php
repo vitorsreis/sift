@@ -51,6 +51,20 @@ it('preserves explicit parallel-lint target and json output', function (): void 
     expect($command->arguments())->toBe(['--no-progress', '--no-colors', '--json', 'src']);
 });
 
+it('forces parallel-lint progress and colors off outside raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ParallelLintToolAdapter();
+    $context = $adapter->context(new CliArguments('parallel-lint', ['--colors', '--json', 'src']), $project->root());
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('parallel-lint', $project->path('vendor/bin/parallel-lint'), 'vendor/bin/parallel-lint', 'relative'),
+        context: $context,
+        config: new ToolConfig('parallel-lint', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--no-progress', '--no-colors', '--json', 'src']);
+});
+
 it('rejects parallel-lint non-json report formats outside raw mode', function (): void {
     $project = FixtureProject::create();
     $adapter = new ParallelLintToolAdapter();

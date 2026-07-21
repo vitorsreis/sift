@@ -43,7 +43,7 @@ it('runs psalm through a fake binary with injected json output', function (): vo
     expect($payload['tool'])->toBe('psalm');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['issues' => 1, 'errors' => 1]);
-    expect($fake->argv())->toBe(['--output-format=json', '--no-progress', 'src']);
+    expect($fake->argv())->toBe(['--output-format=json', '--no-progress', '--monochrome', 'src']);
 });
 
 function psalmFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

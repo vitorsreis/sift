@@ -38,7 +38,18 @@ it('prepares php-cs-fixer dry-run json defaults', function (): void {
     );
 
     expect($context->repair())->toBeFalse();
-    expect($command->arguments())->toBe(['fix', '--dry-run', '--format=json', '--using-cache=no', '--diff', '-v', 'src']);
+    expect($command->arguments())->toBe([
+        'fix',
+        '--dry-run',
+        '--format=json',
+        '--using-cache=no',
+        '--diff',
+        '--show-progress=none',
+        '--no-ansi',
+        '--no-interaction',
+        '-v',
+        'src',
+    ]);
 });
 
 it('prepares php-cs-fixer repair without dry-run when repair is explicit', function (): void {
@@ -53,7 +64,17 @@ it('prepares php-cs-fixer repair without dry-run when repair is explicit', funct
     );
 
     expect($context->repair())->toBeTrue();
-    expect($command->arguments())->toBe(['fix', '--format=json', '--using-cache=no', '--diff', '-v', 'src']);
+    expect($command->arguments())->toBe([
+        'fix',
+        '--format=json',
+        '--using-cache=no',
+        '--diff',
+        '--show-progress=none',
+        '--no-ansi',
+        '--no-interaction',
+        '-v',
+        'src',
+    ]);
 });
 
 it('preserves explicit php-cs-fixer fix command and json options', function (): void {
@@ -67,7 +88,35 @@ it('preserves explicit php-cs-fixer fix command and json options', function (): 
         config: new ToolConfig('php-cs-fixer', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['fix', '--diff', '-v', '--dry-run', '--format=json', '--using-cache=no']);
+    expect($command->arguments())->toBe([
+        'fix',
+        '--diff',
+        '--show-progress=none',
+        '--no-ansi',
+        '--no-interaction',
+        '-v',
+        '--dry-run',
+        '--format=json',
+        '--using-cache=no',
+    ]);
+});
+
+it('forces php-cs-fixer presentation controls outside raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpCsFixerToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('php-cs-fixer', ['--show-progress=dots', '--ansi', 'src']),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('php-cs-fixer', $project->path('vendor/bin/php-cs-fixer'), 'vendor/bin/php-cs-fixer', 'relative'),
+        context: $context,
+        config: new ToolConfig('php-cs-fixer', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toContain('--show-progress=none', '--no-ansi', '--no-interaction');
+    expect($command->arguments())->not->toContain('--show-progress=dots', '--ansi');
 });
 
 it('rejects php-cs-fixer commands outside fix', function (): void {

@@ -45,7 +45,7 @@ it('runs composer-unused through a fake binary with json output', function (): v
     expect($payload['tool'])->toBe('composer-unused');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['unused_packages' => 1]);
-    expect($fake->argv())->toBe(['--output-format=json', '--no-progress']);
+    expect($fake->argv())->toBe(['--output-format=json', '--no-progress', '--no-ansi', '--no-interaction']);
 });
 
 function composerUnusedFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

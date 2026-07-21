@@ -75,7 +75,7 @@ final readonly class PhpcbfToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments($context->userArgs()),
+            arguments: $context->raw() ? $context->userArgs() : $this->arguments($context->userArgs()),
         );
     }
 
@@ -98,14 +98,17 @@ final readonly class PhpcbfToolAdapter extends AbstractCliToolAdapter
     private function arguments(array $userArguments): array
     {
         $arguments = [];
+        $userArguments = $this->withoutArguments($userArguments, [
+            '-p',
+            '-q',
+            '--quiet',
+            '--colors',
+            '--no-colors',
+            '--no-colours',
+        ]);
 
-        if (! in_array('-q', $userArguments, true) && ! in_array('--quiet', $userArguments, true)) {
-            $arguments[] = '-q';
-        }
-
-        if (! in_array('--no-colors', $userArguments, true) && ! in_array('--no-colours', $userArguments, true)) {
-            $arguments[] = '--no-colors';
-        }
+        $arguments[] = '-q';
+        $arguments[] = '--no-colors';
 
         if (! $this->hasOption($userArguments, '--report-width')) {
             $arguments[] = '--report-width=500';

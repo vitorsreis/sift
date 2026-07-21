@@ -35,7 +35,13 @@ it('prepares phpbench run with an xml dump', function (): void {
     expect($context->subcommand())->toBe('run');
     expect($context->mode())->toBe('benchmark');
     expect($command->arguments()[0])->toBe('run');
-    expect($command->arguments())->toContain('benchmarks', '--dump-file=' . $command->artifacts()['phpbench_xml']);
+    expect($command->arguments())->toContain(
+        '--silent',
+        '--no-ansi',
+        '--no-interaction',
+        'benchmarks',
+        '--dump-file=' . $command->artifacts()['phpbench_xml'],
+    );
     expect($command->temporaryFiles())->toBe([$command->artifacts()['phpbench_xml']]);
 });
 

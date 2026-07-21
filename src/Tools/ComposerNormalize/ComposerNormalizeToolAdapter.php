@@ -77,13 +77,20 @@ final readonly class ComposerNormalizeToolAdapter extends AbstractCliToolAdapter
             return $this->prepareBaseCommand($tool, $context, $config, $context->userArgs());
         }
 
-        $arguments = ['normalize'];
+        $userArguments = $this->withoutArguments($context->userArgs(), [
+            '--no-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+        ]);
+        $arguments = ['normalize', '--no-progress', '--no-ansi', '--no-interaction'];
 
-        if (! $context->repair() && ! $this->hasOption($context->userArgs(), '--dry-run')) {
+        if (! $context->repair() && ! $this->hasOption($userArguments, '--dry-run')) {
             $arguments[] = '--dry-run';
         }
 
-        if (! $this->hasOption($context->userArgs(), '--diff')) {
+        if (! $this->hasOption($userArguments, '--diff')) {
             $arguments[] = '--diff';
         }
 
@@ -91,7 +98,7 @@ final readonly class ComposerNormalizeToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: [...$arguments, ...$context->userArgs()],
+            arguments: [...$arguments, ...$userArguments],
         );
     }
 

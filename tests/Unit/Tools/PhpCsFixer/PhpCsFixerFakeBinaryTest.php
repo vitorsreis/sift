@@ -46,7 +46,18 @@ it('runs php-cs-fixer through a fake binary with dry-run json output', function 
     expect($payload['tool'])->toBe('php-cs-fixer');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['files' => 1, 'fixers' => 1]);
-    expect($fake->argv())->toBe(['fix', '--dry-run', '--format=json', '--using-cache=no', '--diff', '-v', 'src']);
+    expect($fake->argv())->toBe([
+        'fix',
+        '--dry-run',
+        '--format=json',
+        '--using-cache=no',
+        '--diff',
+        '--show-progress=none',
+        '--no-ansi',
+        '--no-interaction',
+        '-v',
+        'src',
+    ]);
 });
 
 function phpCsFixerFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

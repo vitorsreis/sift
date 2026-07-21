@@ -60,7 +60,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments($context->userArgs()),
+            arguments: $this->arguments($context->userArgs(), ! $context->raw()),
         );
     }
 
@@ -80,7 +80,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
      * @param list<string> $userArguments
      * @return list<string>
      */
-    private function arguments(array $userArguments): array
+    private function arguments(array $userArguments, bool $machineOutput): array
     {
         $arguments = [];
         $remaining = $userArguments;
@@ -99,9 +99,22 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
             $arguments[] = '--dry-run';
         }
 
+        if (! $machineOutput) {
+            return [...$arguments, ...$remaining];
+        }
+
+        $remaining = $this->withoutArguments($remaining, [
+            '--no-progress-bar',
+            '--ansi',
+            '--no-ansi',
+        ]);
+
         if (! $this->hasOption($remaining, '--output-format')) {
             $arguments[] = '--output-format=json';
         }
+
+        $arguments[] = '--no-progress-bar';
+        $arguments[] = '--no-ansi';
 
         return [...$arguments, ...$remaining];
     }

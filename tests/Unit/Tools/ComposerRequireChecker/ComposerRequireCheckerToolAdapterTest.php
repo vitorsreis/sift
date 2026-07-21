@@ -34,7 +34,7 @@ it('prepares composer-require-checker with json check defaults', function (): vo
         config: new ToolConfig('composer-require-checker', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['check', '--output=json']);
+    expect($command->arguments())->toBe(['check', '--no-ansi', '--no-interaction', '--output=json']);
 });
 
 it('keeps explicit composer-require-checker check command and json output', function (): void {
@@ -48,7 +48,7 @@ it('keeps explicit composer-require-checker check command and json output', func
         config: new ToolConfig('composer-require-checker', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['check', '--output=json', 'composer.json']);
+    expect($command->arguments())->toBe(['check', '--no-ansi', '--no-interaction', '--output=json', 'composer.json']);
 });
 
 it('rejects composer-require-checker non-json output outside raw mode', function (): void {

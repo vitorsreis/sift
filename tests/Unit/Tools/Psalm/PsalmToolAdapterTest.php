@@ -33,7 +33,24 @@ it('prepares psalm with json defaults', function (): void {
         config: new ToolConfig('psalm', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--output-format=json', '--no-progress', 'src']);
+    expect($command->arguments())->toBe(['--output-format=json', '--no-progress', '--monochrome', 'src']);
+});
+
+it('passes psalm arguments through in raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PsalmToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('psalm', ['--output-format=console', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('psalm', $project->path('vendor/bin/psalm'), 'vendor/bin/psalm', 'relative'),
+        context: $context,
+        config: new ToolConfig('psalm', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['--output-format=console', 'src']);
 });
 
 it('parses psalm findings as failed status', function (): void {

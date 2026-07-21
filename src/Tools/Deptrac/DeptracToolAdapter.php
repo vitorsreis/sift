@@ -73,13 +73,18 @@ final readonly class DeptracToolAdapter extends AbstractCliToolAdapter
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand
     {
         $arguments = $this->withoutAnalysePseudoSubcommand($context->userArgs());
+
+        if ($context->raw()) {
+            return $this->prepareBaseCommand($tool, $context, $config, $arguments);
+        }
+
         $this->assertStdoutJson($arguments);
 
         return $this->prepareBaseCommand(
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $context->raw() ? $arguments : $this->safeArguments($arguments),
+            arguments: $this->safeArguments($arguments),
         );
     }
 
@@ -146,14 +151,23 @@ final readonly class DeptracToolAdapter extends AbstractCliToolAdapter
     private function safeArguments(array $arguments): array
     {
         $defaults = [];
+        $arguments = $this->withoutArguments($arguments, [
+            '--no-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
 
         if (! $this->hasOption($arguments, '--formatter') && ! $this->hasOption($arguments, '-f')) {
             $defaults[] = '--formatter=json';
         }
 
-        if (! $this->hasOption($arguments, '--no-progress')) {
-            $defaults[] = '--no-progress';
-        }
+        $defaults[] = '--no-progress';
+        $defaults[] = '--no-ansi';
+        $defaults[] = '--no-interaction';
 
         if (! $this->hasOption($arguments, '--report-skipped')) {
             $defaults[] = '--report-skipped';

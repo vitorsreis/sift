@@ -87,14 +87,23 @@ final readonly class ComposerUnusedToolAdapter extends AbstractCliToolAdapter
         }
 
         $defaults = [];
+        $arguments = $this->withoutArguments($arguments, [
+            '--no-progress',
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
 
         if (! $this->hasOption($arguments, '--output-format') && ! in_array('-o', $arguments, true)) {
             $defaults[] = '--output-format=json';
         }
 
-        if (! in_array('--no-progress', $arguments, true)) {
-            $defaults[] = '--no-progress';
-        }
+        $defaults[] = '--no-progress';
+        $defaults[] = '--no-ansi';
+        $defaults[] = '--no-interaction';
 
         return [...$defaults, ...$arguments];
     }

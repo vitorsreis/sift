@@ -87,6 +87,11 @@ final readonly class ParallelLintToolAdapter extends AbstractCliToolAdapter
         }
 
         $defaults = [];
+        $arguments = $this->withoutArguments($arguments, [
+            '--no-progress',
+            '--colors',
+            '--no-colors',
+        ]);
 
         if (! $this->hasPathArgument($arguments)) {
             $defaults[] = '.';
@@ -96,13 +101,8 @@ final readonly class ParallelLintToolAdapter extends AbstractCliToolAdapter
             $defaults[] = '--json';
         }
 
-        if (! in_array('--no-progress', $arguments, true)) {
-            $defaults[] = '--no-progress';
-        }
-
-        if (! in_array('--no-colors', $arguments, true) && ! in_array('--colors', $arguments, true)) {
-            $defaults[] = '--no-colors';
-        }
+        $defaults[] = '--no-progress';
+        $defaults[] = '--no-colors';
 
         return [...$defaults, ...$arguments];
     }

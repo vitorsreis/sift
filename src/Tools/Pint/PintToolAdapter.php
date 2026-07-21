@@ -72,8 +72,8 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
             context: $context,
             config: $config,
             arguments: $context->repair()
-                ? $this->repairArguments($context->userArgs())
-                : $this->safeArguments($context->userArgs()),
+                ? $this->repairArguments($context->userArgs(), ! $context->raw())
+                : $this->safeArguments($context->userArgs(), ! $context->raw()),
         );
     }
 
@@ -97,7 +97,7 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
      * @param list<string> $userArguments
      * @return list<string>
      */
-    private function safeArguments(array $userArguments): array
+    private function safeArguments(array $userArguments, bool $machineOutput): array
     {
         $arguments = [];
 
@@ -105,9 +105,25 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
             $arguments[] = '--test';
         }
 
+        if (! $machineOutput) {
+            return [...$arguments, ...$userArguments];
+        }
+
+        $userArguments = $this->withoutArguments($userArguments, [
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+
         if (! $this->hasOption($userArguments, '--format')) {
             $arguments[] = '--format=json';
         }
+
+        $arguments[] = '--no-ansi';
+        $arguments[] = '--no-interaction';
 
         return [...$arguments, ...$userArguments];
     }
@@ -116,7 +132,7 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
      * @param list<string> $userArguments
      * @return list<string>
      */
-    private function repairArguments(array $userArguments): array
+    private function repairArguments(array $userArguments, bool $machineOutput): array
     {
         $arguments = [];
 
@@ -124,9 +140,25 @@ final readonly class PintToolAdapter extends AbstractCliToolAdapter
             $arguments[] = '--repair';
         }
 
+        if (! $machineOutput) {
+            return [...$arguments, ...$userArguments];
+        }
+
+        $userArguments = $this->withoutArguments($userArguments, [
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+
         if (! $this->hasOption($userArguments, '--format')) {
             $arguments[] = '--format=json';
         }
+
+        $arguments[] = '--no-ansi';
+        $arguments[] = '--no-interaction';
 
         return [...$arguments, ...$userArguments];
     }

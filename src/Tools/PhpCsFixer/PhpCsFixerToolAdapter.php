@@ -177,6 +177,15 @@ final readonly class PhpCsFixerToolAdapter extends AbstractCliToolAdapter
     private function safeArguments(array $arguments, bool $repair): array
     {
         $defaults = ['fix'];
+        $arguments = $this->withoutArguments($arguments, [
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+            '-q',
+            '--quiet',
+        ]);
+        $arguments = $this->withoutOptions($arguments, ['--show-progress']);
 
         if (! $repair && ! $this->hasOption($arguments, '--dry-run')) {
             $defaults[] = '--dry-run';
@@ -193,6 +202,10 @@ final readonly class PhpCsFixerToolAdapter extends AbstractCliToolAdapter
         if (! $this->hasOption($arguments, '--diff')) {
             $defaults[] = '--diff';
         }
+
+        $defaults[] = '--show-progress=none';
+        $defaults[] = '--no-ansi';
+        $defaults[] = '--no-interaction';
 
         if (! $this->hasVerbosity($arguments)) {
             $defaults[] = '-v';

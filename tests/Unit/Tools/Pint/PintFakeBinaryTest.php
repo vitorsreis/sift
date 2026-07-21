@@ -46,7 +46,7 @@ it('runs pint through a fake binary with json output', function (): void {
     expect($payload['tool'])->toBe('pint');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['result' => 'fail', 'files' => 1]);
-    expect($fake->argv())->toBe(['--test', '--format=json', 'src']);
+    expect($fake->argv())->toBe(['--test', '--format=json', '--no-ansi', '--no-interaction', 'src']);
 });
 
 function pintFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

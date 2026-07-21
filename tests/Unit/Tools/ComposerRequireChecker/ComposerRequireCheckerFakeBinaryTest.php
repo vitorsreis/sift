@@ -45,7 +45,7 @@ it('runs composer-require-checker through a fake binary with json output', funct
     expect($payload['tool'])->toBe('composer-require-checker');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['unknown_symbols' => 1]);
-    expect($fake->argv())->toBe(['check', '--output=json']);
+    expect($fake->argv())->toBe(['check', '--no-ansi', '--no-interaction', '--output=json']);
 });
 
 function composerRequireCheckerFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

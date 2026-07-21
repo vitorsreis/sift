@@ -37,7 +37,7 @@ it('prepares pint in safe test mode by default', function (): void {
     );
 
     expect($context->repair())->toBeFalse();
-    expect($command->arguments())->toBe(['--test', '--format=json', 'src']);
+    expect($command->arguments())->toBe(['--test', '--format=json', '--no-ansi', '--no-interaction', 'src']);
 });
 
 it('prepares pint repair only when repair is explicit', function (): void {
@@ -52,7 +52,7 @@ it('prepares pint repair only when repair is explicit', function (): void {
     );
 
     expect($context->repair())->toBeTrue();
-    expect($command->arguments())->toBe(['--repair', '--format=json', 'src']);
+    expect($command->arguments())->toBe(['--repair', '--format=json', '--no-ansi', '--no-interaction', 'src']);
 });
 
 it('preserves explicit json format without duplicating it', function (): void {
@@ -66,7 +66,7 @@ it('preserves explicit json format without duplicating it', function (): void {
         config: new ToolConfig('pint', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['--test', '--format=json', 'src']);
+    expect($command->arguments())->toBe(['--no-ansi', '--no-interaction', '--test', '--format=json', 'src']);
 });
 
 it('parses pint style failures as failed status', function (): void {

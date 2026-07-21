@@ -33,7 +33,24 @@ it('prepares phpstan with safe json defaults', function (): void {
         config: new ToolConfig('phpstan', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['analyse', '--error-format=json', '--no-progress', 'src']);
+    expect($command->arguments())->toBe(['analyse', '--error-format=json', '--no-progress', '--no-ansi', '--no-interaction', 'src']);
+});
+
+it('keeps phpstan machine output controls out of raw mode', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpstanToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('phpstan', ['analyse', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('phpstan', $project->path('vendor/bin/phpstan'), 'vendor/bin/phpstan', 'relative'),
+        context: $context,
+        config: new ToolConfig('phpstan', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['analyse', 'src']);
 });
 
 it('keeps an explicit phpstan analyse command without duplicating it', function (): void {
@@ -47,7 +64,7 @@ it('keeps an explicit phpstan analyse command without duplicating it', function 
         config: new ToolConfig('phpstan', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['analyse', '--no-progress', '--error-format=json', 'src']);
+    expect($command->arguments())->toBe(['analyse', '--no-progress', '--no-ansi', '--no-interaction', '--error-format=json', 'src']);
 });
 
 it('parses phpstan findings as failed status', function (): void {

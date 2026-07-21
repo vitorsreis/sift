@@ -70,11 +70,13 @@ final readonly class GrumPhpToolAdapter extends AbstractCliToolAdapter
             $arguments = array_slice($arguments, 1);
         }
 
-        $defaults = ['run'];
-
-        if (! in_array('--no-ansi', $arguments, true)) {
-            $defaults[] = '--no-ansi';
-        }
+        $arguments = $this->withoutArguments($arguments, [
+            '--ansi',
+            '--no-ansi',
+            '-n',
+            '--no-interaction',
+        ]);
+        $defaults = ['run', '--no-ansi', '--no-interaction'];
 
         return $this->prepareBaseCommand(
             tool: $tool,
