@@ -16,7 +16,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 - Interactive skill prompts now recognize the Unix key codes emitted by Enter and Backspace, including under WSL terminals, and handle standalone Escape without waiting for another key.
 
-## 2.4.0 - 2026-07-20
+## 2.4.0 - 2026-07-20 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Added
 
@@ -34,7 +36,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - PHPUnit now validates its configuration against the bundled XSD, explicitly caches results, and randomizes test execution while preserving dependency order.
 - Updated development tool constraints: Mago from `^1.29` to `^1.44`, Infection from `^0.33.2` to `^0.34.0`, and Rector from `^2.4` to `^2.5`.
 
-## 2.3.2 - 2026-06-26
+## 2.3.2 - 2026-06-26 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Changed
 
@@ -46,7 +50,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Pressing Enter in an empty multiselect now chooses the highlighted option.
 - Interactive `skills remove` now limits removal to the targets recorded on the selected skill instead of expanding to every writable target.
 
-## 2.3.1 - 2026-06-25
+## 2.3.1 - 2026-06-25 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Changed
 
@@ -58,7 +64,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Limited interactive multiselect prompts to a 10-item visible window while keeping keyboard navigation over the full option list.
 - Grouped duplicate skill agent targets that share the same skills directory so `skills add` no longer renders many identical `.agents/skills` choices.
 
-## 2.3.0 - 2026-06-25
+## 2.3.0 - 2026-06-25 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Added
 
@@ -76,7 +84,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - PHPUnit native option errors now surface the actionable error line instead of the startup banner when generated reports are missing.
 - Tool documentation now names the Composer dependency adapters as `composer-require-checker` and `composer-unused`.
 
-## 2.2.0 - 2026-06-25
+## 2.2.0 - 2026-06-25 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Added
 
@@ -104,7 +114,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - Terminal output tests now compare plain content after stripping ANSI sequences where color is not the behavior under test.
 - `--global` on skills commands now affects the actual inventory and install/remove/update paths instead of only appearing in metadata.
 
-## 2.1.0 - 2026-06-24
+## 2.1.0 - 2026-06-24 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 ### Added
 
@@ -117,7 +129,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - `skills find <query>` now renders compact terminal output by default while preserving `--json`.
 - Skill catalog results preserve installs, slugs, and source URLs when returned by `skills.sh`.
 
-## 2.0.0 - 2026-06-04
+## 2.0.0 - 2026-06-04 [YANKED]
+
+> Withdrawn and superseded by 2.4.1.
 
 Sift 2.0 is a new major version rebuilt around a simpler CLI, normalized result payloads, Composer-native entrypoints, managed skills, and safer tool execution. It does not keep compatibility with Sift 1.x runtime contracts.
 
