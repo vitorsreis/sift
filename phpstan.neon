@@ -4,6 +4,6 @@ parameters:
     - src
     - tests
     - bin/phar
-  tmpDir: .phpstan.cache
+  tmpDir: .cache/phpstan
   reportUnmatchedIgnoredErrors: true
   treatPhpDocTypesAsCertain: true

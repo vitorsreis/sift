@@ -1,6 +1,7 @@
 /.coverage
 /.cursor
 /.idea
+/.cache
 /.phpstan.cache
 /.phpunit.cache
 /.sift

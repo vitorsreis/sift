@@ -9,7 +9,7 @@
   },
   "history": {
     "enabled": true,
-    "path": ".sift/history",
+    "path": ".cache/sift/history",
     "max_files": 10,
     "redact_secrets": true
   },

@@ -5,6 +5,7 @@
 /tests export-ignore
 /build export-ignore
 /vendor export-ignore
+/.cache export-ignore
 /.deptrac.cache export-ignore
 /.phpstan.cache export-ignore
 /.phpunit.cache export-ignore
