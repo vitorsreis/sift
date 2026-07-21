@@ -12,23 +12,31 @@ final readonly class ConfigSchemaValidator
      */
     public function validate(array $document, array $schema, ?string $configPath): void
     {
-        $this->validateValue($document, $schema, 'config', $configPath);
+        $this->validateValue($document, $schema, $schema, 'config', $configPath);
     }
 
     /**
      * @param array<string, mixed> $schema
+     * @param array<string, mixed> $rootSchema
      */
-    private function validateValue(mixed $value, array $schema, string $path, ?string $configPath): void
+    private function validateValue(mixed $value, array $schema, array $rootSchema, string $path, ?string $configPath): void
     {
+        $reference = $schema['$ref'] ?? null;
+
+        if (is_string($reference)) {
+            $this->validateValue($value, $this->resolveReference($reference, $rootSchema, $configPath), $rootSchema, $path, $configPath);
+            unset($schema['$ref']);
+        }
+
         $this->validateType($value, $schema['type'] ?? null, $path, $configPath);
         $this->validateEnum($value, $schema['enum'] ?? null, $path, $configPath);
 
         if (($schema['type'] ?? null) === 'object' && is_array($value)) {
-            $this->validateObject($value, $schema, $path, $configPath);
+            $this->validateObject($value, $schema, $rootSchema, $path, $configPath);
         }
 
         if (($schema['type'] ?? null) === 'array' && is_array($value)) {
-            $this->validateArray($value, $schema, $path, $configPath);
+            $this->validateArray($value, $schema, $rootSchema, $path, $configPath);
         }
 
         if (is_string($value)) {
@@ -43,8 +51,9 @@ final readonly class ConfigSchemaValidator
     /**
      * @param array<mixed> $value
      * @param array<string, mixed> $schema
+     * @param array<string, mixed> $rootSchema
      */
-    private function validateObject(array $value, array $schema, string $path, ?string $configPath): void
+    private function validateObject(array $value, array $schema, array $rootSchema, string $path, ?string $configPath): void
     {
         if ($value !== [] && array_is_list($value)) {
             $this->fail($configPath, $path, 'must be an object');
@@ -65,7 +74,7 @@ final readonly class ConfigSchemaValidator
             }
 
             if (is_array($propertySchema) && ! array_is_list($propertySchema)) {
-                $this->validateValue($item, $this->object($propertySchema), $path . '.' . $key, $configPath);
+                $this->validateValue($item, $this->object($propertySchema), $rootSchema, $path . '.' . $key, $configPath);
             }
         }
     }
@@ -73,8 +82,9 @@ final readonly class ConfigSchemaValidator
     /**
      * @param array<mixed> $value
      * @param array<string, mixed> $schema
+     * @param array<string, mixed> $rootSchema
      */
-    private function validateArray(array $value, array $schema, string $path, ?string $configPath): void
+    private function validateArray(array $value, array $schema, array $rootSchema, string $path, ?string $configPath): void
     {
         if (! array_is_list($value)) {
             $this->fail($configPath, $path, 'must be an array');
@@ -87,8 +97,40 @@ final readonly class ConfigSchemaValidator
         }
 
         foreach ($value as $index => $item) {
-            $this->validateValue($item, $this->object($itemSchema), sprintf('%s[%d]', $path, $index), $configPath);
+            $this->validateValue($item, $this->object($itemSchema), $rootSchema, sprintf('%s[%d]', $path, $index), $configPath);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $rootSchema
+     *
+     * @return array<string, mixed>
+     */
+    private function resolveReference(string $reference, array $rootSchema, ?string $configPath): array
+    {
+        if (! str_starts_with($reference, '#/')) {
+            $this->fail($configPath, '$schema.$ref', 'must be a local JSON Pointer');
+        }
+
+        $resolved = $rootSchema;
+
+        foreach (explode('/', substr($reference, 2)) as $segment) {
+            $segment = str_replace(['~1', '~0'], ['/', '~'], $segment);
+
+            if (! array_key_exists($segment, $resolved)) {
+                $this->fail($configPath, '$schema.$ref', sprintf('references missing segment %s', $segment));
+            }
+
+            $value = $resolved[$segment];
+
+            if (! is_array($value) || array_is_list($value)) {
+                $this->fail($configPath, '$schema.$ref', 'must resolve to a schema object');
+            }
+
+            $resolved = $this->object($value);
+        }
+
+        return $resolved;
     }
 
     private function validateType(mixed $value, mixed $type, string $path, ?string $configPath): void

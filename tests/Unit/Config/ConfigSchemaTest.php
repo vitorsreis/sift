@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Sift\Config\ConfigDefaults;
+use Sift\Registry\ToolRegistry;
+use Sift\Tools\ToolAdapter;
 
 /**
  * @param array<string, mixed> $object
@@ -40,15 +42,19 @@ it('keeps schema, defaults and documentation on the same contract url and fields
     }
 
     $schema = configSchemaObject(['schema' => $decodedSchema], 'schema');
+    $definitions = configSchemaObject($schema, '$defs');
+    $toolDefinition = configSchemaObject($definitions, 'tool');
     $properties = configSchemaObject($schema, 'properties');
     $history = configSchemaObject($properties, 'history');
     $historyProperties = configSchemaObject($history, 'properties');
     $output = configSchemaObject($properties, 'output');
     $outputProperties = configSchemaObject($output, 'properties');
     $tools = configSchemaObject($properties, 'tools');
-    $wildcardTool = configSchemaObject(configSchemaObject($tools, 'properties'), '*');
+    $toolsProperties = configSchemaObject($tools, 'properties');
+    $wildcardTool = configSchemaObject($toolsProperties, '*');
     $wildcardToolProperties = configSchemaObject($wildcardTool, 'properties');
-    $toolProperties = configSchemaObject(configSchemaObject($tools, 'additionalProperties'), 'properties');
+    $additionalTool = configSchemaObject($tools, 'additionalProperties');
+    $toolProperties = configSchemaObject($toolDefinition, 'properties');
     $historyEnabled = configSchemaObject($historyProperties, 'enabled');
     $historyPath = configSchemaObject($historyProperties, 'path');
     $outputFormat = configSchemaObject($outputProperties, 'format');
@@ -90,6 +96,25 @@ it('keeps schema, defaults and documentation on the same contract url and fields
     expect($wildcardEnabled['default'] ?? null)->toBeTrue();
     expect($wildcardTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);
     expect($toolTimeout['default'] ?? null)->toBe(ConfigDefaults::TOOL_TIMEOUT);
+    expect($additionalTool['$ref'] ?? null)->toBe('#/$defs/tool');
+
+    $builtIns = ToolRegistry::builtIns()->all();
+    $supportedToolNames = array_map(
+        static fn(ToolAdapter $adapter): string => $adapter->definition()->name(),
+        $builtIns,
+    );
+
+    expect(array_keys($toolsProperties))->toBe(['*', ...$supportedToolNames]);
+
+    foreach ($builtIns as $adapter) {
+        $definition = $adapter->definition();
+        $supportedTool = configSchemaObject($toolsProperties, $definition->name());
+        $supportedToolProperties = configSchemaObject($supportedTool, 'properties');
+        $binary = configSchemaObject($supportedToolProperties, 'binary');
+
+        expect($supportedTool['$ref'] ?? null)->toBe('#/$defs/tool');
+        expect($binary['examples'] ?? null)->toBe(array_reverse($definition->binaryCandidates()));
+    }
 
     expect($documentation)->toContain(ConfigDefaults::schemaUrl());
     expect($documentation)->toContain('max_age_days');

@@ -5,6 +5,45 @@
   "description": "Configuration schema for Sift v2.",
   "type": "object",
   "additionalProperties": false,
+  "$defs": {
+    "tool": {
+      "description": "Settings for a specific tool.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable or disable this tool.",
+          "type": "boolean",
+          "default": true
+        },
+        "binary": {
+          "description": "Executable path or command used to run this tool. Relative paths resolve from the config file directory.",
+          "type": "string",
+          "minLength": 1
+        },
+        "timeout": {
+          "description": "Process timeout in seconds for this tool. Use 0 to disable the timeout.",
+          "type": "integer",
+          "minimum": 0,
+          "default": 1800
+        },
+        "blocked_args": {
+          "description": "Command-line arguments that Sift must reject for this tool.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "examples": [
+            [
+              "--xdebug"
+            ]
+          ]
+        }
+      }
+    }
+  },
   "properties": {
     "$schema": {
       "description": "Editor metadata URL for this configuration schema. Sift does not enforce this value at runtime.",
@@ -119,48 +158,298 @@
               "default": 1800
             }
           }
+        },
+        "pest": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "pest",
+                "vendor/bin/pest",
+                "vendor/bin/pest.bat"
+              ]
+            }
+          }
+        },
+        "phpunit": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpunit",
+                "vendor/bin/phpunit",
+                "vendor/bin/phpunit.bat"
+              ]
+            }
+          }
+        },
+        "paratest": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "paratest",
+                "vendor/bin/paratest",
+                "vendor/bin/paratest.bat"
+              ]
+            }
+          }
+        },
+        "behat": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "behat",
+                "vendor/bin/behat",
+                "vendor/bin/behat.bat"
+              ]
+            }
+          }
+        },
+        "codeception": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "codecept",
+                "vendor/bin/codecept",
+                "vendor/bin/codecept.bat"
+              ]
+            }
+          }
+        },
+        "phpbench": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpbench",
+                "vendor/bin/phpbench",
+                "vendor/bin/phpbench.bat"
+              ]
+            }
+          }
+        },
+        "phpstan": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpstan",
+                "vendor/bin/phpstan",
+                "vendor/bin/phpstan.bat"
+              ]
+            }
+          }
+        },
+        "psalm": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "psalm",
+                "vendor/bin/psalm",
+                "vendor/bin/psalm.bat"
+              ]
+            }
+          }
+        },
+        "phpcs": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpcs",
+                "vendor/bin/phpcs",
+                "vendor/bin/phpcs.bat"
+              ]
+            }
+          }
+        },
+        "phpcbf": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpcbf",
+                "vendor/bin/phpcbf",
+                "vendor/bin/phpcbf.bat"
+              ]
+            }
+          }
+        },
+        "rector": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "rector",
+                "vendor/bin/rector",
+                "vendor/bin/rector.bat"
+              ]
+            }
+          }
+        },
+        "pint": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "pint",
+                "vendor/bin/pint",
+                "vendor/bin/pint.bat"
+              ]
+            }
+          }
+        },
+        "ecs": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "ecs",
+                "vendor/bin/ecs",
+                "vendor/bin/ecs.bat"
+              ]
+            }
+          }
+        },
+        "mago": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "mago",
+                "vendor/bin/mago",
+                "vendor/bin/mago.bat"
+              ]
+            }
+          }
+        },
+        "grumphp": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "grumphp",
+                "vendor/bin/grumphp",
+                "vendor/bin/grumphp.bat"
+              ]
+            }
+          }
+        },
+        "infection": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "infection",
+                "vendor/bin/infection",
+                "vendor/bin/infection.bat"
+              ]
+            }
+          }
+        },
+        "deptrac": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "deptrac",
+                "vendor/bin/deptrac",
+                "vendor/bin/deptrac.bat"
+              ]
+            }
+          }
+        },
+        "php-cs-fixer": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "php-cs-fixer",
+                "vendor/bin/php-cs-fixer",
+                "vendor/bin/php-cs-fixer.bat"
+              ]
+            }
+          }
+        },
+        "phpmd": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "phpmd",
+                "vendor/bin/phpmd",
+                "vendor/bin/phpmd.bat"
+              ]
+            }
+          }
+        },
+        "composer-normalize": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "composer",
+                "composer.bat",
+                "composer.cmd"
+              ]
+            }
+          }
+        },
+        "composer-unused": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "composer-unused",
+                "vendor/bin/composer-unused",
+                "vendor/bin/composer-unused.bat"
+              ]
+            }
+          }
+        },
+        "composer-require-checker": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "composer-require-checker",
+                "vendor/bin/composer-require-checker",
+                "vendor/bin/composer-require-checker.bat"
+              ]
+            }
+          }
+        },
+        "parallel-lint": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "parallel-lint",
+                "vendor/bin/parallel-lint",
+                "vendor/bin/parallel-lint.bat"
+              ]
+            }
+          }
+        },
+        "composer": {
+          "$ref": "#/$defs/tool",
+          "properties": {
+            "binary": {
+              "examples": [
+                "composer",
+                "composer.bat",
+                "composer.cmd"
+              ]
+            }
+          }
         }
       },
       "additionalProperties": {
-        "description": "Settings for a specific tool.",
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "enabled": {
-            "description": "Enable or disable this tool.",
-            "type": "boolean",
-            "default": true
-          },
-          "binary": {
-            "description": "Executable path or command used to run this tool. Relative paths resolve from the config file directory.",
-            "type": "string",
-            "minLength": 1,
-            "examples": [
-              "vendor/bin/phpstan",
-              "vendor/bin/pest.bat"
-            ]
-          },
-          "timeout": {
-            "description": "Process timeout in seconds for this tool. Use 0 to disable the timeout.",
-            "type": "integer",
-            "minimum": 0,
-            "default": 1800
-          },
-          "blocked_args": {
-            "description": "Command-line arguments that Sift must reject for this tool.",
-            "type": "array",
-            "default": [],
-            "items": {
-              "type": "string",
-              "minLength": 1
-            },
-            "examples": [
-              [
-                "--xdebug"
-              ]
-            ]
-          }
-        }
+        "$ref": "#/$defs/tool"
       }
     }
   }
