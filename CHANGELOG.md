@@ -10,7 +10,6 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 - Normalized tool runs now force each supported machine-readable format and suppress progress, colors, ANSI output, and interactive prompts when the underlying tool supports those controls; `--raw` keeps native presentation arguments.
 - History retention now applies `history.max_files` across all recorded tools instead of retaining that number separately for each tool.
-- Optional development Composer plugins are now disabled by default in `allow-plugins` and can be enabled explicitly when needed.
 
 ### Fixed
 

@@ -70,10 +70,10 @@
     },
     "sort-packages": true,
     "allow-plugins": {
-      "ergebnis/composer-normalize": false,
-      "infection/extension-installer": false,
-      "pestphp/pest-plugin": false,
-      "phpro/grumphp": false
+      "ergebnis/composer-normalize": true,
+      "infection/extension-installer": true,
+      "pestphp/pest-plugin": true,
+      "phpro/grumphp": true
     }
   },
   "scripts": {
