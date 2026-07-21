@@ -46,7 +46,7 @@ it('runs composer audit through a fake binary with json output', function (): vo
     expect($payload['tool'])->toBe('composer');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['abandoned_packages' => 1]);
-    expect($fake->argv())->toBe(['audit', '--no-progress', '--no-ansi', '--no-interaction', '--format=json']);
+    expect($fake->argv())->toBe(['audit', '--no-ansi', '--no-interaction', '--format=json']);
 });
 
 function composerFakeBinaryConfig(ToolConfig ...$tools): SiftConfig

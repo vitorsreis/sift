@@ -84,7 +84,7 @@ final readonly class ComposerNormalizeToolAdapter extends AbstractCliToolAdapter
             '-n',
             '--no-interaction',
         ]);
-        $arguments = ['normalize', '--no-progress', '--no-ansi', '--no-interaction'];
+        $arguments = ['normalize', '--no-ansi', '--no-interaction'];
 
         if (! $context->repair() && ! $this->hasOption($userArguments, '--dry-run')) {
             $arguments[] = '--dry-run';

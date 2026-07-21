@@ -590,6 +590,9 @@ final class InteractivePrompt
         };
     }
 
+    /**
+     * @phpstan-impure
+     */
     private function stdinReady(float $timeoutSeconds): bool
     {
         $read = [STDIN];

@@ -131,7 +131,7 @@ it('runs composer normalize through a fake composer binary in dry-run mode', fun
     );
 
     expect($result->toPayload()['status'])->toBe(RunStatus::Failed->value);
-    expect($fake->argv())->toBe(['normalize', '--no-progress', '--no-ansi', '--no-interaction', '--dry-run', '--diff']);
+    expect($fake->argv())->toBe(['normalize', '--no-ansi', '--no-interaction', '--dry-run', '--diff']);
 });
 
 it('runs ecs through a fake binary with normalized json output', function (): void {

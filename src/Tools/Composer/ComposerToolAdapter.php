@@ -238,7 +238,7 @@ final readonly class ComposerToolAdapter extends AbstractCliToolAdapter
             '-q',
             '--quiet',
         ]);
-        $quietArguments = ['--no-progress', '--no-ansi', '--no-interaction'];
+        $quietArguments = ['--no-ansi', '--no-interaction'];
 
         if ($subcommand === 'validate') {
             return [$subcommand, ...$quietArguments, ...$commandArguments];

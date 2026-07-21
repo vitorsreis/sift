@@ -32,11 +32,11 @@ Terminal status:
 | `deptrac` | JSON analyse output with no progress, ANSI, or interaction |
 | `php-cs-fixer` | `fix --dry-run --format=json --show-progress=none --no-ansi --no-interaction` |
 | `phpmd` | JSON report |
-| `composer-normalize` | Non-interactive `normalize --dry-run --diff` without progress or ANSI; writes require explicit `--repair` |
+| `composer-normalize` | Non-interactive `normalize --dry-run --diff` without ANSI; writes require explicit `--repair` |
 | `composer-unused` | JSON output without progress, ANSI, or interaction |
 | `composer-require-checker` | Non-interactive `check --output=json` without ANSI |
 | `parallel-lint` | JSON output without progress or colors |
-| `composer` | Non-interactive, no-progress, no-ANSI read-only `audit`, `licenses`, `outdated`, `show`, `validate` |
+| `composer` | Non-interactive, no-ANSI read-only `audit`, `licenses`, `outdated`, `show`, `validate` |
 
 ## Test Runners
 

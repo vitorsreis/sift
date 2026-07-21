@@ -35,7 +35,7 @@ it('prepares composer audit by default with json output', function (): void {
     );
 
     expect($context->subcommand())->toBe('audit');
-    expect($command->arguments())->toBe(['audit', '--no-progress', '--no-ansi', '--no-interaction', '--format=json']);
+    expect($command->arguments())->toBe(['audit', '--no-ansi', '--no-interaction', '--format=json']);
 });
 
 it('prepares composer read-only subcommands with json output', function (string $subcommand): void {
@@ -50,7 +50,7 @@ it('prepares composer read-only subcommands with json output', function (string 
     );
 
     expect($context->subcommand())->toBe($subcommand);
-    expect($command->arguments())->toBe([$subcommand, '--no-progress', '--no-ansi', '--no-interaction', '--format=json']);
+    expect($command->arguments())->toBe([$subcommand, '--no-ansi', '--no-interaction', '--format=json']);
 })->with(['audit', 'licenses', 'outdated', 'show']);
 
 it('prepares composer validate without json output', function (): void {
@@ -65,7 +65,7 @@ it('prepares composer validate without json output', function (): void {
     );
 
     expect($context->subcommand())->toBe('validate');
-    expect($command->arguments())->toBe(['validate', '--no-progress', '--no-ansi', '--no-interaction', '--strict']);
+    expect($command->arguments())->toBe(['validate', '--no-ansi', '--no-interaction', '--strict']);
 });
 
 it('maps composer show --outdated to outdated mode', function (): void {
@@ -81,7 +81,7 @@ it('maps composer show --outdated to outdated mode', function (): void {
 
     expect($context->subcommand())->toBe('show');
     expect($context->mode())->toBe('outdated');
-    expect($command->arguments())->toBe(['show', '--no-progress', '--no-ansi', '--no-interaction', '--format=json', '--outdated']);
+    expect($command->arguments())->toBe(['show', '--no-ansi', '--no-interaction', '--format=json', '--outdated']);
 });
 
 it('preserves explicit composer json format', function (): void {
@@ -95,7 +95,7 @@ it('preserves explicit composer json format', function (): void {
         config: new ToolConfig('composer', true, null, [], 120),
     );
 
-    expect($command->arguments())->toBe(['audit', '--no-progress', '--no-ansi', '--no-interaction', '--format', 'json', '--no-dev']);
+    expect($command->arguments())->toBe(['audit', '--no-ansi', '--no-interaction', '--format', 'json', '--no-dev']);
 });
 
 it('rejects non-json composer formats outside raw mode', function (): void {
