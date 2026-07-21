@@ -380,3 +380,10 @@ it('recognizes Unix enter and backspace key codes', function (): void {
     expect($method->invoke($prompt, 10, 10))->toBe('enter')
         ->and($method->invoke($prompt, 127, 127))->toBe('backspace');
 });
+
+it('uses a short timeout to distinguish standalone escape from Unix key sequences', function (): void {
+    $constant = new ReflectionClassConstant(InteractivePrompt::class, 'ESCAPE_SEQUENCE_TIMEOUT_SECONDS');
+
+    expect($constant->getValue())->toBeGreaterThan(0.0)
+        ->toBeLessThanOrEqual(0.05);
+});

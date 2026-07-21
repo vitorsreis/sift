@@ -14,7 +14,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ### Fixed
 
-- Interactive skill prompts now recognize the Unix key codes emitted by Enter and Backspace, including under WSL terminals.
+- Interactive skill prompts now recognize the Unix key codes emitted by Enter and Backspace, including under WSL terminals, and handle standalone Escape without waiting for another key.
 
 ## 2.4.0 - 2026-07-20
 

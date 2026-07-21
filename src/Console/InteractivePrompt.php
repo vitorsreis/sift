@@ -16,6 +16,8 @@ final class InteractivePrompt
 
     private const float SEARCH_DEBOUNCE_SECONDS = 0.35;
 
+    private const float ESCAPE_SEQUENCE_TIMEOUT_SECONDS = 0.05;
+
     private const string HIDE_CURSOR = "\033[?25l";
 
     private const string SHOW_CURSOR = "\033[?25h";
@@ -517,8 +519,18 @@ final class InteractivePrompt
         }
 
         if ($char === "\033") {
+            if (! $this->stdinReady(self::ESCAPE_SEQUENCE_TIMEOUT_SECONDS)) {
+                return 'escape';
+            }
+
             $second = fgetc(STDIN);
-            $third = $second === '[' ? fgetc(STDIN) : false;
+
+            if (! in_array($second, ['[', 'O'], true)
+                || ! $this->stdinReady(self::ESCAPE_SEQUENCE_TIMEOUT_SECONDS)) {
+                return 'escape';
+            }
+
+            $third = fgetc(STDIN);
 
             return match ($third) {
                 'A' => 'up',
