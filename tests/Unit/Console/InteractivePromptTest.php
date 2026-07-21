@@ -372,3 +372,11 @@ it('accepts enter as the default interactive confirmation', function (): void {
     expect($confirmed)->toBeTrue();
     expect($output)->toContain('Install skill sift? [Y/n] ');
 });
+
+it('recognizes Unix enter and backspace key codes', function (): void {
+    $method = new ReflectionMethod(InteractivePrompt::class, 'keyFromCode');
+    $prompt = new InteractivePrompt();
+
+    expect($method->invoke($prompt, 10, 10))->toBe('enter')
+        ->and($method->invoke($prompt, 127, 127))->toBe('backspace');
+});

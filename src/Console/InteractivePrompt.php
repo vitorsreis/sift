@@ -568,11 +568,11 @@ final class InteractivePrompt
     private function keyFromCode(int $code, int $char): string
     {
         return match ($code) {
-            13 => 'enter',
+            10, 13 => 'enter',
             27 => 'escape',
             38 => 'up',
             40 => 'down',
-            8 => 'backspace',
+            8, 127 => 'backspace',
             32 => 'space',
             default => $char === 3 ? 'ctrl-c' : ($char >= 32 && $char <= 126 ? 'char:' . chr($char) : ''),
         };
