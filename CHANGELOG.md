@@ -4,6 +4,24 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.4.0 - 2026-07-20
+
+### Added
+
+- Added `composer sift behat` with normalized JSON scenario results (Behat `^3.32`).
+- Added `composer sift codeception` with JUnit results, Clover coverage, and Sift-level `--min` thresholds (Codeception `^5.3`).
+- Added `composer sift phpbench` with normalized XML measurements, assertion failures, and execution errors (PHPBench `^1.7`).
+- Added `composer sift composer-normalize` (alias `composer sift normalize`) for safe `normalize --dry-run --diff` checks; `--repair` applies normalization explicitly (Composer Normalize `^2.52`).
+- Added `composer sift ecs` (alias `composer sift easy-coding-standard`) with normalized JSON findings; `--repair` enables fixes explicitly (Easy Coding Standard `^13.2`).
+- Added `composer sift grumphp` to execute GrumPHP's `run` command with normalized task summaries and failures (GrumPHP `^2.22`).
+
+### Changed
+
+- The configuration schema now suggests supported tool names and tool-specific binary candidates while continuing to accept custom tools and executable paths.
+- Consolidated PHPStan, PHPUnit, and Sift history caches under `.cache`, which is now ignored by Git and excluded from release archives.
+- PHPUnit now validates its configuration against the bundled XSD, explicitly caches results, and randomizes test execution while preserving dependency order.
+- Updated development tool constraints: Mago from `^1.29` to `^1.44`, Infection from `^0.33.2` to `^0.34.0`, and Rector from `^2.4` to `^2.5`.
+
 ## 2.3.2 - 2026-06-26
 
 ### Changed
