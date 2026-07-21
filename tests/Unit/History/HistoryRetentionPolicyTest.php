@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Sift\Config\HistoryConfig;
 use Sift\History\HistoryRetentionPolicy;
 
-it('calculates removals by max files per tool and max age', function (): void {
+it('calculates removals by total max files and max age', function (): void {
     $policy = new HistoryRetentionPolicy();
     $config = new HistoryConfig(
         enabled: true,
@@ -27,6 +27,30 @@ it('calculates removals by max files per tool and max age', function (): void {
     expect($removals)->toBe([
         '0tfss000zzzzzz',
         '0tctdc00abcdef',
+    ]);
+});
+
+it('applies max files across all tools', function (): void {
+    $policy = new HistoryRetentionPolicy();
+    $config = new HistoryConfig(
+        enabled: true,
+        path: '.sift/history',
+        maxFiles: 2,
+        maxAgeDays: null,
+        maxBytesPerRun: 1048576,
+        redactSecrets: true,
+    );
+
+    $removals = $policy->expiredRunIds([
+        historyRetentionRun('0tfwhc001z141z', 'pest'),
+        historyRetentionRun('0tfumo00000001', 'phpstan'),
+        historyRetentionRun('0tfss000zzzzzz', 'pest'),
+        historyRetentionRun('0tfr0000abcdef', 'phpstan'),
+    ], $config, new DateTimeImmutable('2026-05-31T12:00:00+00:00'));
+
+    expect($removals)->toBe([
+        '0tfss000zzzzzz',
+        '0tfr0000abcdef',
     ]);
 });
 

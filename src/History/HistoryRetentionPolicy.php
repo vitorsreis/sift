@@ -20,15 +20,13 @@ final readonly class HistoryRetentionPolicy
         $eligibleRuns = $this->eligibleRuns($runs);
         $removals = [];
 
-        foreach ($this->byTool($eligibleRuns) as $toolRuns) {
-            usort(
-                $toolRuns,
-                static fn(array $left, array $right): int => strcmp($right['run_id'], $left['run_id']),
-            );
+        usort(
+            $eligibleRuns,
+            static fn(array $left, array $right): int => strcmp($right['run_id'], $left['run_id']),
+        );
 
-            foreach (array_slice($toolRuns, $config->maxFiles()) as $run) {
-                $removals[] = $run['run_id'];
-            }
+        foreach (array_slice($eligibleRuns, $config->maxFiles()) as $run) {
+            $removals[] = $run['run_id'];
         }
 
         $maxAgeDays = $config->maxAgeDays();
@@ -81,22 +79,6 @@ final readonly class HistoryRetentionPolicy
         }
 
         return $eligible;
-    }
-
-    /**
-     * @param list<array{run_id: string, tool: string}> $runs
-     *
-     * @return array<string, list<array{run_id: string, tool: string}>>
-     */
-    private function byTool(array $runs): array
-    {
-        $byTool = [];
-
-        foreach ($runs as $run) {
-            $byTool[$run['tool']][] = $run;
-        }
-
-        return $byTool;
     }
 
     private function createdAt(string $runId): DateTimeImmutable
