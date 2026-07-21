@@ -1,16 +1,4 @@
 name: sift
-description: Use Sift as the project quality, tooling, history, and skills command layer for PHP repositories.
+description: Use the Sift entrypoints in PHP projects.
 instructions:
-  - Run supported PHP tools with `composer sift --compact <tool>` when Sift is available.
-  - Use `--json` only when structured machine output is required.
-  - Use `--no-json` to force terminal output when config selects JSON.
-  - Use `output.colored=false` for plain terminal text by default, or `--no-color` when ANSI styling would pollute copied logs or snapshots for one command.
-  - Use `composer skills <command>` for skill installation, one-off use prompts, preview, update, and removal.
-  - Skills commands accept Sift syntax such as `skills a`, `skills upgrade`, `--agent standard cursor`, `--skill pr-review commit`, and Eve `--subagent <name>`.
-  - Use `composer skills` for skill management in a Sift project.
-  - Inspect `composer sift history view <run_id> <section>` before rerunning noisy tools.
-  - Treat `help`, `version`, `tools list`, and root `composer skills` help as terminal-only commands.
-  - Keep Composer commands read-only through Sift: audit, licenses, outdated, show, validate.
-  - Keep refactor and formatter tools in dry-run or check mode unless the user explicitly asks for repair.
-  - Run PHPCBF only with explicit repair intent: `composer sift --compact phpcbf --repair <path>`.
-  - Use `--raw` only when native output is necessary; policies still apply.
+  - Run supported tools through `composer sift`, `php vendor/bin/sift`, or `php sift.phar` by default unless the user opts out; manage agent skills with their `skills` command or `composer skills`.
