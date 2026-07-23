@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Sift\Config\ToolConfig;
 use Sift\Core\ErrorCode;
 use Sift\Exceptions\UserFacingException;
+use Sift\Execution\Platform;
 use Sift\Execution\ToolLocator;
 use Sift\Execution\ToolResolver;
 use Sift\Tools\ToolDefinition;
@@ -44,6 +45,33 @@ it('falls back through definition candidates when no binary is configured', func
             aliases: ['test'],
             description: 'Pest test runner.',
             binaryCandidates: ['missing-pest', 'vendor/bin/pest'],
+            installHint: 'composer require --dev pestphp/pest',
+            defaultContext: 'test',
+        ),
+        config: new ToolConfig('pest', true, null, [], 1800),
+        cwd: $project->root(),
+    );
+
+    expect($located->binary())->toBe($binary);
+    expect($located->candidate())->toBe('vendor/bin/pest');
+});
+
+it('skips windows launcher candidates on non-windows platforms', function (): void {
+    $project = FixtureProject::create();
+    $project->write('vendor/bin/pest.bat', '');
+
+    $binary = $project->write('vendor/bin/pest', '');
+
+    $resolver = new ToolResolver(
+        new ToolLocator(pathEnvironment: ''),
+        new Platform('Linux'),
+    );
+    $located = $resolver->resolve(
+        definition: new ToolDefinition(
+            name: 'pest',
+            aliases: ['test'],
+            description: 'Pest test runner.',
+            binaryCandidates: ['vendor/bin/pest.bat', 'vendor/bin/pest'],
             installHint: 'composer require --dev pestphp/pest',
             defaultContext: 'test',
         ),

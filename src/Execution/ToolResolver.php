@@ -13,6 +13,7 @@ final readonly class ToolResolver
 {
     public function __construct(
         private ToolLocator $locator = new ToolLocator(),
+        private Platform $platform = new Platform(),
     ) {}
 
     public function resolve(ToolDefinition $definition, ToolConfig $config, string $cwd): LocatedTool
@@ -29,6 +30,13 @@ final readonly class ToolResolver
         $candidates = $config->binary() === null
             ? $definition->binaryCandidates()
             : [$config->binary()];
+
+        if ($config->binary() === null && ! $this->platform->isWindows()) {
+            $candidates = array_values(array_filter(
+                $candidates,
+                static fn(string $candidate): bool => ! preg_match('/\.(?:bat|cmd)$/i', str_replace('\\', '/', $candidate)),
+            ));
+        }
 
         foreach ($candidates as $candidate) {
             try {
