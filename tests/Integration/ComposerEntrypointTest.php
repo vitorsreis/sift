@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Sift\Core\PreparedCommand;
 use Sift\Execution\ProcessSupervisor;
+use Sift\Sift;
 use Tests\Support\FixtureProject;
 
 it('runs composer sift and composer skills from an installed plugin package', function (): void {
@@ -126,7 +127,7 @@ it('installs the composer package as a copied distribution', function (): void {
     expect($validatePackage['exit_code'])->toBe(0);
     expect($vendorBin['exit_code'])->toBe(0);
     expect($vendorValidate['exit_code'])->toBe(0);
-    expect(stripSiftAnsi($vendorBin['stdout']))->toStartWith('Sift ');
+    expect(stripSiftAnsi($vendorBin['stdout']))->toBe('Sift ' . Sift::VERSION . PHP_EOL);
     expect(decodeComposerEntrypointPayload($vendorValidate['stdout'])['status'] ?? null)->toBe('passed');
     expect($project->path('vendor/vitorsreis/sift/src/Sift.php'))->toBeFile();
 });

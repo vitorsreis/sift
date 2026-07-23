@@ -12,7 +12,7 @@ Sift treats `$schema` as editor metadata. `init` writes a schema URL pinned to t
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.4.1/resources/schema.json",
+  "$schema": "https://raw.githubusercontent.com/vitorsreis/sift/v2.4.2/resources/schema.json",
   "output": {
     "format": "terminal",
     "size": "compact",

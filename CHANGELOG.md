@@ -4,6 +4,16 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.4.2 - 2026-07-23
+
+### Changed
+
+- Reorganized the bundled Sift skill with concise entrypoint guidance and dedicated references for commands, tools, output and history, and skill management.
+
+### Fixed
+
+- Tool resolution now skips `.bat` and `.cmd` launcher candidates outside Windows, preventing WSL from selecting Composer's Windows proxies when Unix launchers coexist.
+
 ## 2.4.1 - 2026-07-20
 
 ### Changed
