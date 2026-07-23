@@ -14,7 +14,9 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 - Tool resolution now skips `.bat` and `.cmd` launcher candidates outside Windows, preventing WSL from selecting Composer's Windows proxies when Unix launchers coexist.
 
-## 2.4.1 - 2026-07-20
+## 2.4.1 - 2026-07-20 [YANKED]
+
+> Withdrawn and superseded by 2.4.2.
 
 ### Changed
 
@@ -27,7 +29,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.4.0 - 2026-07-20 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Added
 
@@ -47,7 +49,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.2 - 2026-06-26 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Changed
 
@@ -61,7 +63,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.1 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Changed
 
@@ -75,7 +77,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.0 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Added
 
@@ -95,7 +97,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.2.0 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Added
 
@@ -125,7 +127,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.1.0 - 2026-06-24 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 ### Added
 
@@ -140,7 +142,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.0.0 - 2026-06-04 [YANKED]
 
-> Withdrawn and superseded by 2.4.1.
+> Withdrawn and superseded by 2.4.2.
 
 Sift 2.0 is a new major version rebuilt around a simpler CLI, normalized result payloads, Composer-native entrypoints, managed skills, and safer tool execution. It does not keep compatibility with Sift 1.x runtime contracts.
 
