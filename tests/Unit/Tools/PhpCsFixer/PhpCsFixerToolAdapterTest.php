@@ -77,6 +77,40 @@ it('prepares php-cs-fixer repair without dry-run when repair is explicit', funct
     ]);
 });
 
+it('keeps php-cs-fixer raw mode safe without repair', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpCsFixerToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('php-cs-fixer', ['src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('php-cs-fixer', $project->path('vendor/bin/php-cs-fixer'), 'vendor/bin/php-cs-fixer', 'relative'),
+        context: $context,
+        config: new ToolConfig('php-cs-fixer', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['fix', '--dry-run', 'src']);
+});
+
+it('allows php-cs-fixer raw repairs only when explicit', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new PhpCsFixerToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('php-cs-fixer', ['--repair', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('php-cs-fixer', $project->path('vendor/bin/php-cs-fixer'), 'vendor/bin/php-cs-fixer', 'relative'),
+        context: $context,
+        config: new ToolConfig('php-cs-fixer', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['fix', 'src']);
+});
+
 it('preserves explicit php-cs-fixer fix command and json options', function (): void {
     $project = FixtureProject::create();
     $adapter = new PhpCsFixerToolAdapter();

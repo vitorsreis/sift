@@ -94,7 +94,9 @@ final readonly class PhpCsFixerToolAdapter extends AbstractCliToolAdapter
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $context->raw() ? ['fix', ...$arguments] : $this->safeArguments($arguments, $context->repair()),
+            arguments: $context->raw()
+                ? $this->rawArguments($arguments, $context->repair())
+                : $this->safeArguments($arguments, $context->repair()),
         );
     }
 
@@ -209,6 +211,22 @@ final readonly class PhpCsFixerToolAdapter extends AbstractCliToolAdapter
 
         if (! $this->hasVerbosity($arguments)) {
             $defaults[] = '-v';
+        }
+
+        return [...$defaults, ...$arguments];
+    }
+
+    /**
+     * @param list<string> $arguments
+     *
+     * @return list<string>
+     */
+    private function rawArguments(array $arguments, bool $repair): array
+    {
+        $defaults = ['fix'];
+
+        if (! $repair && ! $this->hasOption($arguments, '--dry-run')) {
+            $defaults[] = '--dry-run';
         }
 
         return [...$defaults, ...$arguments];
