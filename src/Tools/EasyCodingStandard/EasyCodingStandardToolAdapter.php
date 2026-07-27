@@ -75,16 +75,23 @@ final readonly class EasyCodingStandardToolAdapter extends AbstractCliToolAdapte
     #[\Override]
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand
     {
-        if ($context->raw()) {
-            return $this->prepareBaseCommand($tool, $context, $config, $context->userArgs());
-        }
-
-        $arguments = $this->withoutCheckCommand($context->userArgs());
-        $arguments = $this->withoutArguments($arguments, ['--no-progress-bar']);
+        $arguments = $context->raw()
+            ? $context->userArgs()
+            : $this->withoutCheckCommand($context->userArgs());
 
         if (! $context->repair() && $this->hasOption($arguments, '--fix')) {
             throw new InvalidUsageException('ECS modifies files with --fix; pass --repair instead.');
         }
+
+        if ($context->raw() && $context->repair() && ! $this->hasOption($arguments, '--fix')) {
+            $arguments = $this->withFixOption($arguments);
+        }
+
+        if ($context->raw()) {
+            return $this->prepareBaseCommand($tool, $context, $config, $arguments);
+        }
+
+        $arguments = $this->withoutArguments($arguments, ['--no-progress-bar']);
 
         $format = $this->optionValue($arguments, '--output-format');
 
@@ -153,6 +160,20 @@ final readonly class EasyCodingStandardToolAdapter extends AbstractCliToolAdapte
         }
 
         return $arguments;
+    }
+
+    /**
+     * @param list<string> $arguments
+     *
+     * @return list<string>
+     */
+    private function withFixOption(array $arguments): array
+    {
+        if (($arguments[0] ?? null) === 'check') {
+            return ['check', '--fix', ...array_slice($arguments, 1)];
+        }
+
+        return ['--fix', ...$arguments];
     }
 
     /**

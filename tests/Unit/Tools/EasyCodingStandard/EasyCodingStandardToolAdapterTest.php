@@ -57,6 +57,38 @@ it('prepares ecs fix mode only when repair is explicit', function (): void {
     expect($command->arguments())->toBe(['--fix', '--output-format=json', '--no-progress-bar', 'src']);
 });
 
+it('maps ecs raw repairs to the native fix option', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new EasyCodingStandardToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('ecs', ['--repair', 'check', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('ecs', $project->path('vendor/bin/ecs'), 'vendor/bin/ecs', 'relative'),
+        context: $context,
+        config: new ToolConfig('ecs', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['check', '--fix', 'src']);
+});
+
+it('rejects native ecs fixes in raw mode without repair', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new EasyCodingStandardToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('ecs', ['check', '--fix', 'src'], ['raw' => true]),
+        $project->root(),
+    );
+
+    expect(fn(): PreparedCommand => $adapter->prepare(
+        tool: new LocatedTool('ecs', $project->path('vendor/bin/ecs'), 'vendor/bin/ecs', 'relative'),
+        context: $context,
+        config: new ToolConfig('ecs', true, null, [], 120),
+    ))->toThrow(InvalidUsageException::class, 'ECS modifies files with --fix; pass --repair instead.');
+});
+
 it('rejects native ecs fix mode without the sift repair flag', function (): void {
     $project = FixtureProject::create();
     $adapter = new EasyCodingStandardToolAdapter();
