@@ -4,7 +4,18 @@ All notable changes to Sift are documented here.
 
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.4.2 - 2026-07-23
+## 2.4.3 - 2026-07-26
+
+### Fixed
+
+- Rector now applies refactorings when `--repair` is explicit while retaining safe dry-run behavior by default.
+- PHP CS Fixer raw runs now inject `--dry-run` unless `--repair` is explicit.
+- ECS raw runs now map `--repair` to `--fix` and block native fixes without explicit repair intent.
+- Composer Normalize raw runs now preserve the `normalize` command and require `--repair` before writing changes.
+
+## 2.4.2 - 2026-07-23 [YANKED]
+
+> Withdrawn and superseded by 2.4.3.
 
 ### Changed
 
@@ -16,7 +27,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.4.1 - 2026-07-20 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Changed
 
@@ -29,7 +40,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.4.0 - 2026-07-20 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Added
 
@@ -49,7 +60,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.2 - 2026-06-26 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Changed
 
@@ -63,7 +74,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.1 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Changed
 
@@ -77,7 +88,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.3.0 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Added
 
@@ -97,7 +108,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.2.0 - 2026-06-25 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Added
 
@@ -127,7 +138,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.1.0 - 2026-06-24 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 ### Added
 
@@ -142,7 +153,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 
 ## 2.0.0 - 2026-06-04 [YANKED]
 
-> Withdrawn and superseded by 2.4.2.
+> Withdrawn and superseded by 2.4.3.
 
 Sift 2.0 is a new major version rebuilt around a simpler CLI, normalized result payloads, Composer-native entrypoints, managed skills, and safer tool execution. It does not keep compatibility with Sift 1.x runtime contracts.
 
