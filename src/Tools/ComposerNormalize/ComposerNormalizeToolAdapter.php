@@ -73,11 +73,18 @@ final readonly class ComposerNormalizeToolAdapter extends AbstractCliToolAdapter
     #[\Override]
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand
     {
+        $userArguments = $this->withoutNormalizeCommand($context->userArgs());
+
         if ($context->raw()) {
-            return $this->prepareBaseCommand($tool, $context, $config, $context->userArgs());
+            return $this->prepareBaseCommand(
+                tool: $tool,
+                context: $context,
+                config: $config,
+                arguments: $this->rawArguments($userArguments, $context->repair()),
+            );
         }
 
-        $userArguments = $this->withoutArguments($context->userArgs(), [
+        $userArguments = $this->withoutArguments($userArguments, [
             '--no-progress',
             '--ansi',
             '--no-ansi',
@@ -116,6 +123,36 @@ final readonly class ComposerNormalizeToolAdapter extends AbstractCliToolAdapter
             summary: $report->summary(),
             items: $report->items(),
         );
+    }
+
+    /**
+     * @param list<string> $userArguments
+     *
+     * @return list<string>
+     */
+    private function rawArguments(array $userArguments, bool $repair): array
+    {
+        $arguments = ['normalize'];
+
+        if (! $repair && ! $this->hasOption($userArguments, '--dry-run')) {
+            $arguments[] = '--dry-run';
+        }
+
+        return [...$arguments, ...$userArguments];
+    }
+
+    /**
+     * @param list<string> $arguments
+     *
+     * @return list<string>
+     */
+    private function withoutNormalizeCommand(array $arguments): array
+    {
+        if (($arguments[0] ?? null) === 'normalize') {
+            return array_slice($arguments, 1);
+        }
+
+        return $arguments;
     }
 
     /**

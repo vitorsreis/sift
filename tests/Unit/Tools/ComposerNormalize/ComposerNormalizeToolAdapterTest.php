@@ -55,6 +55,40 @@ it('prepares composer normalize repair only when explicit', function (): void {
     expect($command->arguments())->toBe(['normalize', '--no-ansi', '--no-interaction', '--diff', 'fixtures/composer.json']);
 });
 
+it('keeps composer normalize raw mode safe without repair', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ComposerNormalizeToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('composer-normalize', ['normalize', 'fixtures/composer.json'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('composer-normalize', 'composer', 'composer', 'path'),
+        context: $context,
+        config: new ToolConfig('composer-normalize', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['normalize', '--dry-run', 'fixtures/composer.json']);
+});
+
+it('runs composer normalize raw repairs only when explicit', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new ComposerNormalizeToolAdapter();
+    $context = $adapter->context(
+        new CliArguments('composer-normalize', ['--repair', 'fixtures/composer.json'], ['raw' => true]),
+        $project->root(),
+    );
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('composer-normalize', 'composer', 'composer', 'path'),
+        context: $context,
+        config: new ToolConfig('composer-normalize', true, null, [], 120),
+    );
+
+    expect($command->arguments())->toBe(['normalize', 'fixtures/composer.json']);
+});
+
 it('parses an unnormalized composer manifest as a finding', function (): void {
     $project = FixtureProject::create();
     $adapter = new ComposerNormalizeToolAdapter();
