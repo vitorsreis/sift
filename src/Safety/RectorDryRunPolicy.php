@@ -31,7 +31,7 @@ final readonly class RectorDryRunPolicy implements Policy
 
     public function violations(PreparedCommand $command, ToolContext $context, ToolConfig $config): array
     {
-        if ($command->tool() !== 'rector') {
+        if ($command->tool() !== 'rector' || $context->repair()) {
             return [];
         }
 
@@ -69,7 +69,7 @@ final readonly class RectorDryRunPolicy implements Policy
     {
         return new PolicyViolation(
             code: ErrorCode::PolicyBlocked,
-            message: 'Rector execution requires --dry-run.',
+            message: 'Rector execution requires --dry-run unless --repair is explicit.',
             policy: 'rector_dry_run',
             argument: $argument,
         );

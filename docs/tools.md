@@ -23,7 +23,7 @@ Terminal status:
 | `psalm` | `--output-format=json --no-progress --monochrome` |
 | `phpcs` | JSON report, quiet, no colors |
 | `phpcbf` | repair-only with `--repair`, quiet, no colors |
-| `rector` | `process --dry-run --output-format=json --no-progress-bar --no-ansi` |
+| `rector` | `process --dry-run --output-format=json --no-progress-bar --no-ansi`; fixes require explicit `--repair` |
 | `pint` | `--test --format=json --no-ansi --no-interaction` |
 | `ecs` | JSON style findings without a progress bar; fixes require explicit `--repair` |
 | `mago` | safe lint/analyze/guard/format modes |
@@ -54,10 +54,11 @@ Policies run before process execution and before raw mode. A blocked command exi
 
 `phpcbf` modifies files and has no dry-run mode, so Sift only runs it when `--repair` is explicit. Without `--repair`, Sift exits before process execution with code `3`.
 
-Composer Normalize and ECS also require `--repair` before Sift permits write mode.
+Rector, Composer Normalize, and ECS also require `--repair` before Sift permits write mode.
 
 ```bash
 composer sift phpcbf --repair src
+composer sift rector --repair src
 ```
 
 PHPCBF output is normalized from its text summary:

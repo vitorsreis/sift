@@ -41,6 +41,16 @@ it('allows rector with explicit dry-run mode', function (): void {
     }
 });
 
+it('allows rector write mode when repair is explicit', function (): void {
+    $violations = (new RectorDryRunPolicy())->violations(
+        command: new PreparedCommand('rector', 'vendor/bin/rector', ['process']),
+        context: new ToolContext('rector', repair: true),
+        config: new ToolConfig('rector', true, null, [], 1800),
+    );
+
+    expect($violations)->toBe([]);
+});
+
 it('rejects unsafe dry-run false variants', function (): void {
     $cases = [
         ['--dry-run=false', ['--dry-run=false']],

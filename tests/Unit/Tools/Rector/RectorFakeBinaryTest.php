@@ -49,6 +49,33 @@ it('runs rector through a fake binary with dry-run json output', function (): vo
     expect($fake->argv())->toBe(['process', '--dry-run', '--output-format=json', '--no-progress-bar', '--no-ansi', 'src']);
 });
 
+it('runs rector repairs without dry-run', function (): void {
+    $project = FixtureProject::create();
+    $source = $project->write('src/Checkout.php', '<?php');
+    $fake = FakeBinary::create(
+        project: $project,
+        name: 'rector',
+        stdout: rectorFakeBinaryJson($source),
+    );
+    $runner = new ToolRunner(
+        registry: new ToolRegistry(new RectorToolAdapter()),
+        policyPipeline: new PolicyPipeline([new RectorDryRunPolicy()]),
+    );
+
+    $result = $runner->run(
+        arguments: new CliArguments('rector', ['--repair', 'src']),
+        config: rectorFakeBinaryConfig(new ToolConfig('rector', true, $fake->binary(), [], 30)),
+        cwd: $project->root(),
+    );
+
+    if (! $result instanceof NormalizedResult) {
+        throw new RuntimeException('Expected normalized result.');
+    }
+
+    expect($result->toPayload()['status'])->toBe(RunStatus::Changed->value);
+    expect($fake->argv())->toBe(['process', '--output-format=json', '--no-progress-bar', '--no-ansi', 'src']);
+});
+
 function rectorFakeBinaryConfig(ToolConfig ...$tools): SiftConfig
 {
     $indexedTools = [];

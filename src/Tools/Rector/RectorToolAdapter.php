@@ -12,6 +12,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Core\RunStatus;
 use Sift\Execution\LocatedTool;
 use Sift\Tools\AbstractCliToolAdapter;
+use Sift\Tools\MutationPolicy;
 use Sift\Tools\StatusDecider;
 use Sift\Tools\ToolContext;
 
@@ -29,7 +30,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
 
     protected function description(): string
     {
-        return 'Rector refactoring dry-run analyser.';
+        return 'Rector refactoring analyser and fixer.';
     }
 
     protected function binaryCandidates(): array
@@ -54,13 +55,25 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
     }
 
     #[\Override]
+    protected function mutationPolicy(): MutationPolicy
+    {
+        return MutationPolicy::RepairFlag;
+    }
+
+    #[\Override]
+    protected function repairCommand(): array
+    {
+        return ['--repair'];
+    }
+
+    #[\Override]
     public function prepare(LocatedTool $tool, ToolContext $context, ToolConfig $config): PreparedCommand
     {
         return $this->prepareBaseCommand(
             tool: $tool,
             context: $context,
             config: $config,
-            arguments: $this->arguments($context->userArgs(), ! $context->raw()),
+            arguments: $this->arguments($context->userArgs(), ! $context->raw(), $context->repair()),
         );
     }
 
@@ -70,7 +83,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
 
         return new NormalizedResult(
             tool: $this->name(),
-            status: $this->status($execution, $report),
+            status: $this->status($execution, $context, $report),
             summary: $report->summary(),
             items: $report->items(),
         );
@@ -80,7 +93,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
      * @param list<string> $userArguments
      * @return list<string>
      */
-    private function arguments(array $userArguments, bool $machineOutput): array
+    private function arguments(array $userArguments, bool $machineOutput, bool $repair): array
     {
         $arguments = [];
         $remaining = $userArguments;
@@ -95,7 +108,7 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
             $arguments[] = 'process';
         }
 
-        if (! $this->hasOption($remaining, '--dry-run')) {
+        if (! $repair && ! $this->hasOption($remaining, '--dry-run')) {
             $arguments[] = '--dry-run';
         }
 
@@ -119,10 +132,14 @@ final readonly class RectorToolAdapter extends AbstractCliToolAdapter
         return [...$arguments, ...$remaining];
     }
 
-    private function status(ExecutionResult $execution, RectorReport $report): RunStatus
+    private function status(ExecutionResult $execution, ToolContext $context, RectorReport $report): RunStatus
     {
         if ($report->errors() > 0) {
             return RunStatus::Error;
+        }
+
+        if ($context->repair()) {
+            return $this->statusDecider->decide($execution, changed: $report->changedFiles() > 0);
         }
 
         return $this->statusDecider->decide($execution, findings: $report->changedFiles());

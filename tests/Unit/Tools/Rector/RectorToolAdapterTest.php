@@ -9,6 +9,7 @@ use Sift\Core\PreparedCommand;
 use Sift\Core\RunStatus;
 use Sift\Execution\LocatedTool;
 use Sift\Tools\CliArguments;
+use Sift\Tools\MutationPolicy;
 use Sift\Tools\Rector\RectorToolAdapter;
 use Tests\Support\FixtureProject;
 
@@ -16,11 +17,28 @@ it('describes rector discovery metadata', function (): void {
     $definition = (new RectorToolAdapter())->definition();
 
     expect($definition->name())->toBe('rector');
-    expect($definition->description())->toBe('Rector refactoring dry-run analyser.');
+    expect($definition->description())->toBe('Rector refactoring analyser and fixer.');
     expect($definition->binaryCandidates())->toBe(['vendor/bin/rector.bat', 'vendor/bin/rector', 'rector']);
     expect($definition->versionCommand())->toBe(['--version']);
     expect($definition->installHint())->toBe('composer require --dev rector/rector');
     expect($definition->defaultContext())->toBe('refactor');
+    expect($definition->mutationPolicy())->toBe(MutationPolicy::RepairFlag);
+    expect($definition->repairCommand())->toBe(['--repair']);
+});
+
+it('prepares rector fix mode only when repair is explicit', function (): void {
+    $project = FixtureProject::create();
+    $adapter = new RectorToolAdapter();
+    $context = $adapter->context(new CliArguments('rector', ['--repair', 'src']), $project->root());
+
+    $command = $adapter->prepare(
+        tool: new LocatedTool('rector', $project->path('vendor/bin/rector'), 'vendor/bin/rector', 'relative'),
+        context: $context,
+        config: new ToolConfig('rector', true, null, [], 120),
+    );
+
+    expect($context->repair())->toBeTrue();
+    expect($command->arguments())->toBe(['process', '--output-format=json', '--no-progress-bar', '--no-ansi', 'src']);
 });
 
 it('prepares rector process with dry-run json defaults', function (): void {
@@ -98,6 +116,21 @@ it('parses rector changes as failed status', function (): void {
     expect($payload['tool'])->toBe('rector');
     expect($payload['status'])->toBe(RunStatus::Failed->value);
     expect($payload['summary'])->toMatchArray(['changed_files' => 1, 'errors' => 0]);
+});
+
+it('parses rector repairs as changed status', function (): void {
+    $project = FixtureProject::create();
+    $source = $project->write('src/Checkout.php', '<?php');
+    $adapter = new RectorToolAdapter();
+    $context = $adapter->context(new CliArguments('rector', ['--repair']), $project->root());
+
+    $payload = $adapter->parse(
+        execution: ExecutionResult::completed(0, rectorJson($source, changedFiles: 1, errors: 0), '', 0.12),
+        context: $context,
+        command: rectorPreparedCommand($project),
+    )->toPayload();
+
+    expect($payload['status'])->toBe(RunStatus::Changed->value);
 });
 
 it('fails when rector includes diffs but reports a zero total', function (): void {
