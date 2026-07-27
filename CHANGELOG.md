@@ -12,6 +12,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) an
 - PHP CS Fixer raw runs now inject `--dry-run` unless `--repair` is explicit.
 - ECS raw runs now map `--repair` to `--fix` and block native fixes without explicit repair intent.
 - Composer Normalize raw runs now preserve the `normalize` command and require `--repair` before writing changes.
+- PHPStan `2.2.6` is now explicitly excluded because its PHAR fails during analysis; dependency resolution selects a compatible release.
 
 ## 2.4.2 - 2026-07-23 [YANKED]
 
