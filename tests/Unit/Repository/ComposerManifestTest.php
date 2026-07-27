@@ -10,6 +10,7 @@ use Sift\Composer\SiftPlugin;
  *     type: string,
  *     license: string,
  *     require: array<string, string>,
+ *     conflict: array<string, string>,
  *     autoload: array{'psr-4': array<string, string>},
  *     autoload-dev: array{'psr-4': array<string, string>},
  *     bin: list<string>,
@@ -31,6 +32,7 @@ function composerManifest(): array
         'type' => manifestString($manifest, 'type'),
         'license' => manifestString($manifest, 'license'),
         'require' => manifestStringMap($manifest, 'require'),
+        'conflict' => manifestStringMap($manifest, 'conflict'),
         'autoload' => ['psr-4' => manifestStringMap(manifestArray($manifest, 'autoload'), 'psr-4')],
         'autoload-dev' => ['psr-4' => manifestStringMap(manifestArray($manifest, 'autoload-dev'), 'psr-4')],
         'bin' => manifestStringList($manifest, 'bin'),
@@ -146,6 +148,7 @@ it('declares the package contract required for the rebuild', function (): void {
     expect($manifest['require']['composer-plugin-api'] ?? null)->toBe('^2.6');
     expect($manifest['require']['ext-json'] ?? null)->toBe('*');
     expect($manifest['require']['ext-simplexml'] ?? null)->toBe('*');
+    expect($manifest['conflict']['phpstan/phpstan'] ?? null)->toBe('2.2.6');
     expect($manifest['require']['symfony/console'] ?? null)->toBeNull();
     expect($manifest['require']['symfony/process'] ?? null)->toBeNull();
     expect($manifest['autoload']['psr-4']['Sift\\'] ?? null)->toBe('src/');
