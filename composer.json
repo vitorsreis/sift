@@ -44,7 +44,7 @@
     "rector/rector": "^2.5",
     "squizlabs/php_codesniffer": "^4.0",
     "symplify/easy-coding-standard": "^13.2",
-    "vimeo/psalm": "^6.5"
+    "vimeo/psalm": "^7.0"
   },
   "conflict": {
     "phpstan/phpstan": "2.2.6"
